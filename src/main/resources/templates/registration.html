@@ -1,0 +1,34 @@
+<html lang="en">
+<body>
+<h1 th:text="#{label.form.register}">form</h1>
+<form th:action="@{/register}" th:object="${user}" method="POST" enctype="utf8">
+    <div>
+        <label th:text="#{label.user.firstName}" for="firstname">first</label>
+        <input th:field="*{firstName}" id="firstname"/>
+        <p th:each="error: ${#fields.errors('firstName')}"
+           th:text="${error}">Validation error</p>
+    </div>
+    <div>
+        <label th:text="#{label.user.lastName}" for="lastname">last</label>
+        <input th:field="*{lastName}" id="lastname"/>
+        <p th:each="error : ${#fields.errors('lastName')}"
+           th:text="${error}">Validation error</p>
+    </div>
+    <div>
+        <label th:text="#{label.user.email}" for="email">email</label>
+        <input type="email" th:field="*{email}" id="email"/>
+        <p th:each="error : ${#fields.errors('email')}"
+           th:text="${error}">Validation error</p>
+    </div>
+    <div>
+        <label th:text="#{label.user.password}" for="password">password</label>
+        <input type="password" th:field="*{password}" id="password"/>
+        <p th:each="error : ${#fields.errors('password')}"
+           th:text="${error}">Validation error</p>
+    </div>
+    <button type="submit" th:text="#{label.form.submit}">submit</button>
+</form>
+
+<a th:href="@{/login.html}" th:text="#{label.form.loginLink}">login</a>
+</body>
+</html>
