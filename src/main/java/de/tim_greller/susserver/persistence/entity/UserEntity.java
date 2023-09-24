@@ -3,7 +3,6 @@ package de.tim_greller.susserver.persistence.entity;
 import java.util.Collection;
 import java.util.List;
 
-import de.tim_greller.susserver.dto.UserDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

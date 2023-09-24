@@ -1,4 +1,4 @@
-package de.tim_greller.susserver.securingweb;
+package de.tim_greller.susserver.service.auth;
 
 import java.time.Duration;
 import java.time.Instant;

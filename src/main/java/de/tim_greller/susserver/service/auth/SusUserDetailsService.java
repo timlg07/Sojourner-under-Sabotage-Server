@@ -1,8 +1,5 @@
-package de.tim_greller.susserver.securingweb;
+package de.tim_greller.susserver.service.auth;
 
-import de.tim_greller.susserver.persistence.entity.UserEntity;
-import de.tim_greller.susserver.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

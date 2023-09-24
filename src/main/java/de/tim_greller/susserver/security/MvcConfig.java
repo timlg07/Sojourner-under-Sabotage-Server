@@ -1,4 +1,4 @@
-package de.tim_greller.susserver.securingweb;
+package de.tim_greller.susserver.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

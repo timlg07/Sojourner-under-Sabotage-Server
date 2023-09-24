@@ -1,9 +1,9 @@
 package de.tim_greller.susserver.controller.web;
 
-import de.tim_greller.susserver.dto.UserDTO;
+import de.tim_greller.susserver.dto.UserRegistrationDTO;
 import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
-import de.tim_greller.susserver.service.UserService;
+import de.tim_greller.susserver.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,13 +24,13 @@ public class RegistrationController {
 
     @GetMapping("/register")
     public String showRegistrationForm(WebRequest request, Model model) {
-        UserDTO userDto = new UserDTO();
+        UserRegistrationDTO userDto = new UserRegistrationDTO();
         model.addAttribute("user", userDto);
         return "register";
     }
 
     @PostMapping("/register")
-    public ModelAndView registerUserAccount(@ModelAttribute("user") UserDTO userDto, ModelAndView mav) {
+    public ModelAndView registerUserAccount(@ModelAttribute("user") UserRegistrationDTO userDto, ModelAndView mav) {
         try {
             UserEntity registered = userService.registerNewUserAccount(userDto);
             return new ModelAndView("home", "user", registered);

@@ -1,13 +1,12 @@
 package de.tim_greller.susserver.controller.api;
 
-import de.tim_greller.susserver.securingweb.JwtTokenService;
+import de.tim_greller.susserver.service.auth.JwtTokenService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;

@@ -1,8 +1,9 @@
-package de.tim_greller.susserver.securingweb;
+package de.tim_greller.susserver.security;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import de.tim_greller.susserver.service.UserService;
+import de.tim_greller.susserver.service.auth.SusUserDetailsService;
+import de.tim_greller.susserver.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -1,13 +1,12 @@
-package de.tim_greller.susserver.service;
+package de.tim_greller.susserver.service.auth;
 
 import java.util.Optional;
 
-import de.tim_greller.susserver.dto.UserDTO;
+import de.tim_greller.susserver.dto.UserRegistrationDTO;
 import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.persistence.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ public class UserService {
         this.encoder = encoder;
     }
 
-    public UserEntity registerNewUserAccount(UserDTO userDto) throws UserAlreadyExistException {
+    public UserEntity registerNewUserAccount(UserRegistrationDTO userDto) throws UserAlreadyExistException {
         if (emailExists(userDto.getEmail())) {
             throw new UserAlreadyExistException("There is an account with that email address: "
                     + userDto.getEmail());

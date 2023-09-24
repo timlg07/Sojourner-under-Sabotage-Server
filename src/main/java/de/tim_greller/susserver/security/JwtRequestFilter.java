@@ -1,7 +1,8 @@
-package de.tim_greller.susserver.securingweb;
+package de.tim_greller.susserver.security;
 
 import java.io.IOException;
 
+import de.tim_greller.susserver.service.auth.JwtTokenService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

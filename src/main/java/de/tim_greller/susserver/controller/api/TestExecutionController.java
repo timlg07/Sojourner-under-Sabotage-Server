@@ -2,10 +2,6 @@ package de.tim_greller.susserver.controller.api;
 
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,10 +15,5 @@ public class TestExecutionController {
         var res = new TestExecutionResultDTO();
         res.setTestClassName(testSource.getClassName());
         return res;
-    }
-
-    @GetMapping("${paths.api}/hello")
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok().body("Hello World");
     }
 }
