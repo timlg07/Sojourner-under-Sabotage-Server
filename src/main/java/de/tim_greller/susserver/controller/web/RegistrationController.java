@@ -4,6 +4,8 @@ import de.tim_greller.susserver.dto.UserRegistrationDTO;
 import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.service.auth.UserService;
+import jakarta.security.enterprise.credential.Password;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,10 +32,10 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public ModelAndView registerUserAccount(@ModelAttribute("user") UserRegistrationDTO userDto, ModelAndView mav) {
+    public ModelAndView registerUserAccount(@ModelAttribute("user") @Valid UserRegistrationDTO userDto, ModelAndView mav) {
         try {
             UserEntity registered = userService.registerNewUserAccount(userDto);
-            return new ModelAndView("home", "user", registered);
+            return new ModelAndView("login", "userRegistered", registered);
         } catch (UserAlreadyExistException uaeEx) {
             mav.addObject("message", "An account for that username/email already exists.");
             return mav;
