@@ -9,6 +9,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,12 +36,18 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public ModelAndView registerUserAccount(@ModelAttribute("user") @Valid UserRegistrationDTO userDto, ModelAndView mav) {
+    public ModelAndView registerUserAccount(@ModelAttribute("user") @Valid UserRegistrationDTO userDto,
+                                            BindingResult result, ModelAndView mav) {
+        if (result.hasErrors()) {
+            mav.addObject("user", userDto);
+            return mav;
+        }
+
         try {
             UserEntity registered = userService.registerNewUserAccount(userDto);
             return new ModelAndView("login", "userRegistered", registered);
         } catch (UserAlreadyExistException uaeEx) {
-            mav.addObject("message", "An account for that username/email already exists.");
+            result.addError(new FieldError("user", "email", "An account with that email already exists."));
             return mav;
         }
     }

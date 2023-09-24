@@ -20,9 +20,11 @@ public class UserRegistrationDTO {
     @Setter
     private String lastName;
 
+    @NotNull @NotEmpty @ValidPassword
     @Setter(onParam = @__({@NotNull, @NotEmpty, @ValidPassword}))
     private String password;
 
+    @NotNull @NotEmpty @ValidEmail
     @Setter(onParam = @__({@NotNull, @NotEmpty, @ValidEmail}))
     private String email;
 }
