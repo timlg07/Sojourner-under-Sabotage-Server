@@ -39,7 +39,6 @@ public class RegistrationController {
     public ModelAndView registerUserAccount(@ModelAttribute("user") @Valid UserRegistrationDTO userDto,
                                             BindingResult result, ModelAndView mav) {
         if (result.hasErrors()) {
-            mav.addObject("user", userDto);
             return mav;
         }
 
@@ -47,7 +46,8 @@ public class RegistrationController {
             UserEntity registered = userService.registerNewUserAccount(userDto);
             return new ModelAndView("login", "userRegistered", registered);
         } catch (UserAlreadyExistException uaeEx) {
-            result.addError(new FieldError("user", "email", "An account with that email already exists."));
+            result.addError(new FieldError("user", "email",
+                    "An account with that email already exists."));
             return mav;
         }
     }

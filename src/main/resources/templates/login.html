@@ -4,6 +4,10 @@
     <title>Spring Security Example </title>
 </head>
 <body>
+<div th:if="${userRegistered}">
+    Hello <span th:text="${userRegistered.getFirstName()}">User</span>, your registration was successful!<br>
+    You can login now to play the game.
+</div>
 <div th:if="${param.error}">
     Invalid username and password.
 </div>
