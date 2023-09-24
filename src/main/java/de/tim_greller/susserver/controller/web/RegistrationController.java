@@ -1,4 +1,4 @@
-package de.tim_greller.susserver.controller;
+package de.tim_greller.susserver.controller.web;
 
 import de.tim_greller.susserver.dto.UserDTO;
 import de.tim_greller.susserver.exception.UserAlreadyExistException;

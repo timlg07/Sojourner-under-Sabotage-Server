@@ -13,3 +13,12 @@ curl -H "Accept: application/json" \
      -d "{\"className\":\"Test\",\"sourceCode\":\"public class Test{}\"} \
      -i
 ```
+
+
+```shell
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST localhost:8008/api/auth -d  "{\"login\":\"mail@tim-greller.de\",\"password\":\"1234\"} -i
+````
+
+```shell
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d "{\"className\":\"Test\",\"sourceCode\":\"public class Test{}\"}" -i -H "Authorization: Bearer insert_valid_token_here" localhost:8008/api/execute
+```
