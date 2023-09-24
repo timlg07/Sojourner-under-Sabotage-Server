@@ -25,9 +25,13 @@ public class JwtTokenService {
     }
 
     public String generateToken(final UserDetails userDetails) {
+        return generateToken(userDetails.getUsername());
+    }
+
+    public String generateToken(final String username) {
         final Instant now = Instant.now();
         return JWT.create()
-                .withSubject(userDetails.getUsername())
+                .withSubject(username)
                 .withIssuer("app")
                 .withIssuedAt(now)
                 .withExpiresAt(now.plusMillis(JWT_TOKEN_VALIDITY.toMillis()))

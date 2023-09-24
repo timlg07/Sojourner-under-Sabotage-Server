@@ -9,5 +9,7 @@
 <form th:action="@{/logout}" method="post">
     <input type="submit" value="Sign Out"/>
 </form>
+<h2>JWT Token:</h2>
+<p th:text="${@jwtTokenSupplier.getJwtToken().orElse('not logged in')}">JWT token for API</p>
 </body>
 </html>
