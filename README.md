@@ -20,5 +20,5 @@ curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST l
 ````
 
 ```shell
-curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d "{\"className\":\"Test\",\"sourceCode\":\"public class Test{}\"}" -i -H "Authorization: Bearer insert_valid_token_here" localhost:8008/api/execute
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d "{\"className\":\"DemoTest\",\"sourceCode\":\"public class DemoTest{@org.junit.Test public void testDemoAddition(){org.junit.Assert.assertEquals(3, Demo.add(1, 2));}}\"}" -i -H "Authorization: Bearer insert_valid_token_here" localhost:8008/api/execute
 ```
