@@ -7,7 +7,6 @@ import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
-import de.tim_greller.susserver.model.game.ComponentId;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +21,7 @@ public class TestExecutionController {
             "Demo","""
                         public class Demo {
                             public static int add(int a, int b) {
-                                return a - b;
+                                return a + b;
                             }
                         }
                         """);
