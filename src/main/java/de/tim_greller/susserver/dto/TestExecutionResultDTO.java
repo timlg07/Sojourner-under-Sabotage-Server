@@ -13,9 +13,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TestExecutionResultDTO {
 
-    private TestStatus testStatus;
-    private Map<String, TestDetailsDTO> testDetails;
-    private long elapsedTime;
     private String testClassName;
+    private TestStatus testStatus;
+    private long elapsedTime;
+    private Map<String, TestDetailsDTO> testDetails;
 
 }

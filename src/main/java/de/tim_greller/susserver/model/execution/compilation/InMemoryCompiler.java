@@ -15,7 +15,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import de.tim_greller.susserver.dto.TestSourceDTO;
+import de.tim_greller.susserver.dto.SourceDTO;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
 import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
@@ -32,7 +32,7 @@ public class InMemoryCompiler {
     private final JavaFileManager fileManager = createFileManager();
     private final ClassLoader inMemoryClassLoader = createClassLoader();
 
-    public void addSource(TestSourceDTO testSource) {
+    public void addSource(SourceDTO testSource) {
         addSource(testSource.getClassName(), testSource.getSourceCode());
     }
 

@@ -1,15 +1,12 @@
 package de.tim_greller.susserver.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class TestSourceDTO {
-    private String className;
-    private String sourceCode;
+public class TestSourceDTO extends SourceDTO {
+
+    // Lombok is stupid
+    public TestSourceDTO(String cutComponentName, String className, String sourceCode) {
+        super(cutComponentName, className, sourceCode);
+    }
 }
