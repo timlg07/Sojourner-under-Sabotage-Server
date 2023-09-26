@@ -4,6 +4,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 import de.tim_greller.susserver.service.auth.SusUserDetailsService;
 import de.tim_greller.susserver.service.auth.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -54,6 +55,15 @@ public class SecurityConfig {
                     .authorizeHttpRequests((requests) -> requests
                             .requestMatchers(apiUrl + "/hello", apiUrl + "/auth").permitAll()
                             .requestMatchers(apiUrl + "/**").authenticated()
+                    )
+                    // disable redirect to log in form and send 401 instead
+                    .exceptionHandling(ehc -> ehc
+                            .defaultAuthenticationEntryPointFor(
+                                    (request, response, authException) -> {
+                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                    },
+                                    (request) -> request.getRequestURI().startsWith(apiUrl)
+                            )
                     )
                     .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
