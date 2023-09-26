@@ -11,10 +11,12 @@ import de.tim_greller.susserver.service.execution.CutService;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class TestExecutionController {
@@ -38,7 +40,12 @@ public class TestExecutionController {
     public @ResponseBody TestExecutionResultDTO executeTest(@RequestBody TestSourceDTO testSource) {
         var res = new TestExecutionResultDTO();
         var compiler = new InMemoryCompiler();
-        var cut = cutService.getCutForComponent(testSource.getCutComponentName()).orElse(CUT);
+        var cut = cutService
+                .getCutForComponent(testSource.getCutComponentName())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "CUT for the specified component was not found"
+                ));
 
         compiler.addSource(cut);
         compiler.addSource(testSource);
