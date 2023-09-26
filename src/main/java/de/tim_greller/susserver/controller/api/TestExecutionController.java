@@ -1,9 +1,8 @@
 package de.tim_greller.susserver.controller.api;
 
-import java.util.stream.Collectors;
-
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
+import de.tim_greller.susserver.dto.TestStatus;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
@@ -39,13 +38,8 @@ public class TestExecutionController {
         jUnitCore.addListener(listener);
         Result r = jUnitCore.run(testClass);
         res.setTestClassName(testSource.getClassName());
-        res.setTestStatus(r.wasSuccessful() ? TestExecutionResultDTO.TestStatus.PASSED : TestExecutionResultDTO.TestStatus.FAILED);
-        res.setTestDetails(listener.getMap().values().stream().map(testSuiteDetails -> new TestExecutionResultDTO.TestDetails(
-                testSuiteDetails.getTestCaseName(),
-                TestExecutionResultDTO.TestStatus.valueOf(testSuiteDetails.getTestStatus().toString()),
-                testSuiteDetails.getActualTestResult(),
-                testSuiteDetails.getExpectedTestResult(),
-                testSuiteDetails.getTestDescription())).collect(Collectors.toMap(TestExecutionResultDTO.TestDetails::getMethodName, testDetails -> testDetails)));
+        res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
+        res.setTestDetails(listener.getMap());
         return res;
     }
 }
