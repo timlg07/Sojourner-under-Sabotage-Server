@@ -1,6 +1,5 @@
 package de.tim_greller.susserver.controller.api;
 
-import de.tim_greller.susserver.dto.CutSourceDTO;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.dto.TestStatus;
@@ -22,14 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class TestExecutionController {
 
     private final CutService cutService;
-    private final CutSourceDTO CUT = new CutSourceDTO(
-            "Demo","Demo", """
-                        public class Demo {
-                            public static int add(int a, int b) {
-                                return 3;
-                            }
-                        }
-                        """);
 
     @Autowired
     public TestExecutionController(CutService cutService) {
@@ -49,7 +40,7 @@ public class TestExecutionController {
 
         compiler.addSource(cut);
         compiler.addSource(testSource);
-        compiler.addTransformer(new CoverageClassTransformer(), CUT.getClassName());
+        compiler.addTransformer(new CoverageClassTransformer(), cut.getClassName());
         compiler.compile();
 
         Class<?> testClass = compiler.getClass(testSource.getClassName()).orElseThrow();
