@@ -7,11 +7,7 @@
 
 ## Test the API
 ```shell
-curl -H "Accept: application/json" \
-     -H "Content-Type: application/json" \
-     -X POST localhost:8008/api/execute \
-     -d "{\"className\":\"Test\",\"sourceCode\":\"public class Test{}\"} \
-     -i
+curl localhost:8008/api/hello -i
 ```
 
 
