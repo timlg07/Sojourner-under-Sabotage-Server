@@ -1,4 +1,7 @@
 # Sojourner under Sabotage - Server
+## Create the Unity build
+Build the Unity project with WebGL as target platform. Use `/src/main/resources/static/unity/` as build output directory.
+
 ## Install
 - Open the maven project
 - Install dependencies `mvn install`

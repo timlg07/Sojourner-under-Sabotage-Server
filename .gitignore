@@ -34,3 +34,6 @@ build/
 
 ### Config ###
 src/main/resources/application.properties
+
+### Unity WebGL Build ###
+/src/main/resources/static/unity/*
