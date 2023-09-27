@@ -1,0 +1,5 @@
+# webpack dist will be generated here
+
+*.ttf
+*.js
+*.LICENSE.txt

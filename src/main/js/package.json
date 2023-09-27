@@ -1,0 +1,21 @@
+{
+  "name": "sus-frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --progress",
+    "production": "webpack --mode production -w"
+  },
+  "author": "Tim L. Greller",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "css-loader": "^6.8.1",
+    "file-loader": "^6.2.0",
+    "monaco-editor": "^0.43.0",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}
