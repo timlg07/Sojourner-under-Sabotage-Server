@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoController {
 
     @GetMapping("${paths.api}/hello")
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok().body("Hello World");
+    public ResponseEntity<Object> hello() {
+        return ResponseEntity.ok().body(new Object() {
+            public final String message = "Hello World!";
+        });
     }
 }
