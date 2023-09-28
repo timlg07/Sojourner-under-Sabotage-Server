@@ -11,6 +11,7 @@
     <div id="ui-overlay" style="position:absolute;inset:0;z-index:100;background:#0b0b1d;">
       <div style="display:flex;flex-direction:column;height:100%;padding:3rem;box-sizing:border-box">
         <div id="button-bar" style="height:8rem">
+          <button id="editor-close-btn">Close</button>
         </div>
         <div style="display:flex;flex:1;gap:3rem;">
           <div id="monaco-container-debug" style="flex:1;height:100%;flex-basis:50%"></div>
@@ -156,6 +157,11 @@
 
       const uiOverlay = document.getElementById('ui-overlay');
       uiOverlay.style.display = 'none';
+
+      document.getElementById('editor-close-btn').addEventListener('click', () => {
+        uiOverlay.style.display = 'none';
+        window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
+      });
     </script>
   </body>
 </html>
