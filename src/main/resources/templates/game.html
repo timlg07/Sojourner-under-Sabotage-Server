@@ -8,6 +8,16 @@
     <link rel="stylesheet" th:href="@{unity/TemplateData/style.css}">
   </head>
   <body>
+    <div id="ui-overlay" style="position:absolute;inset:0;z-index:100;background:#0b0b1d;">
+      <div style="display:flex;flex-direction:column;height:100%;padding:3rem;box-sizing:border-box">
+        <div id="button-bar" style="height:8rem">
+        </div>
+        <div style="display:flex;flex:1;gap:3rem;">
+          <div id="monaco-container-debug" style="flex:1;height:100%;flex-basis:50%"></div>
+          <div id="monaco-container-test" style="flex:1;height:100%;flex-basis:50%"></div>
+        </div>
+      </div>
+    </div>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -106,18 +116,46 @@
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+        }).then((unityInstance) => {
+          loadingBar.style.display = "none";
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);//TODO
+          };
+          window.unloadUnity = function() {
+            unityInstance.Quit().then(function() {
+              console.log("unity unloaded");
+            });
+            unityInstance = null;
+          }
+          window.unityInstance = unityInstance;
+        }).catch((message) => {
+          alert(message);
+        });
+      };
 
       document.body.appendChild(script);
 
+    </script>
+    <script th:src="@{/js/main.bundle.js}"></script>
+    <script>
+      const monacoContainerDebug = document.getElementById('monaco-container-debug');
+      window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
+        value: '',
+        language: 'java',
+        theme: 'vs-dark',
+        automaticLayout: true,
+      });
+
+      const monacoContainerTest = document.getElementById('monaco-container-test');
+      window.monacoEditorTest = monaco.editor.create(monacoContainerTest, {
+        value: '',
+        language: 'java',
+        theme: 'vs-dark',
+        automaticLayout: true,
+      });
+
+      const uiOverlay = document.getElementById('ui-overlay');
+      uiOverlay.style.display = 'none';
     </script>
   </body>
 </html>

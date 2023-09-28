@@ -2,12 +2,27 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    <title>Monaco Editor Sync Loading Sample</title>
+    <title>Editor View</title>
 </head>
 <body>
 <h2>Monaco Editor Sync Loading Sample</h2>
 <div id="container" style="width: 800px; height: 600px; border: 1px solid grey"></div>
 
 <script th:src="@{/js/main.bundle.js}"></script>
+<script>
+    window.monacoEditor = monaco.editor.create(document.getElementById('container'), {
+        value:
+            `public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
+    }
+}`,
+        language: 'java',
+        theme: 'vs-dark',
+        "semanticHighlighting.enabled": true,
+        copyWithSyntaxHighlighting: false,
+        automaticLayout: true,
+    });
+</script>
 </body>
 </html>
