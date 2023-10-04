@@ -69,7 +69,7 @@
         updateBannerVisibility();
       }
 
-      var loaderUrl = buildUrl + "/WebGL.loader.js";
+      var loaderUrl = buildUrl + "/unity.loader.js";
       var config = {
         dataUrl: buildUrl + "/unity.data",
         frameworkUrl: buildUrl + "/unity.framework.js",
@@ -138,6 +138,9 @@
 
     </script>
     <script th:src="@{/js/main.bundle.js}"></script>
+    <script th:inline="javascript">
+      window.token = /*[[${@jwtTokenSupplier.getJwtToken().orElse("")}]]*/ '';
+    </script>
     <script>
       const monacoContainerDebug = document.getElementById('monaco-container-debug');
       window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
@@ -162,6 +165,18 @@
         uiOverlay.style.display = 'none';
         window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
       });
+
+      window.openEditor = async function(componentName) {
+        document.getElementById('ui-overlay').style.display = "initial";
+        window.monacoEditorDebug.layout();
+        window.monacoEditorTest.layout();
+        const valueDebug = await fetch(
+                `/api/components/${componentName}/cut/src`,
+                {headers: {'Authorization': `Bearer ${window.token}`}}
+        ).then(res => res.json().then(json => json.sourceCode));
+        window.monacoEditorDebug.setValue(valueDebug);
+        window.monacoEditorTest.setValue("");
+      }
     </script>
   </body>
 </html>
