@@ -166,15 +166,17 @@
         window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
       });
 
+      const authHeader = {'Authorization': `Bearer ${window.token}`};
       window.openEditor = async function(componentName) {
+        window.monacoEditorDebug.setValue("loading...");
+        window.monacoEditorTest.setValue("loading...");
         document.getElementById('ui-overlay').style.display = "initial";
         window.monacoEditorDebug.layout();
         window.monacoEditorTest.layout();
-        const valueDebug = await fetch(
-                `/api/components/${componentName}/cut/src`,
-                {headers: {'Authorization': `Bearer ${window.token}`}}
-        ).then(res => res.json().then(json => json.sourceCode));
-        window.monacoEditorDebug.setValue(valueDebug);
+        fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
+                .then(res => res.json())
+                .then(json => json.sourceCode)
+                .then(cut => window.monacoEditorDebug.setValue(cut));
         window.monacoEditorTest.setValue("");
       }
     </script>
