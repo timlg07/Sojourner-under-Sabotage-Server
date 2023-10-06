@@ -173,11 +173,16 @@
         document.getElementById('ui-overlay').style.display = "initial";
         window.monacoEditorDebug.layout();
         window.monacoEditorTest.layout();
+
         fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
                 .then(res => res.json())
                 .then(json => json.sourceCode)
                 .then(cut => window.monacoEditorDebug.setValue(cut));
-        window.monacoEditorTest.setValue("");
+
+        fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
+                .then(res => res.json())
+                .then(json => json.sourceCode)
+                .then(test => window.monacoEditorTest.setValue(test));
       }
     </script>
   </body>

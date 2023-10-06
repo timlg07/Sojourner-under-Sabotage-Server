@@ -7,6 +7,9 @@ import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.persistence.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,5 +47,21 @@ public class UserService {
 
     public Optional<UserEntity> loadUserByEmail(String username) {
         return userRepository.findById(username);
+    }
+
+    public Optional<String> getCurrentUserId() {
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!auth.isAuthenticated()) {
+            return Optional.empty();
+        }
+
+        final Object principal = auth.getPrincipal();
+        final String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        return Optional.of(username);
     }
 }

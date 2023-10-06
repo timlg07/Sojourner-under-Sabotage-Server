@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 
 import de.tim_greller.susserver.dto.CutSourceDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
+import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.CutService;
 import de.tim_greller.susserver.service.execution.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +19,13 @@ public class SourceCodeController {
 
     private final CutService cutService;
     private final TestService testService;
+    private final UserService userService;
 
     @Autowired
-    public SourceCodeController(CutService cutService, TestService testService) {
+    public SourceCodeController(CutService cutService, TestService testService, UserService userService) {
         this.cutService = cutService;
         this.testService = testService;
+        this.userService = userService;
     }
 
     @GetMapping("${paths.api}/components/{componentName}/cut/src")
@@ -36,10 +39,11 @@ public class SourceCodeController {
 
     @GetMapping("${paths.api}/components/{componentName}/test/src")
     public TestSourceDTO getTestSourceCode(@PathVariable String componentName) {
-        return testService
-                .getTestForComponent(componentName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MessageFormat.format(
-                        "User test for the specified component \"{0}\" was not found", componentName
-                )));
+        return TestSourceDTO.fromTestEntity(
+                testService.getTestForComponent(
+                        componentName,
+                        userService.getCurrentUserId().orElseThrow()
+                )
+        );
     }
 }
