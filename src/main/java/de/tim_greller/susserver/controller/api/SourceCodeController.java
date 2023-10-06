@@ -7,10 +7,13 @@ import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.CutService;
 import de.tim_greller.susserver.service.execution.TestService;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,8 +45,23 @@ public class SourceCodeController {
         return TestSourceDTO.fromTestEntity(
                 testService.getTestForComponent(
                         componentName,
-                        userService.getCurrentUserId().orElseThrow()
+                        userService.requireCurrentUserId()
                 )
         );
+    }
+
+    @PutMapping("${paths.api}/components/{componentName}/test/src")
+    public void updateTestSourceCode(@PathVariable String componentName,
+                                     @RequestBody PlainSource newSource) {
+        testService.updateTestForComponent(
+                componentName,
+                userService.requireCurrentUserId(),
+                newSource.code
+        );
+    }
+
+    @Data
+    public static class PlainSource {
+        private String code;
     }
 }

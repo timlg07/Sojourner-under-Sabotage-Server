@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table
@@ -23,6 +24,7 @@ public class TestEntity {
     private String className;
 
     @Column(length = 100_000)
+    @Setter
     private String sourceCode;
 
 }

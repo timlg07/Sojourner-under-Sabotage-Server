@@ -37,6 +37,15 @@ public class TestService {
         return testRepository.findById(key).orElse(createEmptyTest(key));
     }
 
+    public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
+        final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
+        final UserEntity user = userRepository.findById(userId).orElseThrow();
+        final UserComponentKey key = new UserComponentKey(component, user);
+        final TestEntity test = testRepository.findById(key).orElse(createEmptyTest(key));
+        test.setSourceCode(newSourceCode);
+        testRepository.save(test);
+    }
+
     private TestEntity createEmptyTest(UserComponentKey key) {
         final CutEntity cut = cutRepository.findById(new ComponentKey(key.getComponent())).orElseThrow();
         final String emptyTest = getTestTemplate(key.getComponent().getName());

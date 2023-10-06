@@ -64,4 +64,8 @@ public class UserService {
         }
         return Optional.of(username);
     }
+
+    public String requireCurrentUserId() {
+        return getCurrentUserId().orElseThrow();
+    }
 }

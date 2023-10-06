@@ -167,6 +167,7 @@
       });
 
       const authHeader = {'Authorization': `Bearer ${window.token}`};
+      const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
       window.openEditor = async function(componentName) {
         window.monacoEditorDebug.setValue("loading...");
         window.monacoEditorTest.setValue("loading...");
@@ -182,7 +183,27 @@
         fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
                 .then(res => res.json())
                 .then(json => json.sourceCode)
-                .then(test => window.monacoEditorTest.setValue(test));
+                .then(test => {
+                  window.monacoEditorTest.setValue(test);
+                  addTestEditorChangeListener();
+                });
+
+        function addTestEditorChangeListener() {
+          const autoSaveInterval = 3e3;
+          let timeout = null;
+          window.monacoEditorTest.onDidChangeModelContent(e => {
+            if (timeout) return; // debounce
+            timeout = setTimeout(() => {
+              timeout = null;
+              const test = window.monacoEditorTest.getValue();
+              fetch(`/api/components/${componentName}/test/src`, {
+                method: 'PUT',
+                headers: jsonHeader,
+                body: JSON.stringify({code: test}),
+              }).then(res => console.log("Test saved")).catch(console.error);
+            }, autoSaveInterval);
+          });
+        }
       }
     </script>
   </body>
