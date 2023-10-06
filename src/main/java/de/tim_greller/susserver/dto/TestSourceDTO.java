@@ -13,7 +13,7 @@ public class TestSourceDTO extends SourceDTO {
 
     public static TestSourceDTO fromTestEntity(TestEntity testEntity) {
         var t = new TestSourceDTO();
-        t.setCutComponentName(testEntity.getComponentName());
+        t.setCutComponentName(testEntity.getUserComponentKey().getComponent().getName());
         t.setClassName(testEntity.getClassName());
         t.setSourceCode(testEntity.getSourceCode());
         return t;

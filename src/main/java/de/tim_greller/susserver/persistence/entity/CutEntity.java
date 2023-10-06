@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.persistence.entity;
 
+import de.tim_greller.susserver.persistence.keys.ComponentKey;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -16,8 +17,7 @@ import lombok.NoArgsConstructor;
 public class CutEntity {
 
     @Id
-    @Column
-    private String componentName;
+    private ComponentKey componentKey;
 
     @Column
     private String className;

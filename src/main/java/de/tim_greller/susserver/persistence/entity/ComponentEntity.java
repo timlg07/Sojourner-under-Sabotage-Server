@@ -1,6 +1,5 @@
 package de.tim_greller.susserver.persistence.entity;
 
-import de.tim_greller.susserver.persistence.keys.UserComponentKey;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -14,15 +13,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TestEntity {
-
+public class ComponentEntity {
     @Id
-    UserComponentKey userComponentKey;
-
     @Column
-    private String className;
-
-    @Column(length = 100_000)
-    private String sourceCode;
-
+    private String name;
 }

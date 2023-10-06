@@ -13,7 +13,7 @@ public class CutSourceDTO extends SourceDTO {
 
     public static CutSourceDTO fromCutEntity(CutEntity cutEntity) {
         var c = new CutSourceDTO();
-        c.setCutComponentName(cutEntity.getComponentName());
+        c.setCutComponentName(cutEntity.getComponentKey().getComponent().getName());
         c.setClassName(cutEntity.getClassName());
         c.setSourceCode(cutEntity.getSourceCode());
         return c;
