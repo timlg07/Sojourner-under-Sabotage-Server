@@ -34,7 +34,7 @@ public class TestService {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         final UserEntity user = userRepository.findById(userId).orElseThrow();
         final UserComponentKey key = new UserComponentKey(component, user);
-        return testRepository.findById(key).orElse(createEmptyTest(key));
+        return testRepository.findByKey(component.getName(), user.getEmail()).orElseThrow();
     }
 
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
