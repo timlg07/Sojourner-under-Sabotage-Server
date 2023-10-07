@@ -61,7 +61,7 @@ public class TestService {
     private String getTestTemplate(String testName) {
         return String.join("",
                 getTestTemplateStart(testName),
-                "        Assertions.fail(\"Not implemented yet!\");",
+                "        fail(\"Not implemented yet!\");",
                 getTestTemplateEnd()
         );
     }
@@ -70,7 +70,7 @@ public class TestService {
         return (
         """
         import org.junit.Test;
-        import org.junit.Assertions;
+        import static org.junit.Assert.*;
         
         public class\s""" + testName + """
          {
