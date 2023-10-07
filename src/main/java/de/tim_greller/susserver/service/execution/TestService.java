@@ -1,5 +1,7 @@
 package de.tim_greller.susserver.service.execution;
 
+import java.util.Optional;
+
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
 import de.tim_greller.susserver.persistence.entity.CutEntity;
 import de.tim_greller.susserver.persistence.entity.TestEntity;
@@ -30,15 +32,21 @@ public class TestService {
         this.cutRepository = cutRepository;
     }
 
-    public TestEntity getTestForComponent(String componentName, String userId) {
-        final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-        final UserEntity user = userRepository.findById(userId).orElseThrow();
-        final UserComponentKey key = new UserComponentKey(component, user);
-        return testRepository.findByKey(key).orElse(createEmptyTest(key));
+    public Optional<TestEntity> getTestForComponent(String componentName, String userId) {
+        return testRepository.findByKey(componentName, userId);
+    }
+
+    public TestEntity getOrCreateTestForComponent(String componentName, String userId) {
+        return getTestForComponent(componentName, userId).orElseGet(() -> {
+            final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
+            final UserEntity user = userRepository.findById(userId).orElseThrow();
+            final UserComponentKey key = new UserComponentKey(component, user);
+            return createEmptyTest(key);
+        });
     }
 
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
-        final TestEntity test = getTestForComponent(componentName, userId);
+        final TestEntity test = getOrCreateTestForComponent(componentName, userId);
         test.setSourceCode(newSourceCode);
         testRepository.save(test);
     }

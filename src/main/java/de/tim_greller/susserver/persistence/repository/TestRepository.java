@@ -20,8 +20,4 @@ public interface TestRepository
             AND t.userComponentKey.user.email = ?2
             """)
     Optional<TestEntity> findByKey(String componentName, String userEmail);
-
-    default Optional<TestEntity> findByKey(UserComponentKey key) {
-        return findByKey(key.getComponent().getName(), key.getUser().getEmail());
-    }
 }

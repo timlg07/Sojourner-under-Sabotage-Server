@@ -33,7 +33,7 @@ public class ExecutionService {
                         HttpStatus.NOT_FOUND,
                         "CUT for the specified component was not found"
                 ));
-        var testSource = TestSourceDTO.fromTestEntity(testService.getTestForComponent(componentName, userId));
+        var testSource = TestSourceDTO.fromTestEntity(testService.getOrCreateTestForComponent(componentName, userId));
 
         compiler.addSource(cutSource);
         compiler.addSource(testSource);
