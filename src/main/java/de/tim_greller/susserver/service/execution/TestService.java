@@ -34,14 +34,11 @@ public class TestService {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         final UserEntity user = userRepository.findById(userId).orElseThrow();
         final UserComponentKey key = new UserComponentKey(component, user);
-        return testRepository.findByKey(component.getName(), user.getEmail()).orElseThrow();
+        return testRepository.findByKey(key).orElse(createEmptyTest(key));
     }
 
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
-        final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-        final UserEntity user = userRepository.findById(userId).orElseThrow();
-        final UserComponentKey key = new UserComponentKey(component, user);
-        final TestEntity test = testRepository.findById(key).orElse(createEmptyTest(key));
+        final TestEntity test = getTestForComponent(componentName, userId);
         test.setSourceCode(newSourceCode);
         testRepository.save(test);
     }
