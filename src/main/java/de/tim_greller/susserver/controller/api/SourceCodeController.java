@@ -3,11 +3,11 @@ package de.tim_greller.susserver.controller.api;
 import java.text.MessageFormat;
 
 import de.tim_greller.susserver.dto.CutSourceDTO;
+import de.tim_greller.susserver.dto.PlainSource;
 import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.CutService;
 import de.tim_greller.susserver.service.execution.TestService;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,12 +56,8 @@ public class SourceCodeController {
         testService.updateTestForComponent(
                 componentName,
                 userService.requireCurrentUserId(),
-                newSource.code
+                newSource.getCode()
         );
     }
 
-    @Data
-    public static class PlainSource {
-        private String code;
-    }
 }

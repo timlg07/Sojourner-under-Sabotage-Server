@@ -1,57 +1,43 @@
 package de.tim_greller.susserver.controller.api;
 
+import de.tim_greller.susserver.dto.PlainSource;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
-import de.tim_greller.susserver.dto.TestSourceDTO;
-import de.tim_greller.susserver.dto.TestStatus;
-import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
-import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
-import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
-import de.tim_greller.susserver.service.execution.CutService;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.execution.ExecutionService;
+import de.tim_greller.susserver.service.execution.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class TestExecutionController {
 
-    private final CutService cutService;
+    private final TestService testService;
+    private final UserService userService;
+    private final ExecutionService executionService;
 
     @Autowired
-    public TestExecutionController(CutService cutService) {
-        this.cutService = cutService;
+    public TestExecutionController(TestService testService, UserService userService,
+                                   ExecutionService executionService) {
+        this.testService = testService;
+        this.userService = userService;
+        this.executionService = executionService;
     }
 
-    @PostMapping(value = "${paths.api}/execute")
-    public @ResponseBody TestExecutionResultDTO executeTest(@RequestBody TestSourceDTO testSource) {
-        var res = new TestExecutionResultDTO();
-        var compiler = new InMemoryCompiler();
-        var cut = cutService
-                .getCutForComponent(testSource.getCutComponentName())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "CUT for the specified component was not found"
-                ));
+    @PostMapping(value = "${paths.api}/components/{componentName}/execute")
+    public @ResponseBody TestExecutionResultDTO execute(@PathVariable String componentName,
+                                                        @RequestBody PlainSource testSource) {
+        // save the current source code
+        testService.updateTestForComponent(
+                componentName,
+                userService.requireCurrentUserId(),
+                testSource.getCode()
+        );
 
-        compiler.addSource(cut);
-        compiler.addSource(testSource);
-        compiler.addTransformer(new CoverageClassTransformer(), cut.getClassName());
-        compiler.compile();
-
-        Class<?> testClass = compiler.getClass(testSource.getClassName()).orElseThrow();
-        TestRunListener listener = new TestRunListener();
-        JUnitCore jUnitCore = new JUnitCore();
-        jUnitCore.addListener(listener);
-        Result r = jUnitCore.run(testClass);
-
-        res.setTestClassName(testSource.getClassName());
-        res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
-        res.setTestDetails(listener.getMap());
-        return res;
+        // compile and execute
+        return executionService.execute(componentName, userService.requireCurrentUserId());
     }
 }
