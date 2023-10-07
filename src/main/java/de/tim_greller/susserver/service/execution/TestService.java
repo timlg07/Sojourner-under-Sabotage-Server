@@ -53,26 +53,27 @@ public class TestService {
 
     private TestEntity createEmptyTest(UserComponentKey key) {
         final CutEntity cut = cutRepository.findById(new ComponentKey(key.getComponent())).orElseThrow();
-        final String emptyTest = getTestTemplate(key.getComponent().getName());
-        return testRepository.save(new TestEntity(key, cut.getClassName(), emptyTest));
+        final String testClassName = cut.getClassName() + "Test";
+        final String emptyTest = getTestTemplate(testClassName);
+        return testRepository.save(new TestEntity(key, testClassName, emptyTest));
     }
 
-    private String getTestTemplate(String cutName) {
+    private String getTestTemplate(String testName) {
         return String.join("",
-                getTestTemplateStart(cutName),
+                getTestTemplateStart(testName),
                 "        Assertions.fail(\"Not implemented yet!\");",
                 getTestTemplateEnd()
         );
     }
 
-    private String getTestTemplateStart(String cutName) {
+    private String getTestTemplateStart(String testName) {
         return (
         """
-        import org.junit.jupiter.api.Test;
-        import org.junit.jupiter.api.Assertions;
+        import org.junit.Test;
+        import org.junit.Assertions;
         
-        public class\s""" + cutName + """
-        Test {
+        public class\s""" + testName + """
+         {
         
             @Test
             public void test() {
