@@ -3,15 +3,15 @@ package de.tim_greller.susserver.service.execution;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.dto.TestStatus;
+import de.tim_greller.susserver.exception.ClassLoadException;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
+import de.tim_greller.susserver.exception.NotFoundException;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ExecutionService {
@@ -25,14 +25,12 @@ public class ExecutionService {
         this.testService = testService;
     }
 
-    public TestExecutionResultDTO execute(String componentName, String userId) {
+    public TestExecutionResultDTO execute(String componentName, String userId)
+            throws ClassLoadException, NotFoundException {
         var compiler = new InMemoryCompiler();
         var cutSource = cutService
                 .getCutForComponent(componentName)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "CUT for the specified component was not found"
-                ));
+                .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
         var testSource = TestSourceDTO.fromTestEntity(testService.getOrCreateTestForComponent(componentName, userId));
 
         compiler.addSource(cutSource);
@@ -40,7 +38,10 @@ public class ExecutionService {
         compiler.addTransformer(new CoverageClassTransformer(), cutSource.getClassName());
         compiler.compile();
 
-        Class<?> testClass = compiler.getClass(testSource.getClassName()).orElseThrow();
+        Class<?> testClass = compiler.getClass(testSource.getClassName())
+                .orElseThrow(() -> new ClassLoadException(
+                        "Error loading the test class \"" + testSource.getClassName() + "\"."
+                ));
         TestRunListener listener = new TestRunListener();
         JUnitCore jUnitCore = new JUnitCore();
         jUnitCore.addListener(listener);
