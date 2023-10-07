@@ -62,6 +62,7 @@ public class TestRunListener extends RunListener {
         testSuiteElapsedTime = System.currentTimeMillis() - testSuiteStartTime;
     }
 
+    @SuppressWarnings("removal")
     public void testFailure(Failure failure) {
         TestDetailsDTO testSuiteDetails = map.computeIfAbsent(
                 failure.getDescription().getMethodName(),
@@ -80,6 +81,8 @@ public class TestRunListener extends RunListener {
                 testSuiteDetails.setExpectedTestResult(matcher.group("expected"));
                 testSuiteDetails.setActualTestResult(matcher.group("actual"));
             }
+        } else if (exc instanceof java.security.AccessControlException ace) {
+            testSuiteDetails.setAccessDenied(ace.getPermission().getName());
         }
     }
 

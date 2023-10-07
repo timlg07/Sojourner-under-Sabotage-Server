@@ -21,6 +21,7 @@ public class TestDetailsDTO {
     private String actualTestResult;
     private String expectedTestResult;
     private String trace;
+    private String accessDenied;
 
     /**
      * The time when the test was started in milliseconds since the epoch.
