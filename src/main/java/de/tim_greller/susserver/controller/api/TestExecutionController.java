@@ -31,7 +31,7 @@ public class TestExecutionController {
         this.executionService = executionService;
     }
 
-    @PostMapping(value = "${paths.api}/components/{componentName}/execute")
+    @PostMapping(value = "${paths.api}/components/{componentName}/test/execute")
     public @ResponseBody TestExecutionResultDTO execute(@PathVariable String componentName,
                                                         @RequestBody PlainSource testSource) {
         // save the current source code

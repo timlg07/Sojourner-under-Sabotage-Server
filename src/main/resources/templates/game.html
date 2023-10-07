@@ -12,6 +12,7 @@
       <div style="display:flex;flex-direction:column;height:100%;padding:3rem;box-sizing:border-box">
         <div id="button-bar" style="height:8rem">
           <button id="editor-close-btn">Close</button>
+          <button id="editor-execute-btn">Execute</button>
         </div>
         <div style="display:flex;flex:1;gap:3rem;">
           <div id="monaco-container-debug" style="flex:1;height:100%;flex-basis:50%"></div>
@@ -200,10 +201,22 @@
                 method: 'PUT',
                 headers: jsonHeader,
                 body: JSON.stringify({code: test}),
-              }).then(res => console.log("Test saved")).catch(console.error);
+              }).then(res => console.log(res.ok ? "Test saved" : "auto-save error")).catch(console.error);
             }, autoSaveInterval);
           });
         }
+
+        document.getElementById('editor-execute-btn').addEventListener('click', () => {
+          const code = window.monacoEditorTest.getValue();
+          fetch(`/api/components/${componentName}/test/execute`, {
+            method: 'POST',
+            headers: jsonHeader,
+            body: JSON.stringify({code}),
+          })
+            .then(res => res.json())
+            .then(obj => console.log(obj))
+            .catch(console.error);
+        });
       }
     </script>
   </body>
