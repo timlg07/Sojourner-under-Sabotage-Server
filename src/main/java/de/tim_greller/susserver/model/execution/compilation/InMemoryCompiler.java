@@ -20,6 +20,7 @@ import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
 import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.IdentityClassTransformer;
+import de.tim_greller.susserver.model.execution.security.Sandbox;
 
 
 public class InMemoryCompiler {
@@ -89,7 +90,7 @@ public class InMemoryCompiler {
     }
 
     private ClassLoader createClassLoader() {
-        return new ClassLoader() {
+        return Sandbox.confine(new ClassLoader() {
             @Override
             public Class<?> findClass(String name) throws ClassNotFoundException {
                 if (!compiledClasses.containsKey(name)) {
@@ -104,6 +105,6 @@ public class InMemoryCompiler {
 
                 return defineClass(name, bytes, 0, bytes.length);
             }
-        };
+        });
     }
 }
