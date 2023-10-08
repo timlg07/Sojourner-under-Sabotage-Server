@@ -47,8 +47,16 @@ public class TestService {
 
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
         final TestEntity test = getOrCreateTestForComponent(componentName, userId);
+        if (!checkTestUsesTemplateParts(test.getClassName(), newSourceCode)) {
+            throw new SecurityException("Test has modified template parts.");
+        }
         test.setSourceCode(newSourceCode);
         testRepository.save(test);
+    }
+
+    private boolean checkTestUsesTemplateParts(String testName, String newSourceCode) {
+        return newSourceCode.startsWith(getTestTemplateStart(testName))
+                && newSourceCode.endsWith(getTestTemplateEnd());
     }
 
     private TestEntity createEmptyTest(UserComponentKey key) {
