@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ExecutionService {
 
-    private static final int MAX_TEST_EXECUTION_TIME_SECONDS = 5;
+    private static final int MAX_TEST_EXECUTION_TIME_SECONDS = 3;
     private final CutService cutService;
     private final TestService testService;
 
@@ -69,6 +69,7 @@ public class ExecutionService {
         final ExecutorService exService = Executors.newSingleThreadExecutor();
         Future<Result> res = exService.submit(() -> jUnitCore.run(testClass));
         try {
+            // This blocks the current request thread.
             return res.get(MAX_TEST_EXECUTION_TIME_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
