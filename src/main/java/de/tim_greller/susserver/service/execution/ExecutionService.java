@@ -38,6 +38,27 @@ public class ExecutionService {
 
     public TestExecutionResultDTO execute(String componentName, String userId)
             throws ClassLoadException, NotFoundException, TestExecutionException {
+        Class<?> testClass = compile(componentName, userId);
+        var listener = new TestRunListener();
+        Result r = run(testClass, listener);
+
+        var res = new TestExecutionResultDTO();
+        res.setTestClassName(testClass.getName());
+        res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
+        res.setTestDetails(listener.getMap());
+        return res;
+    }
+
+    /**
+     * Fetches the CUT and the test class of a user for the specified component from the database and compiles them.
+     *
+     * @param componentName The name of the component to compile the classes for.
+     * @param userId The id of the user whose classes should be fetched.
+     * @return The compiled test class.
+     * @throws NotFoundException If the CUT was not found. (If the test is not found an empty one will be created.)
+     * @throws ClassLoadException If the test class could not be loaded / was not successfully compiled.
+     */
+    private Class<?> compile(String componentName, String userId) throws NotFoundException, ClassLoadException {
         var compiler = new InMemoryCompiler();
         var cutSource = cutService
                 .getCutForComponent(componentName)
@@ -49,18 +70,10 @@ public class ExecutionService {
         compiler.addTransformer(new CoverageClassTransformer(), cutSource.getClassName());
         compiler.compile();
 
-        Class<?> testClass = compiler.getClass(testSource.getClassName())
+        return compiler.getClass(testSource.getClassName())
                 .orElseThrow(() -> new ClassLoadException(
                         "Error loading the test class \"" + testSource.getClassName() + "\"."
                 ));
-        TestRunListener listener = new TestRunListener();
-        Result r = run(testClass, listener);
-
-        var res = new TestExecutionResultDTO();
-        res.setTestClassName(testSource.getClassName());
-        res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
-        res.setTestDetails(listener.getMap());
-        return res;
     }
 
     private Result run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
