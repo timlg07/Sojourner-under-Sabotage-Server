@@ -4,6 +4,7 @@ import de.tim_greller.susserver.dto.PlainSource;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.exception.ClassLoadException;
 import de.tim_greller.susserver.exception.NotFoundException;
+import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.ExecutionService;
 import de.tim_greller.susserver.service.execution.TestService;
@@ -44,7 +45,7 @@ public class TestExecutionController {
         // compile and execute
         try {
             return executionService.execute(componentName, userService.requireCurrentUserId());
-        } catch (ClassLoadException e) {
+        } catch (ClassLoadException | TestExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (NotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
