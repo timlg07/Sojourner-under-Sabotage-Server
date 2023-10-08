@@ -83,6 +83,8 @@ public class TestRunListener extends RunListener {
             }
         } else if (exc instanceof java.security.AccessControlException ace) {
             testSuiteDetails.setAccessDenied(ace.getPermission().getName());
+        } else if (exc instanceof SecurityException se) {
+            testSuiteDetails.setAccessDenied(se.getMessage());
         }
     }
 

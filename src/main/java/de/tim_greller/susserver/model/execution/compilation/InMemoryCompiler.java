@@ -20,6 +20,7 @@ import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
 import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.IdentityClassTransformer;
+import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
 import de.tim_greller.susserver.model.execution.security.Sandbox;
 
 
@@ -90,7 +91,11 @@ public class InMemoryCompiler {
     }
 
     private ClassLoader createClassLoader() {
-        return Sandbox.confine(new ClassLoader() {
+        return new ClassLoader() {
+
+            private final ClassLoadingFilter filter = new ClassLoadingFilter();
+            private static final boolean USE_SANDBOX = false;
+
             @Override
             public Class<?> findClass(String name) throws ClassNotFoundException {
                 if (!compiledClasses.containsKey(name)) {
@@ -103,8 +108,29 @@ public class InMemoryCompiler {
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
                 bytes = transformer.transform(bytes, name);
 
-                return defineClass(name, bytes, 0, bytes.length);
+                Class<?> c = defineClass(name, bytes, 0, bytes.length);
+                if (USE_SANDBOX) Sandbox.confine(c);
+                return c;
             }
-        });
+
+            // Override loadClass as well to prohibit delegation to the parent class loader.
+            @Override
+            public Class<?> loadClass(String name) throws ClassNotFoundException {
+                synchronized (getClassLoadingLock(name)) {
+                    if (filter.allowDelegateLoadingOf(name)) {
+                        System.out.println("Delegate loading of " + name + " to parent class loader.");
+                        return super.loadClass(name);
+                    }
+                    System.out.println("Prohibit class from delegating: " + name);
+
+                    try {
+                        return findClass(name);
+                    } catch (ClassNotFoundException e) {
+                        super.loadClass(name); // throws ClassNotFoundException if class does not exist at all
+                        throw new SecurityException("Access to the class \"" + name + "\" was denied.");
+                    }
+                }
+            }
+        };
     }
 }

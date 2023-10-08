@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * This class is derived from <a href="https://stackoverflow.com/a/24225075/6336728">this SO answer</a>.
+ * This class is derived from <a href="https://stackoverflow.com/a/24225075/6336728">this SO answer</a> which uses the
+ * code of an old version of this file:
+ * <a href="https://github.com/janino-compiler/janino/blob/60e5667afb0b1055a09b1ea298a17d6c94272283/commons-compiler/src/main/java/org/codehaus/commons/compiler/Sandbox.java">Sandbox.java on GitHub</a>.
  * <p>
  * This class establishes a security manager that confines the permissions for code executed through classes of specific
  * classloaders.
@@ -31,6 +33,9 @@ public final class Sandbox {
     private static final Map<ClassLoader, java.security.AccessControlContext>
             CHECKED_CLASS_LOADERS = Collections.synchronizedMap(new WeakHashMap<>());
 
+    private static final Map<Class<?>, java.security.AccessControlContext>
+            CHECKED_CLASSES = Collections.synchronizedMap(new WeakHashMap<>());
+
     static {
         // Install our custom security manager.
         if (System.getSecurityManager() != null) {
@@ -52,6 +57,15 @@ public final class Sandbox {
                                 Sandbox.CHECKED_CLASS_LOADERS.get(class_.getClassLoader());
                         if (acc != null) {
                             System.out.println("Checking permission for classloader " + class_.getClassLoader());
+                            acc.checkPermission(perm);
+                        }
+                    }
+
+                    // Check if an ACC was set for the class.
+                    {
+                        java.security.AccessControlContext acc = Sandbox.CHECKED_CLASSES.get(class_);
+                        if (acc != null) {
+                            System.out.println("Checking permission for class " + class_);
                             acc.checkPermission(perm);
                         }
                     }
@@ -104,6 +118,46 @@ public final class Sandbox {
     public static ClassLoader confine(ClassLoader classLoader) {
         Sandbox.confine(classLoader, NO_PERMISSIONS);
         return classLoader;
+    }
+
+    /**
+     * All future actions that are executed through the given {@code class_} will be checked against the given {@code
+     * accessControlContext}.
+     *
+     * @throws SecurityException Permissions are already confined for the {@code class_}
+     */
+    public static void confine(Class<?> class_, java.security.AccessControlContext accessControlContext) {
+
+        if (Sandbox.CHECKED_CLASSES.containsKey(class_)) {
+            throw new SecurityException("Attempt to change the access control context for '" + class_ + "'");
+        }
+
+        Sandbox.CHECKED_CLASSES.put(class_, accessControlContext);
+    }
+
+    /**
+     * All future actions that are executed through the given {@code class_} will be checked against the given {@code
+     * protectionDomain}.
+     *
+     * @throws SecurityException Permissions are already confined for the {@code class_}
+     */
+    public static void confine(Class<?> class_, ProtectionDomain protectionDomain) {
+        Sandbox.confine(class_, new java.security.AccessControlContext(new ProtectionDomain[] {protectionDomain}));
+    }
+
+    /**
+     * All future actions that are executed through the given {@code class_} will be checked against the given {@code
+     * permissions}.
+     *
+     * @throws SecurityException Permissions are already confined for the {@code class_}
+     */
+    public static void confine(Class<?> class_, Permissions permissions) {
+        Sandbox.confine(class_, new ProtectionDomain(null, permissions));
+    }
+
+    public static <T> Class<T> confine(Class<T> class_) {
+        Sandbox.confine(class_, NO_PERMISSIONS);
+        return class_;
     }
 
 }
