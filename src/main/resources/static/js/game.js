@@ -22,6 +22,8 @@ document.getElementById('editor-close-btn').addEventListener('click', () => {
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
 });
 
+const result = document.getElementById('execution-result');
+
 function saveTest(componentName) {
     const saveButton = document.getElementById('editor-save-btn');
     saveButton.disabled = true;
@@ -32,6 +34,10 @@ function saveTest(componentName) {
         headers: jsonHeader,
         body: JSON.stringify({code: test}),
     }).then(res => {
+        if (res.status === 401) {
+            result.innerHTML = `<p class="clr-error">Your session has expired.
+                <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`;
+        }
         saveButton.disabled = false;
         saveButton.innerText = res.ok ? "Test Saved!" : "Save Failed";
         setTimeout(() => {
@@ -87,7 +93,7 @@ window.openEditor = async function (componentName) {
         const maxAutosaveInterval = 3e4; // auto save at least 30 seconds after a change
         let timeout = null;
         let lastSave = null;
-        window.monacoEditorTest.onDidChangeModelContent(e => {
+        window.monacoEditorTest.onDidChangeModelContent(_ => {
             if (!lastSave) {
                 // start tracking
                 lastSave = Date.now();
@@ -110,15 +116,19 @@ window.openEditor = async function (componentName) {
     const execBtn = document.getElementById('editor-execute-btn');
     execBtn.addEventListener('click', () => {
         const code = window.monacoEditorTest.getValue();
-        const result = document.getElementById('execution-result');
         result.innerHTML = '<p>Executing test...</p>';
         execBtn.disabled = true;
         fetch(`/api/components/${componentName}/test/execute`, {
             method: 'POST',
             headers: jsonHeader,
             body: JSON.stringify({code}),
-        })
-            .then(res => res.json().then(obj => {
+        }).then(res => {
+            if (res.status === 401) {
+                result.innerHTML = `<p class="clr-error">Your session has expired.
+                    <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`;
+                return;
+            }
+            res.json().then(obj => {
                 console.log(obj);
                 execBtn.disabled = false;
 
@@ -155,13 +165,13 @@ window.openEditor = async function (componentName) {
                     result.innerHTML += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
                 }
                 result.innerHTML += elapsed;
-            }))
-            .catch(e => {
-                console.error(e);
-                execBtn.disabled = false;
-                // TODO: what happens if session expires?
-                result.innerHTML = `<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`;
-            });
+            })
+          })
+          .catch(e => {
+              console.error(e);
+              execBtn.disabled = false;
+              result.innerHTML = `<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`;
+          });
     });
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
