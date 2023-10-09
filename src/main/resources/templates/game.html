@@ -178,11 +178,9 @@
         const model = window.monacoEditorTest.getModel();
         const constrainedInstance = constrainedEditor(monaco);
         constrainedInstance.initializeIn(window.monacoEditorTest);
-        let i = 0;
         constrainedInstance.addRestrictionsTo(model, editableRanges.map(range => ({
           range: [range.startLine, range.startColumn, range.endLine, range.endColumn],
-          allowMultiline: true,
-          label: `funcDefinition-${i++}`
+          allowMultiline: true
         })));
         const disableCursor = false;
         if (editableRanges.length === 1 && disableCursor) {
