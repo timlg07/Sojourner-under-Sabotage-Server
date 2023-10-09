@@ -40,7 +40,7 @@
 .ui-overlay-layout {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
     padding: 3rem;
     box-sizing: border-box;
 }
@@ -67,7 +67,7 @@
 #execution-result {
     border: 1px solid #5865f2;
     border-radius: 0.5rem;
-    padding-inline: 1.5rem;
+    padding: 1.5rem;
     margin-block: 1.5rem;
     color: #fff;
 }
@@ -84,4 +84,8 @@
     display: flex;
     gap: .5rem;
     align-items: center;
+}
+#execution-result p,
+#execution-result pre {
+    margin: 0;
 }
