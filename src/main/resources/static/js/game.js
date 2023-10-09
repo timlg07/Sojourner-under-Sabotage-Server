@@ -123,7 +123,10 @@ window.openEditor = async function (componentName) {
                 execBtn.disabled = false;
 
                 if (!res.ok) {
-                    result.innerHTML = `<p class="clr-error"><strong>Failed to execute test: ${obj.message}</strong></p>`;
+                    result.innerHTML = `
+                        <p class="clr-error"><strong>Failed to execute test.</strong></p>
+                        <pre class="clr-error">${obj.message}</pre>
+                    `;
                     return;
                 }
 

@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestStatus;
 import de.tim_greller.susserver.exception.ClassLoadException;
+import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.exception.NotFoundException;
 import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
@@ -37,7 +38,7 @@ public class ExecutionService {
     }
 
     public TestExecutionResultDTO execute(String componentName, String userId)
-            throws ClassLoadException, NotFoundException, TestExecutionException {
+            throws ClassLoadException, NotFoundException, TestExecutionException, CompilationException {
         Class<?> testClass = compile(componentName, userId);
         var listener = new TestRunListener();
         Result r = run(testClass, listener);
@@ -60,7 +61,8 @@ public class ExecutionService {
      * @throws NotFoundException If the CUT was not found. (If the test is not found an empty one will be created.)
      * @throws ClassLoadException If the test class could not be loaded / was not successfully compiled.
      */
-    private Class<?> compile(String componentName, String userId) throws NotFoundException, ClassLoadException {
+    private Class<?> compile(String componentName, String userId)
+            throws NotFoundException, ClassLoadException, CompilationException {
         var compiler = new InMemoryCompiler();
         var cutSource = cutService
                 .getCutForComponent(componentName)

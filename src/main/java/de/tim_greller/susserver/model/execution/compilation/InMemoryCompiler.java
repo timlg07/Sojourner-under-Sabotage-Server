@@ -16,6 +16,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import de.tim_greller.susserver.dto.SourceDTO;
+import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
 import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
@@ -46,22 +47,20 @@ public class InMemoryCompiler {
         return Collections.unmodifiableCollection(sources.values());
     }
 
-    public boolean compile() {
+    public void compile() throws CompilationException {
         final JavaCompiler.CompilationTask task = compiler.getTask(
                 null, fileManager, diagnostics, null, null, getCompilationUnits());
 
         final boolean allCompiledSuccessfully = task.call();
 
         if (!allCompiledSuccessfully) {
-            diagnostics.getDiagnostics().forEach(System.err::println);
+            throw new CompilationException(diagnostics.getDiagnostics());
         }
 
         try {
             fileManager.close();
-            return allCompiledSuccessfully;
         } catch (IOException e) {
             System.err.println("Error while closing the file manager.\n" + e);
-            return false;
         }
     }
 
