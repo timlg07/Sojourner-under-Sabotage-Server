@@ -107,52 +107,58 @@ window.openEditor = async function (componentName) {
         });
     }
 
-    document.getElementById('editor-execute-btn').addEventListener('click', () => {
+    const execBtn = document.getElementById('editor-execute-btn');
+    execBtn.addEventListener('click', () => {
         const code = window.monacoEditorTest.getValue();
         const result = document.getElementById('execution-result');
         result.innerHTML = '<p>Executing test...</p>';
+        execBtn.disabled = true;
         fetch(`/api/components/${componentName}/test/execute`, {
             method: 'POST',
             headers: jsonHeader,
             body: JSON.stringify({code}),
         })
-            .then(res => {
-                res.json().then(obj => {
-                    console.log(obj);
+            .then(res => res.json().then(obj => {
+                console.log(obj);
+                execBtn.disabled = false;
 
-                    if (!res.ok) {
-                        result.innerHTML = `<p class="clr-error"><strong>Failed to execute test: ${obj.message}</strong></p>`;
-                        return;
-                    }
+                if (!res.ok) {
+                    result.innerHTML = `<p class="clr-error"><strong>Failed to execute test: ${obj.message}</strong></p>`;
+                    return;
+                }
 
-                    const elapsed = `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`;
-                    if (obj.testStatus === 'PASSED') {
-                        result.innerHTML = `<p class="clr-success">Test Passed! ${elapsed}</p>`;
-                        return;
-                    }
-                    const details = obj.testDetails.test;
-                    if (details.accessDenied != null) {
-                        result.innerHTML = `
-                            <p class="clr-error"><strong>Access Denied!</strong><br>${details.accessDenied} ${elapsed}</p>
-                        `;
-                        return;
-                    }
+                const elapsed = `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`;
+                if (obj.testStatus === 'PASSED') {
+                    result.innerHTML = `<p class="clr-success">Test Passed! ${elapsed}</p>`;
+                    return;
+                }
+                const details = obj.testDetails.test;
+                if (details.accessDenied != null) {
                     result.innerHTML = `
-                      <p class="clr-error"><strong>${details.className} Failed!</strong></p>
+                        <p class="clr-error"><strong>Access Denied!</strong><br>${details.accessDenied} ${elapsed}</p>
                     `;
-                    if (details.expectedTestResult != null || details.actualTestResult != null) {
-                        result.innerHTML += `
-                            <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
-                            <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
-                        `;
-                    }
-                    if (details.trace != null) {
-                        result.innerHTML += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
-                    }
-                    result.innerHTML += elapsed;
-                });
-            })
-            .catch(console.error);
+                    return;
+                }
+                result.innerHTML = `
+                  <p class="clr-error"><strong>${details.className} Failed!</strong></p>
+                `;
+                if (details.expectedTestResult != null || details.actualTestResult != null) {
+                    result.innerHTML += `
+                        <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
+                        <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
+                    `;
+                }
+                if (details.trace != null) {
+                    result.innerHTML += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
+                }
+                result.innerHTML += elapsed;
+            }))
+            .catch(e => {
+                console.error(e);
+                execBtn.disabled = false;
+                // TODO: what happens if session expires?
+                result.innerHTML = `<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`;
+            });
     });
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
