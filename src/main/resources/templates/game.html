@@ -6,17 +6,18 @@
     <title>Unity WebGL Player | SojournerUnderSabotage</title>
     <link rel="shortcut icon" th:href="@{unity/TemplateData/favicon.ico}">
     <link rel="stylesheet" th:href="@{unity/TemplateData/style.css}">
+    <link rel="stylesheet" th:href="@{css/game.css}">
   </head>
   <body>
-    <div id="ui-overlay" style="position:absolute;inset:0;z-index:100;background:#0b0b0e;">
-      <div style="display:flex;flex-direction:column;height:100%;padding:3rem;box-sizing:border-box">
-        <div id="button-bar" style="height:8rem">
-          <button id="editor-close-btn">Close</button>
-          <button id="editor-execute-btn">Execute</button>
+    <div id="ui-overlay">
+      <div class="ui-overlay-layout">
+        <div id="button-bar">
+          <button id="editor-execute-btn" class="button">Execute</button>
+          <button id="editor-close-btn" class="button">Close</button>
         </div>
-        <div style="display:flex;flex:1;gap:3rem;">
-          <div id="monaco-container-debug" style="flex:1;height:100%;flex-basis:50%"></div>
-          <div id="monaco-container-test" style="flex:1;height:100%;flex-basis:50%"></div>
+        <div class="editor-side-by-side-view">
+          <div class="monaco-editor-container" id="monaco-container-debug"></div>
+          <div class="monaco-editor-container" id="monaco-container-test"></div>
         </div>
       </div>
     </div>

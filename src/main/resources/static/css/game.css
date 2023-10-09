@@ -1,0 +1,61 @@
+#ui-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    background: #0b0b0e;
+}
+
+#button-bar {
+    padding-block: 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    --clr-bg: #5865f2;
+    background: var(--clr-bg);
+    border: none;
+    color: #fff;
+    margin: 0;
+    cursor: pointer;
+}
+.button:hover, .button:focus {
+    --clr-bg: #4b5bd1;
+}
+#editor-close-btn {
+    margin-left: auto;
+    --clr-bg: #ff4d4d;
+}
+#editor-close-btn:hover, #editor-close-btn:focus {
+    --clr-bg: #ff3f3f;
+}
+
+.ui-overlay-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 3rem;
+    box-sizing: border-box;
+}
+
+.editor-side-by-side-view {
+    display: flex;
+    flex: 1;
+    gap: 3rem;
+    flex-direction: column;
+}
+
+@media screen and (min-width: 768px) {
+    .editor-side-by-side-view {
+        flex-direction: row;
+    }
+
+    .monaco-editor-container {
+        flex: 1;
+        height: 100%;
+        flex-basis: 50%;
+        max-width: calc(50% - 1.5rem);
+    }
+}
