@@ -184,7 +184,14 @@
             setTimeout(() => {
               saveButton.innerText = "Save Test";
             }, 3e3);
-        }).catch(console.error);
+        }).catch(e => {
+          console.error(e);
+          saveButton.disabled = false;
+          saveButton.innerText = "Save Failed";
+          setTimeout(() => {
+            saveButton.innerText = "Save Test";
+          }, 3e3);
+        });
       }
 
       /**
