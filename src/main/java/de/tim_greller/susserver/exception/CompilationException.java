@@ -16,4 +16,13 @@ public class CompilationException extends Exception {
         super("Compilation failed.");
         this.diagnostics = diagnostics;
     }
+
+    @Override
+    public String getMessage() {
+        final StringBuilder sb = new StringBuilder(super.getMessage());
+        final String nl = "\n\n";
+        sb.append(nl);
+        diagnostics.forEach(diagnostic -> sb.append(diagnostic.toString()).append(nl));
+        return sb.toString();
+    }
 }

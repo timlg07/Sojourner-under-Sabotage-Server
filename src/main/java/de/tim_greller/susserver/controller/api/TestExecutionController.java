@@ -46,9 +46,7 @@ public class TestExecutionController {
         // compile and execute
         try {
             return executionService.execute(componentName, userService.requireCurrentUserId());
-        } catch (CompilationException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getDiagnostics().toString());
-        } catch (ClassLoadException | TestExecutionException e) {
+        } catch (CompilationException | ClassLoadException | TestExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (NotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
