@@ -42,11 +42,9 @@ public class SourceCodeController {
 
     @GetMapping("${paths.api}/components/{componentName}/test/src")
     public TestSourceDTO getTestSourceCode(@PathVariable String componentName) {
-        return TestSourceDTO.fromTestEntity(
-                testService.getOrCreateTestForComponent(
-                        componentName,
-                        userService.requireCurrentUserId()
-                )
+        return testService.getOrCreateTestDtoForComponent(
+                componentName,
+                userService.requireCurrentUserId()
         );
     }
 

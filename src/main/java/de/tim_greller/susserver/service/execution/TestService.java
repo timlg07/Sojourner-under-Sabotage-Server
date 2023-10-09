@@ -2,6 +2,8 @@ package de.tim_greller.susserver.service.execution;
 
 import java.util.Optional;
 
+import de.tim_greller.susserver.dto.Range;
+import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
 import de.tim_greller.susserver.persistence.entity.CutEntity;
 import de.tim_greller.susserver.persistence.entity.TestEntity;
@@ -36,7 +38,7 @@ public class TestService {
         return testRepository.findByKey(componentName, userId);
     }
 
-    public TestEntity getOrCreateTestForComponent(String componentName, String userId) {
+    private TestEntity getOrCreateTestEntityForComponent(String componentName, String userId) {
         return getTestForComponent(componentName, userId).orElseGet(() -> {
             final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
             final UserEntity user = userRepository.findById(userId).orElseThrow();
@@ -45,8 +47,15 @@ public class TestService {
         });
     }
 
+    public TestSourceDTO getOrCreateTestDtoForComponent(String componentName, String userId) {
+        TestEntity entity = getOrCreateTestEntityForComponent(componentName, userId);
+        return TestSourceDTO
+                .fromTestEntity(entity)
+                .restrictTo(getEditableRange(entity.getSourceCode()));
+    }
+
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
-        final TestEntity test = getOrCreateTestForComponent(componentName, userId);
+        final TestEntity test = getOrCreateTestEntityForComponent(componentName, userId);
         if (!checkTestUsesTemplateParts(test.getClassName(), newSourceCode)) {
             throw new SecurityException("Test has modified template parts.");
         }
@@ -57,6 +66,19 @@ public class TestService {
     private boolean checkTestUsesTemplateParts(String testName, String newSourceCode) {
         return newSourceCode.startsWith(getTestTemplateStart(testName))
                 && newSourceCode.endsWith(getTestTemplateEnd());
+    }
+
+    public Range getEditableRange(String sourceCode) {
+        final int templateStartLineCount = getTestTemplateStart("").split("\n").length;
+        final int templateEndLineCount = getTestTemplateEnd().split("\n").length;
+        final String[] sourceLines = sourceCode.split("\n");
+        final int firstEditableLine = templateStartLineCount + 1;
+        final int lastEditableLine = sourceLines.length - templateEndLineCount + 1;
+        final int lastEditableLineColumns = sourceLines[lastEditableLine - 1].length() + 1;
+        return new Range(
+                firstEditableLine, 1,
+                lastEditableLine, lastEditableLineColumns
+        );
     }
 
     private TestEntity createEmptyTest(UserComponentKey key) {

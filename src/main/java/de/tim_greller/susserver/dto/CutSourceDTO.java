@@ -1,5 +1,7 @@
 package de.tim_greller.susserver.dto;
 
+import java.util.List;
+
 import de.tim_greller.susserver.persistence.entity.CutEntity;
 import lombok.NoArgsConstructor;
 
@@ -7,8 +9,8 @@ import lombok.NoArgsConstructor;
 public class CutSourceDTO extends SourceDTO {
 
     // Lombok is stupid
-    public CutSourceDTO(String cutComponentName, String className, String sourceCode) {
-        super(cutComponentName, className, sourceCode);
+    public CutSourceDTO(String cutComponentName, String className, String sourceCode, List<Range> editable) {
+        super(cutComponentName, className, sourceCode, editable);
     }
 
     public static CutSourceDTO fromCutEntity(CutEntity cutEntity) {

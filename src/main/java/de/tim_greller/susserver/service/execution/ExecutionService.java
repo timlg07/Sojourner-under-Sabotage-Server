@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
-import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.dto.TestStatus;
 import de.tim_greller.susserver.exception.ClassLoadException;
 import de.tim_greller.susserver.exception.NotFoundException;
@@ -63,7 +62,7 @@ public class ExecutionService {
         var cutSource = cutService
                 .getCutForComponent(componentName)
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
-        var testSource = TestSourceDTO.fromTestEntity(testService.getOrCreateTestForComponent(componentName, userId));
+        var testSource = testService.getOrCreateTestDtoForComponent(componentName, userId);
 
         compiler.addSource(cutSource);
         compiler.addSource(testSource);
