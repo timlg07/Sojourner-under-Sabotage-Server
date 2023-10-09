@@ -6,10 +6,6 @@
     <title>Unity WebGL Player | SojournerUnderSabotage</title>
     <link rel="shortcut icon" th:href="@{unity/TemplateData/favicon.ico}">
     <link rel="stylesheet" th:href="@{unity/TemplateData/style.css}">
-    <style>.editor-line-readonly {
-      cursor: not-allowed;
-      z-index: 999; /* Moves this div above the code line making it not selectable */
-    }</style>
   </head>
   <body>
     <div id="ui-overlay" style="position:absolute;inset:0;z-index:100;background:#0b0b0e;">
@@ -182,23 +178,6 @@
           range: [range.startLine, range.startColumn, range.endLine, range.endColumn],
           allowMultiline: true
         })));
-        const disableCursor = false;
-        if (editableRanges.length === 1 && disableCursor) {
-          const options = {
-            isWholeLine: true,
-            className: 'editor-line-readonly',
-          };
-          window.monacoEditorTest.createDecorationsCollection([
-            {
-              range: new monaco.Range(1, 1, editableRanges[0].startLine - 1, 1),
-              options
-            },
-            {
-              range: new monaco.Range(editableRanges[0].endLine + 1, 1, model.getValue().split("\n").length + 1, 1),
-              options
-            },
-          ]);
-        }
       }
 
       const authHeader = {'Authorization': `Bearer ${window.token}`};
