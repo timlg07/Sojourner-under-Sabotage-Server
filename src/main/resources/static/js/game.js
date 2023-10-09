@@ -117,12 +117,14 @@ window.openEditor = async function (componentName) {
             body: JSON.stringify({code}),
         })
             .then(res => {
-                if (!res.ok) {
-                    res.text().then(t => result.innerHTML = `<p class="clr-error">Failed to execute test: ${res.status} ${t}</p>`);
-                    return;
-                }
                 res.json().then(obj => {
                     console.log(obj);
+
+                    if (!res.ok) {
+                        result.innerHTML = `<p class="clr-error"><strong>Failed to execute test: ${obj.message}</strong></p>`;
+                        return;
+                    }
+
                     const elapsed = `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`;
                     if (obj.testStatus === 'PASSED') {
                         result.innerHTML = `<p class="clr-success">Test Passed! ${elapsed}</p>`;
