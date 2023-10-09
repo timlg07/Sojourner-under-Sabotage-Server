@@ -45,6 +45,7 @@ public class ExecutionService {
         res.setTestClassName(testClass.getName());
         res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
         res.setTestDetails(listener.getMap());
+        res.setElapsedTime(listener.getTestSuiteElapsedTime());
         return res;
     }
 
