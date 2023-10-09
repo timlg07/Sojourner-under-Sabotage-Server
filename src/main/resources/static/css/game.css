@@ -3,6 +3,7 @@
     inset: 0;
     z-index: 100;
     background: #0b0b0e;
+    overflow: auto;
 }
 
 #button-bar {
@@ -58,8 +59,29 @@
 
     .monaco-editor-container {
         flex: 1;
-        height: 100%;
         flex-basis: 50%;
         max-width: calc(50% - 1.5rem);
     }
+}
+
+#execution-result {
+    border: 1px solid #5865f2;
+    border-radius: 0.5rem;
+    padding-inline: 1.5rem;
+    margin-block: 1.5rem;
+    color: #fff;
+}
+#execution-result:empty {
+    display: none;
+}
+#execution-result .clr-error {
+    color: #ff4d4d;
+}
+#execution-result .clr-success {
+    color: #30ef5f;
+}
+#execution-result .flex {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
 }
