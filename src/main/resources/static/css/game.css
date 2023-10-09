@@ -24,6 +24,10 @@
 .button:hover, .button:focus {
     --clr-bg: #4b5bd1;
 }
+.button:disabled {
+    --clr-bg: #6a6b9f;
+    cursor: not-allowed;
+}
 #editor-close-btn {
     margin-left: auto;
     --clr-bg: #ff4d4d;

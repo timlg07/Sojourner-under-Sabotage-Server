@@ -12,7 +12,8 @@
     <div id="ui-overlay">
       <div class="ui-overlay-layout">
         <div id="button-bar">
-          <button id="editor-execute-btn" class="button">Execute</button>
+          <button id="editor-execute-btn" class="button">Execute Test</button>
+          <button id="editor-save-btn" class="button">Save Test</button>
           <button id="editor-close-btn" class="button">Close</button>
         </div>
         <div class="editor-side-by-side-view">
@@ -168,6 +169,24 @@
         window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
       });
 
+      function saveTest(componentName) {
+        const saveButton = document.getElementById('editor-save-btn');
+        saveButton.disabled = true;
+        saveButton.innerText = "Saving...";
+        const test = window.monacoEditorTest.getValue();
+        fetch(`/api/components/${componentName}/test/src`, {
+          method: 'PUT',
+          headers: jsonHeader,
+          body: JSON.stringify({code: test}),
+        }).then(res => {
+            saveButton.disabled = false;
+            saveButton.innerText = res.ok ? "Test Saved!" : "Save Failed";
+            setTimeout(() => {
+              saveButton.innerText = "Save Test";
+            }, 3e3);
+        }).catch(console.error);
+      }
+
       /**
        * @param {Array<Range>} editableRanges
        */
@@ -204,19 +223,27 @@
                 });
 
         function addTestEditorChangeListener() {
-          const autoSaveInterval = 3e3;
+          const inactivityTimeoutUntilSave = 5e3; // after 5 seconds of inactivity, auto save
+          const maxAutosaveInterval = 3e4; // auto save at least 30 seconds after a change
           let timeout = null;
+          let lastSave = null;
           window.monacoEditorTest.onDidChangeModelContent(e => {
-            if (timeout) return; // debounce
+            if (!lastSave) {
+              // start tracking
+              lastSave = Date.now();
+            } else if (timeout) {
+              clearTimeout(timeout);
+              const noSaveFor = Date.now() - lastSave;
+              if (noSaveFor > maxAutosaveInterval) {
+                timeout = null;
+                saveTest(componentName);
+                return;
+              }
+            }
             timeout = setTimeout(() => {
               timeout = null;
-              const test = window.monacoEditorTest.getValue();
-              fetch(`/api/components/${componentName}/test/src`, {
-                method: 'PUT',
-                headers: jsonHeader,
-                body: JSON.stringify({code: test}),
-              }).then(res => console.log(res.ok ? "Test saved" : "auto-save error")).catch(console.error);
-            }, autoSaveInterval);
+              saveTest(componentName);
+            }, inactivityTimeoutUntilSave);
           });
         }
 
@@ -230,6 +257,10 @@
             .then(res => res.json())
             .then(obj => console.log(obj))
             .catch(console.error);
+        });
+
+        document.getElementById('editor-save-btn').addEventListener('click', () => {
+          saveTest(componentName);
         });
       }
     </script>
