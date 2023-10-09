@@ -28,11 +28,11 @@
     --clr-bg: #6a6b9f;
     cursor: not-allowed;
 }
-#editor-close-btn {
+#button-bar #editor-close-btn {
     margin-left: auto;
     --clr-bg: #ff4d4d;
 }
-#editor-close-btn:hover, #editor-close-btn:focus {
+#button-bar #editor-close-btn:hover, #button-bar #editor-close-btn:focus {
     --clr-bg: #ff3f3f;
 }
 
