@@ -5,7 +5,7 @@ module.exports = {
     mode: process.env.NODE_ENV,
     entry: './main.js',
     output: {
-        path: path.resolve(__dirname, '../resources/static/js'),
+        path: path.resolve(__dirname, '../resources/static/webpack'),
         filename: '[name].bundle.js'
     },
     module: {

@@ -8,7 +8,7 @@
 <h2>Monaco Editor Sync Loading Sample</h2>
 <div id="container" style="width: 800px; height: 600px; border: 1px solid grey"></div>
 
-<script th:src="@{/js/main.bundle.js}"></script>
+<script th:src="@{/webpack/main.bundle.js}"></script>
 <script>
     window.monacoEditor = monaco.editor.create(document.getElementById('container'), {
         value:
