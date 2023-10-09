@@ -16,6 +16,7 @@ import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
+import de.tim_greller.susserver.model.execution.instrumentation.CoverageTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -46,6 +47,7 @@ public class ExecutionService {
         res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
         res.setTestDetails(listener.getMap());
         res.setElapsedTime(listener.getTestSuiteElapsedTime());
+        res.setCoverage(CoverageTracker.getInstance().getCoverage());
         return res;
     }
 

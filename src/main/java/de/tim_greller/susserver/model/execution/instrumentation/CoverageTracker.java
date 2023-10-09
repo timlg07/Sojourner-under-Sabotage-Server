@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import lombok.Getter;
+
 /**
  * Tracks coverage information, i.e., which line was visited how many times.
  */
@@ -59,6 +61,15 @@ public class CoverageTracker {
         }
     }
 
+    public Map<String, Map<Integer, Integer>> getCoverage() {
+        final Map<String, Map<Integer, Integer>> coverage = new TreeMap<>();
+        for (Map.Entry<String, ClassTracker> e : classTrackers.entrySet()) {
+            coverage.put(e.getKey(), e.getValue().getVisitedLines());
+        }
+        return coverage;
+    }
+
+    @Getter
     public static class ClassTracker {
         private final Map<Integer, Integer> visitedLines = new TreeMap<>();
         private final Set<Integer> lines = new HashSet<>();
@@ -75,12 +86,5 @@ public class CoverageTracker {
             lines.add(pLineNumber);
         }
 
-        public Map<Integer, Integer> getVisitedLines() {
-            return visitedLines;
-        }
-
-        public Set<Integer> getLines() {
-            return lines;
-        }
     }
 }
