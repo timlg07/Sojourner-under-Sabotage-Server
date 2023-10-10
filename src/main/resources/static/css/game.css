@@ -70,6 +70,9 @@
     padding: 1.5rem;
     margin-block: 1.5rem;
     color: #fff;
+
+    max-height: 30vh;
+    overflow: auto;
 }
 #execution-result:empty {
     display: none;
