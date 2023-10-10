@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static de.tim_greller.susserver.util.Utils.mapMap;
+
 import lombok.Getter;
 
 /**
@@ -62,11 +64,11 @@ public class CoverageTracker {
     }
 
     public Map<String, Map<Integer, Integer>> getCoverage() {
-        final Map<String, Map<Integer, Integer>> coverage = new TreeMap<>();
-        for (Map.Entry<String, ClassTracker> e : classTrackers.entrySet()) {
-            coverage.put(e.getKey(), e.getValue().getVisitedLines());
-        }
-        return coverage;
+        return mapMap(classTrackers, (className, classTracker) -> classTracker.getVisitedLines());
+    }
+
+    public Map<String, Set<Integer>> getLines() {
+        return mapMap(classTrackers, (className, classTracker) -> classTracker.getLines());
     }
 
     @Getter
