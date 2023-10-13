@@ -74,12 +74,13 @@ function constrain(editableRanges) {
 }
 
 function renderCoverage(coverage) {
-    const linesVisited = Object.entries(coverage[window.cutClassName]);
+    const cutClassId = window.cutClassName + '#' + window.userId;
+    const linesVisited = Object.entries(coverage[cutClassId]);
     const model = window.monacoEditorDebug.getModel();
     const decorations = linesVisited.map(cov => {
         const line = parseInt(cov[0]);
         return {
-            range: new monaco.Range(line, 1, line, model.getLineLength(line)),
+            range: new monaco.Range(line, 1, line, 1),
             options: {
                 isWholeLine: true,
                 className: 'covered covered-' + cov[1],
@@ -88,14 +89,10 @@ function renderCoverage(coverage) {
         };
     });
 
-    console.log(decorations);
-
-    model.deltaDecorations(
+    window.cutDecorations = model.deltaDecorations(
       window.cutDecorations ?? [],
       decorations
     );
-
-    window.cutDecorations = decorations;
 }
 
 

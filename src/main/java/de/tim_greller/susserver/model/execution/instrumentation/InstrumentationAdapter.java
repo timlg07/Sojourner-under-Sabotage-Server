@@ -11,11 +11,11 @@ import org.springframework.asm.Type;
 
 public class InstrumentationAdapter extends ClassVisitor {
 
-    private final String className;
+    private final String classId;
 
-    public InstrumentationAdapter(final ClassWriter pClassWriter, final String pClassName) {
+    public InstrumentationAdapter(final ClassWriter pClassWriter, final String pClassId) {
         super(ASM7, pClassWriter);
-        className = pClassName;
+        classId = pClassId;
     }
 
     @Override
@@ -32,9 +32,9 @@ public class InstrumentationAdapter extends ClassVisitor {
             @Override
             public void visitLineNumber(final int pLine, final Label pStart) {
                 super.visitLineNumber(pLine, pStart);
-                CoverageTracker.trackLine(pLine, className);
+                CoverageTracker.trackLine(pLine, classId);
                 visitLdcInsn(pLine);
-                visitLdcInsn(className);
+                visitLdcInsn(classId);
                 visitMethodInsn(
                         Opcodes.INVOKESTATIC,
                         Type.getInternalName(CoverageTracker.class),

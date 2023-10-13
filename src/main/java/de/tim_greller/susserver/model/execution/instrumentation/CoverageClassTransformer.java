@@ -7,10 +7,10 @@ import org.springframework.asm.ClassWriter;
 public class CoverageClassTransformer implements IClassTransformer {
 
     @Override
-    public byte[] transform(byte[] bytes, String className) {
+    public byte[] transform(byte[] bytes, String classId) {
         final ClassReader classReader = new ClassReader(bytes);
         final ClassWriter classWriter = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
-        final ClassVisitor instrumentationVisitor = new InstrumentationAdapter(classWriter, className);
+        final ClassVisitor instrumentationVisitor = new InstrumentationAdapter(classWriter, classId);
         classReader.accept(instrumentationVisitor, 0);
         return classWriter.toByteArray();
     }

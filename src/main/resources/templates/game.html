@@ -45,6 +45,7 @@
     <script th:src="@{/webpack/main.bundle.js}"></script>
     <script th:inline="javascript">
       window.token = /*[[${@jwtTokenSupplier.getJwtToken().orElse("")}]]*/ '';
+      window.userId = /*[[${@userService.getCurrentUserId().get()}]]*/ '';
     </script>
     <script th:src="@{/js/game.js}"></script>
   </body>

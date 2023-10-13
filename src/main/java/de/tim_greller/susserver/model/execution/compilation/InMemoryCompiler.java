@@ -19,6 +19,7 @@ import de.tim_greller.susserver.dto.SourceDTO;
 import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
+import de.tim_greller.susserver.model.execution.instrumentation.CoverageTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.IdentityClassTransformer;
 import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
@@ -33,7 +34,11 @@ public class InMemoryCompiler {
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     private final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
     private final JavaFileManager fileManager = createFileManager();
-    private final ClassLoader inMemoryClassLoader = createClassLoader();
+    private final ClassLoader inMemoryClassLoader;
+
+    public InMemoryCompiler(final String identifier) {
+        inMemoryClassLoader = createClassLoader(identifier);
+    }
 
     public void addSource(SourceDTO testSource) {
         addSource(testSource.getClassName(), testSource.getSourceCode());
@@ -89,7 +94,7 @@ public class InMemoryCompiler {
         };
     }
 
-    private ClassLoader createClassLoader() {
+    private ClassLoader createClassLoader(final String identifier) {
         return new ClassLoader() {
 
             private final ClassLoadingFilter filter = new ClassLoadingFilter();
@@ -103,9 +108,15 @@ public class InMemoryCompiler {
 
                 byte[] bytes = compiledClasses.get(name).getBytes();
 
+                String classId = name + '#' + identifier;
+
+                // clear previous coverage information for this class
+                Optional.ofNullable(CoverageTracker.getInstance().getClassTrackers().get(classId))
+                        .ifPresent(CoverageTracker.ClassTracker::clear);
+
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
-                bytes = transformer.transform(bytes, name);
+                bytes = transformer.transform(bytes, classId);
 
                 Class<?> c = defineClass(name, bytes, 0, bytes.length);
                 if (USE_SANDBOX) Sandbox.confine(c);

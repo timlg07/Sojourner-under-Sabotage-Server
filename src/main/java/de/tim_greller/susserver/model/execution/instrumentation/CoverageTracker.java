@@ -88,5 +88,9 @@ public class CoverageTracker {
             lines.add(pLineNumber);
         }
 
+        public void clear() {
+            visitedLines.clear();
+            lines.clear();
+        }
     }
 }

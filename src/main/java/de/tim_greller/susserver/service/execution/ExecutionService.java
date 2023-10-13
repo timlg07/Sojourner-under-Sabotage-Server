@@ -65,7 +65,7 @@ public class ExecutionService {
      */
     private Class<?> compile(String componentName, String userId)
             throws NotFoundException, ClassLoadException, CompilationException {
-        var compiler = new InMemoryCompiler();
+        var compiler = new InMemoryCompiler(userId);
         var cutSource = cutService
                 .getCutForComponent(componentName)
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
