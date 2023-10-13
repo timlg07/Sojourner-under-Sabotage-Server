@@ -73,6 +73,32 @@ function constrain(editableRanges) {
     })));
 }
 
+function renderCoverage(coverage) {
+    const linesVisited = Object.entries(coverage[window.cutClassName]);
+    const model = window.monacoEditorDebug.getModel();
+    const decorations = linesVisited.map(cov => {
+        const line = parseInt(cov[0]);
+        return {
+            range: new monaco.Range(line, 1, line, model.getLineLength(line)),
+            options: {
+                isWholeLine: true,
+                className: 'covered covered-' + cov[1],
+                glyphMarginClassName: 'covered-glyph',
+            }
+        };
+    });
+
+    console.log(decorations);
+
+    model.deltaDecorations(
+      window.cutDecorations ?? [],
+      decorations
+    );
+
+    window.cutDecorations = decorations;
+}
+
+
 const authHeader = {'Authorization': `Bearer ${window.token}`};
 const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 window.openEditor = async function (componentName) {
@@ -84,8 +110,10 @@ window.openEditor = async function (componentName) {
 
     fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
         .then(res => res.json())
-        .then(json => json.sourceCode)
-        .then(cut => window.monacoEditorDebug.setValue(cut));
+        .then(json => {
+            window.monacoEditorDebug.setValue(json.sourceCode);
+            window.cutClassName = json.className;
+        });
 
     fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
         .then(res => res.json())
@@ -93,6 +121,7 @@ window.openEditor = async function (componentName) {
             window.monacoEditorTest.setValue(test.sourceCode);
             constrain(test.editable);
             addTestEditorChangeListener();
+            window.testClassName = test.className;
         });
 
     function addTestEditorChangeListener() {
@@ -138,6 +167,8 @@ window.openEditor = async function (componentName) {
             res.json().then(obj => {
                 console.log(obj);
                 execBtn.disabled = false;
+
+                renderCoverage(obj.coverage);
 
                 if (!res.ok) {
                     renderResult(`

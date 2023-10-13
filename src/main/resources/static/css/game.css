@@ -92,3 +92,8 @@
 #execution-result pre {
     margin: 0;
 }
+
+.covered {
+    background: #044313;
+    margin-left: 1px;
+}
