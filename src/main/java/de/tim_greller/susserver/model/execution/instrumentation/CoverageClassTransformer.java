@@ -1,8 +1,8 @@
 package de.tim_greller.susserver.model.execution.instrumentation;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
+import org.springframework.asm.ClassReader;
+import org.springframework.asm.ClassVisitor;
+import org.springframework.asm.ClassWriter;
 
 public class CoverageClassTransformer implements IClassTransformer {
 

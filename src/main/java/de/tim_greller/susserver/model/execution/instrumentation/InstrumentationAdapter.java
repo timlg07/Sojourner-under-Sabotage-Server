@@ -1,13 +1,13 @@
 package de.tim_greller.susserver.model.execution.instrumentation;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.springframework.asm.Opcodes.ASM7;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.springframework.asm.ClassVisitor;
+import org.springframework.asm.ClassWriter;
+import org.springframework.asm.Label;
+import org.springframework.asm.MethodVisitor;
+import org.springframework.asm.Opcodes;
+import org.springframework.asm.Type;
 
 public class InstrumentationAdapter extends ClassVisitor {
 
