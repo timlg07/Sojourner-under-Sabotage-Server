@@ -91,7 +91,12 @@ public class TestService {
     private String getTestTemplate(String testName) {
         return String.join("",
                 getTestTemplateStart(testName),
-                "        fail(\"Not implemented yet!\");",
+                """
+                    @Test
+                    public void test() {
+                        fail("Not implemented yet!");
+                    }
+                """,
                 getTestTemplateEnd()
         );
     }
@@ -105,8 +110,6 @@ public class TestService {
         public class\s""" + testName + """
          {
         
-            @Test
-            public void test() {
         """);
     }
 
@@ -114,7 +117,6 @@ public class TestService {
         return (
         """
         
-            }
         }
         """);
     }

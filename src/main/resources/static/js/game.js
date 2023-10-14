@@ -1,3 +1,27 @@
+/**
+ * @typedef TestDetails
+ * @property {string} className
+ * @property {number} elapsedTime
+ * @property {number} startTime
+ * @property {string} methodName
+ * @property {string} testSuiteName
+ * @property {string} accessDenied
+ * @property {string} actualTestResult
+ * @property {string} expectedTestResult
+ * @property {string} testStatus
+ * @property {string} trace
+ */
+
+/**
+ * @typedef {Object} TestResult
+ * @property {string} testClassName
+ * @property {string} testStatus
+ * @property {number} elapsedTime
+ * @property {Object<string, TestDetails>} testDetails
+ * @property {Object<string, Object<string, number>>} coverage
+ * @property {string} message
+ */
+
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
 window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
     value: '',
@@ -74,9 +98,9 @@ function constrain(editableRanges) {
 }
 
 function renderCoverage(coverage) {
-    const cutClassId = window.cutClassName + '#' + window.userId;
-    const linesVisited = Object.entries(coverage[cutClassId]);
     const model = window.monacoEditorDebug.getModel();
+    const cutClassId = window.cutClassName + '#' + window.userId;
+    const linesVisited = Object.entries(coverage?.[cutClassId] ?? {});
     const decorations = linesVisited.map(cov => {
         const line = parseInt(cov[0]);
         return {
@@ -157,11 +181,11 @@ window.openEditor = async function (componentName) {
             body: JSON.stringify({code}),
         }).then(res => {
             if (res.status === 401) {
-                renderResult(`<p class="clr-error">Your session has expired.
-                    <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
+                renderResult(`<p class="clr-error">Your session has expired. <a href="/login">Login again.</a></p>`);
                 return;
             }
-            res.json().then(obj => {
+
+            res.json().then(/** @param {TestResult} obj */ obj => {
                 console.log(obj);
                 execBtn.disabled = false;
 
@@ -169,38 +193,41 @@ window.openEditor = async function (componentName) {
 
                 if (!res.ok) {
                     renderResult(`
-                        <p class="clr-error"><strong>Failed to execute test.</strong></p>
+                        <h2>${obj.testClassName}</h2>
+                        <p class="clr-error"><strong>Failed to execute tests.</strong></p>
                         <pre class="clr-error">${obj.message}</pre>
                     `);
                     return;
                 }
 
-                const elapsed = `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`;
+                let resultString = `<strong>${obj.testClassName} </strong>`;
+
                 if (obj.testStatus === 'PASSED') {
-                    renderResult(`<p class="clr-success">Test Passed! ${elapsed}</p>`);
-                    return;
+                    resultString += `<div class="clr-success">All tests passed.</div>`;
+                } else if (obj.testStatus === 'FAILED') {
+                    resultString += `<div class="clr-error">There are test failures.</div>`;
                 }
-                const details = obj.testDetails.test;
-                if (details.accessDenied != null) {
-                    renderResult(`
-                        <p class="clr-error"><strong>Access Denied!</strong><br>${details.accessDenied} ${elapsed}</p>
-                    `);
-                    return;
+
+                resultString += '<ul>';
+                for (const [fn, details] of Object.entries(obj.testDetails)) {
+                    resultString += '<li>';
+                    resultString += `<strong>${details.className} > ${fn} </strong>`;
+                    if (details.accessDenied != null) {
+                        resultString +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
+                    } else if (details.expectedTestResult != null || details.actualTestResult != null) {
+                        resultString += `
+                            <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
+                            <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
+                        `;
+                    } else if (details.trace != null) {
+                        resultString += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
+                    } else {
+                        resultString += `<span class="clr-success">Passed!</span>`;
+                    }
+                    resultString += '</li>';
                 }
-                let resultString = `
-                  <p class="clr-error"><strong>${details.className} Failed!</strong></p>
-                `;
-                if (details.expectedTestResult != null || details.actualTestResult != null) {
-                    resultString += `
-                        <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
-                        <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
-                    `;
-                }
-                if (details.trace != null) {
-                   resultString += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
-                }
-                resultString += elapsed;
-                renderResult(resultString);
+                resultString += '</ul>';
+                renderResult(resultString + `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`);
             })
           })
           .catch(e => {
