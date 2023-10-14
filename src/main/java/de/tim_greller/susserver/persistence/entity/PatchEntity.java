@@ -1,6 +1,5 @@
 package de.tim_greller.susserver.persistence.entity;
 
-import com.github.difflib.patch.Patch;
 import de.tim_greller.susserver.persistence.keys.ComponentForeignKey;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -24,12 +23,12 @@ public class PatchEntity {
     private int id;
 
     @Column
-    private Patch<String> patch;
+    private String patch;
 
     @Embedded
     private ComponentForeignKey componentKey;
 
-    public PatchEntity(Patch<String> patch, ComponentForeignKey componentKey) {
+    public PatchEntity(String patch, ComponentForeignKey componentKey) {
         this.patch = patch;
         this.componentKey = componentKey;
     }
