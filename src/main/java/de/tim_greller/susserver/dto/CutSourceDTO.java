@@ -13,6 +13,10 @@ public class CutSourceDTO extends SourceDTO {
         super(cutComponentName, className, sourceCode, editable);
     }
 
+    public CutSourceDTO(CutSourceDTO cut) {
+        super(cut);
+    }
+
     public static CutSourceDTO fromCutEntity(CutEntity cutEntity) {
         var c = new CutSourceDTO();
         c.setCutComponentName(cutEntity.getComponentKey().getComponent().getName());

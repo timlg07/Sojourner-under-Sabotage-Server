@@ -16,6 +16,13 @@ public abstract class SourceDTO {
     protected String sourceCode;
     protected List<Range> editable = new ArrayList<>(1);
 
+    public SourceDTO(CutSourceDTO cut) {
+        this.cutComponentName = cut.getCutComponentName();
+        this.className = cut.getClassName();
+        this.sourceCode = cut.getSourceCode();
+        this.editable = new ArrayList<>(cut.getEditable());
+    }
+
     @SuppressWarnings("unchecked")
     public final <T extends SourceDTO> T restrictTo(Range range) {
         editable.add(range);
