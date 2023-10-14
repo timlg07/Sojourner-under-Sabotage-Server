@@ -193,7 +193,6 @@ window.openEditor = async function (componentName) {
 
                 if (!res.ok) {
                     renderResult(`
-                        <h2>${obj.testClassName}</h2>
                         <p class="clr-error"><strong>Failed to execute tests.</strong></p>
                         <pre class="clr-error">${obj.message}</pre>
                     `);
@@ -211,7 +210,7 @@ window.openEditor = async function (componentName) {
                 resultString += '<ul>';
                 for (const [fn, details] of Object.entries(obj.testDetails)) {
                     resultString += '<li>';
-                    resultString += `<strong>${details.className} > ${fn} </strong>`;
+                    resultString += `${details.className}::<strong>${fn} </strong>`;
                     if (details.accessDenied != null) {
                         resultString +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
                     } else if (details.expectedTestResult != null || details.actualTestResult != null) {
