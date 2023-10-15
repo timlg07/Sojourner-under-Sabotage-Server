@@ -30,14 +30,27 @@ public class CutService {
         this.patchRepository = patchRepository;
     }
 
-    public Optional<CutSourceDTO> getCutForComponent(String componentName) {
+    public Optional<CutSourceDTO> getOriginalCutForComponent(String componentName) {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         return cutRepository.findById(new ComponentKey(component)).map(CutSourceDTO::fromCutEntity);
     }
 
+    public Optional<CutSourceDTO> getCurrentCutForComponent(String componentName) {
+        // TODO: get patch id from gameState
+        int patchId = 53;
+
+        return getOriginalCutForComponent(componentName).map(cut -> {
+            return patchRepository.findById(patchId).map(patch -> {
+                String newSource = patchService.applyPatch(cut.getSourceCode(), patch.getPatch());
+                cut.setSourceCode(newSource);
+                return cut;
+            }).orElse(cut);
+        });
+    }
+
     public void storePatch(String componentName, String newSource) {
         ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-        CutSourceDTO cut = getCutForComponent(componentName).orElseThrow();
+        CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
         String patch = patchService.createPatch(cut.getSourceCode(), newSource);
         patchRepository.save(new PatchEntity(patch, new ComponentForeignKey(component)));
     }

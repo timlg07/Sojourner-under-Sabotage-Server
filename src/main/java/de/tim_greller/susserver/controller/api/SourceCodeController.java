@@ -35,7 +35,7 @@ public class SourceCodeController {
     @GetMapping("${paths.api}/components/{componentName}/cut/src")
     public CutSourceDTO getCutSourceCode(@PathVariable String componentName) {
         return cutService
-                .getCutForComponent(componentName)
+                .getCurrentCutForComponent(componentName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MessageFormat.format(
                         "CUT for the specified component \"{0}\" was not found", componentName
                 )));

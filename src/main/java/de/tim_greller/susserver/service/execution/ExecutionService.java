@@ -67,7 +67,7 @@ public class ExecutionService {
             throws NotFoundException, ClassLoadException, CompilationException {
         var compiler = new InMemoryCompiler(userId);
         var cutSource = cutService
-                .getCutForComponent(componentName)
+                .getCurrentCutForComponent(componentName)
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
         var testSource = testService.getOrCreateTestDtoForComponent(componentName, userId);
 
