@@ -43,6 +43,7 @@ uiOverlay.style.display = 'none';
 
 document.getElementById('editor-close-btn').addEventListener('click', () => {
     uiOverlay.style.display = 'none';
+    document.getElementById('unity-canvas').focus();
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
 });
 
