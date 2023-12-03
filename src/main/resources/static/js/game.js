@@ -22,6 +22,9 @@
  * @property {string} message
  */
 
+/** @type {string|false} */
+let currentComponent;
+
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
 window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
     value: '',
@@ -42,6 +45,8 @@ const uiOverlay = document.getElementById('ui-overlay');
 uiOverlay.style.display = 'none';
 
 document.getElementById('editor-close-btn').addEventListener('click', () => {
+    if (currentComponent) saveTest(currentComponent); // auto save on close
+    currentComponent = false;
     uiOverlay.style.display = 'none';
     document.getElementById('unity-canvas').focus();
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
@@ -120,10 +125,115 @@ function renderCoverage(coverage) {
     );
 }
 
+function addTestEditorChangeListener() {
+    const inactivityTimeoutUntilSave = 5e3; // after 5 seconds of inactivity, auto save
+    const maxAutosaveInterval = 3e4; // auto save at least 30 seconds after a change
+    let timeout = null;
+    let lastSave = null;
+    window.monacoEditorTest.onDidChangeModelContent(_ => {
+        const componentName = currentComponent;
+        if (!componentName) {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            return;
+        }
+        if (!lastSave) {
+            // start tracking
+            lastSave = Date.now();
+        } else if (timeout) {
+            clearTimeout(timeout);
+            const noSaveFor = Date.now() - lastSave;
+            if (noSaveFor > maxAutosaveInterval) {
+                timeout = null;
+                saveTest(componentName);
+                return;
+            }
+        }
+        timeout = setTimeout(() => {
+            timeout = null;
+            saveTest(componentName);
+        }, inactivityTimeoutUntilSave);
+    });
+}
+addTestEditorChangeListener();
+
+const execBtn = document.getElementById('editor-execute-btn');
+execBtn.addEventListener('click', () => {
+    const componentName = currentComponent;
+    if (!componentName) {
+        renderResult(`<p class="clr-error">There is no component loaded currently.</p>`);
+        return;
+    }
+    const code = window.monacoEditorTest.getValue();
+    renderResult('<p>Executing test...</p>');
+    execBtn.disabled = true;
+    fetch(`/api/components/${componentName}/test/execute`, {
+        method: 'POST',
+        headers: jsonHeader,
+        body: JSON.stringify({code}),
+    }).then(res => {
+        if (res.status === 401) {
+            renderResult(`<p class="clr-error">Your session has expired. <a href="/login">Login again.</a></p>`);
+            return;
+        }
+
+        res.json().then(/** @param {TestResult} obj */ obj => {
+            console.log(obj);
+            execBtn.disabled = false;
+
+            renderCoverage(obj.coverage);
+
+            if (!res.ok) {
+                renderResult(`
+                        <p class="clr-error"><strong>Failed to execute tests.</strong></p>
+                        <pre class="clr-error">${obj.message}</pre>
+                    `);
+                return;
+            }
+
+            let resultString = `<strong>${obj.testClassName} </strong>`;
+
+            if (obj.testStatus === 'PASSED') {
+                resultString += `<div class="clr-success">All tests passed.</div>`;
+            } else if (obj.testStatus === 'FAILED') {
+                resultString += `<div class="clr-error">There are test failures.</div>`;
+            }
+
+            resultString += '<ul>';
+            for (const [fn, details] of Object.entries(obj.testDetails)) {
+                resultString += '<li>';
+                resultString += `${details.className}::<strong>${fn} </strong>`;
+                if (details.accessDenied != null) {
+                    resultString +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
+                } else if (details.expectedTestResult != null || details.actualTestResult != null) {
+                    resultString += `
+                            <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
+                            <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
+                        `;
+                } else if (details.trace != null) {
+                    resultString += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
+                } else {
+                    resultString += `<span class="clr-success">Passed!</span>`;
+                }
+                resultString += '</li>';
+            }
+            resultString += '</ul>';
+            renderResult(resultString + `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`);
+        })
+    })
+    .catch(e => {
+        console.error(e);
+        execBtn.disabled = false;
+        renderResult(`<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`);
+    });
+});
 
 const authHeader = {'Authorization': `Bearer ${window.token}`};
 const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 window.openEditor = async function (componentName) {
+    currentComponent = componentName;
     window.monacoEditorDebug.setValue("loading...");
     window.monacoEditorTest.setValue("loading...");
     document.getElementById('ui-overlay').style.display = "initial";
@@ -142,100 +252,8 @@ window.openEditor = async function (componentName) {
         .then(test => {
             window.monacoEditorTest.setValue(test.sourceCode);
             constrain(test.editable);
-            addTestEditorChangeListener();
             window.testClassName = test.className;
         });
-
-    function addTestEditorChangeListener() {
-        const inactivityTimeoutUntilSave = 5e3; // after 5 seconds of inactivity, auto save
-        const maxAutosaveInterval = 3e4; // auto save at least 30 seconds after a change
-        let timeout = null;
-        let lastSave = null;
-        window.monacoEditorTest.onDidChangeModelContent(_ => {
-            if (!lastSave) {
-                // start tracking
-                lastSave = Date.now();
-            } else if (timeout) {
-                clearTimeout(timeout);
-                const noSaveFor = Date.now() - lastSave;
-                if (noSaveFor > maxAutosaveInterval) {
-                    timeout = null;
-                    saveTest(componentName);
-                    return;
-                }
-            }
-            timeout = setTimeout(() => {
-                timeout = null;
-                saveTest(componentName);
-            }, inactivityTimeoutUntilSave);
-        });
-    }
-
-    const execBtn = document.getElementById('editor-execute-btn');
-    execBtn.addEventListener('click', () => {
-        const code = window.monacoEditorTest.getValue();
-        renderResult('<p>Executing test...</p>');
-        execBtn.disabled = true;
-        fetch(`/api/components/${componentName}/test/execute`, {
-            method: 'POST',
-            headers: jsonHeader,
-            body: JSON.stringify({code}),
-        }).then(res => {
-            if (res.status === 401) {
-                renderResult(`<p class="clr-error">Your session has expired. <a href="/login">Login again.</a></p>`);
-                return;
-            }
-
-            res.json().then(/** @param {TestResult} obj */ obj => {
-                console.log(obj);
-                execBtn.disabled = false;
-
-                renderCoverage(obj.coverage);
-
-                if (!res.ok) {
-                    renderResult(`
-                        <p class="clr-error"><strong>Failed to execute tests.</strong></p>
-                        <pre class="clr-error">${obj.message}</pre>
-                    `);
-                    return;
-                }
-
-                let resultString = `<strong>${obj.testClassName} </strong>`;
-
-                if (obj.testStatus === 'PASSED') {
-                    resultString += `<div class="clr-success">All tests passed.</div>`;
-                } else if (obj.testStatus === 'FAILED') {
-                    resultString += `<div class="clr-error">There are test failures.</div>`;
-                }
-
-                resultString += '<ul>';
-                for (const [fn, details] of Object.entries(obj.testDetails)) {
-                    resultString += '<li>';
-                    resultString += `${details.className}::<strong>${fn} </strong>`;
-                    if (details.accessDenied != null) {
-                        resultString +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
-                    } else if (details.expectedTestResult != null || details.actualTestResult != null) {
-                        resultString += `
-                            <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
-                            <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
-                        `;
-                    } else if (details.trace != null) {
-                        resultString += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
-                    } else {
-                        resultString += `<span class="clr-success">Passed!</span>`;
-                    }
-                    resultString += '</li>';
-                }
-                resultString += '</ul>';
-                renderResult(resultString + `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`);
-            })
-          })
-          .catch(e => {
-              console.error(e);
-              execBtn.disabled = false;
-              renderResult(`<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`);
-          });
-    });
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
         saveTest(componentName);
