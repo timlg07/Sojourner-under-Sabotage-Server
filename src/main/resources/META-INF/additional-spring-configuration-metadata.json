@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "cutPattern",
+      "type": "java.lang.String",
+      "description": "The file pattern matching the paths to the CUT files."
+    },
+    {
+      "name": "initData",
+      "type": "java.lang.Boolean",
+      "description": "If this is set to true, the application will look for java files and insert them in the DB as CUTs."
+    }
+  ] }
