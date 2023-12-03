@@ -24,6 +24,7 @@
 
 /** @type {string|false} */
 let currentComponent;
+const loadingText = "loading...";
 
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
 window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
@@ -43,14 +44,6 @@ window.monacoEditorTest = monaco.editor.create(monacoContainerTest, {
 
 const uiOverlay = document.getElementById('ui-overlay');
 uiOverlay.style.display = 'none';
-
-document.getElementById('editor-close-btn').addEventListener('click', () => {
-    if (currentComponent) saveTest(currentComponent); // auto save on close
-    currentComponent = false;
-    uiOverlay.style.display = 'none';
-    document.getElementById('unity-canvas').focus();
-    window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
-});
 
 const result = document.getElementById('execution-result');
 function renderResult(content) {
@@ -80,6 +73,7 @@ function saveTest(componentName) {
         setTimeout(() => {
             saveButton.innerText = "Save Test";
         }, 3e3);
+        if (res.ok) autoSave.lastSave = Date.now();
     }).catch(e => {
         console.error(e);
         saveButton.disabled = false;
@@ -125,39 +119,52 @@ function renderCoverage(coverage) {
     );
 }
 
-function addTestEditorChangeListener() {
-    const inactivityTimeoutUntilSave = 5e3; // after 5 seconds of inactivity, auto save
-    const maxAutosaveInterval = 3e4; // auto save at least 30 seconds after a change
-    let timeout = null;
-    let lastSave = null;
-    window.monacoEditorTest.onDidChangeModelContent(_ => {
-        const componentName = currentComponent;
-        if (!componentName) {
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            return;
-        }
-        if (!lastSave) {
-            // start tracking
-            lastSave = Date.now();
-        } else if (timeout) {
-            clearTimeout(timeout);
-            const noSaveFor = Date.now() - lastSave;
-            if (noSaveFor > maxAutosaveInterval) {
-                timeout = null;
-                saveTest(componentName);
-                return;
-            }
-        }
-        timeout = setTimeout(() => {
-            timeout = null;
-            saveTest(componentName);
-        }, inactivityTimeoutUntilSave);
-    });
+const autoSave = {
+    inactivityTimeoutUntilSave: 3e3, // after 3 seconds of inactivity, auto save
+    maxAutosaveInterval: 2e4, // auto save at least 20 seconds after a change
+    timeout: null,
+    lastSave: null
 }
-addTestEditorChangeListener();
+function enqueueAutoSave (componentName) {
+    autoSave.timeout = setTimeout(() => {
+        autoSave.timeout = null;
+        saveTest(componentName);
+    }, autoSave.inactivityTimeoutUntilSave);
+}
+window.monacoEditorTest.onDidChangeModelContent(_ => {
+    const componentName = currentComponent;
+    if (!componentName || window.monacoEditorTest.getValue() === loadingText) {
+        // reset
+        if (autoSave.timeout) clearTimeout(autoSave.timeout);
+        autoSave.timeout = null;
+        autoSave.lastSave = null;
+    } else if (!autoSave.lastSave) {
+        // start tracking
+        autoSave.lastSave = Date.now();
+    } else if (autoSave.timeout) {
+        clearTimeout(autoSave.timeout);
+        const notSavedForMs = Date.now() - autoSave.lastSave;
+        if (notSavedForMs > autoSave.maxAutosaveInterval) {
+            // still editing, but not saved for a longer time -> save now
+            autoSave.timeout = null;
+            saveTest(componentName);
+        } else {
+            // push back auto-save longer, because the code is still being edited and was saved recently
+            enqueueAutoSave(componentName);
+        }
+    } else { // tracking changes, change happened, no save in queue
+        enqueueAutoSave(componentName);
+    }
+});
+
+document.getElementById('editor-close-btn').addEventListener('click', () => {
+    if (currentComponent) saveTest(currentComponent); // auto save on close
+    currentComponent = false;
+    autoSave.lastSave = null;
+    uiOverlay.style.display = 'none';
+    document.getElementById('unity-canvas').focus();
+    window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
+});
 
 const execBtn = document.getElementById('editor-execute-btn');
 execBtn.addEventListener('click', () => {
@@ -234,8 +241,8 @@ const authHeader = {'Authorization': `Bearer ${window.token}`};
 const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 window.openEditor = async function (componentName) {
     currentComponent = componentName;
-    window.monacoEditorDebug.setValue("loading...");
-    window.monacoEditorTest.setValue("loading...");
+    window.monacoEditorDebug.setValue(loadingText);
+    window.monacoEditorTest.setValue(loadingText);
     document.getElementById('ui-overlay').style.display = "initial";
     window.monacoEditorDebug.layout();
     window.monacoEditorTest.layout();
@@ -253,6 +260,7 @@ window.openEditor = async function (componentName) {
             window.monacoEditorTest.setValue(test.sourceCode);
             constrain(test.editable);
             window.testClassName = test.className;
+            autoSave.lastSave = null;
         });
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
