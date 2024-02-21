@@ -267,3 +267,49 @@ window.openEditor = async function (componentName) {
         saveTest(componentName);
     });
 };
+const stompClient = new StompJs.Client({
+    brokerURL: 'ws://localhost:8008/ws/'
+});
+
+stompClient.onConnect = (frame) => {
+    setConnected(true);
+    console.log('Connected: ' + frame);
+    stompClient.subscribe('/topic/user', (msg) => {
+        showGreeting(JSON.parse(msg.body).content);
+    });
+};
+
+stompClient.onWebSocketError = (error) => {
+    console.error('Error with websocket', error);
+};
+
+stompClient.onStompError = (frame) => {
+    console.error('Broker reported error: ' + frame.headers['message']);
+    console.error('Additional details: ' + frame.body);
+};
+
+function setConnected(connected) {
+    console.log(`connected = ${connected}`);
+}
+
+function connect() {
+    stompClient.activate();
+}
+
+function disconnect() {
+    stompClient.deactivate().then(() => {
+        setConnected(false);
+        console.log("Disconnected");
+    });
+}
+
+function sendName() {
+    stompClient.publish({
+        destination: "/app/user",
+        body: JSON.stringify({'name': "test"})
+    });
+}
+
+function showGreeting(message) {
+    console.log(message);
+}
