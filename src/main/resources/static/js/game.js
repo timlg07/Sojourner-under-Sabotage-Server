@@ -267,3 +267,82 @@ window.openEditor = async function (componentName) {
         saveTest(componentName);
     });
 };
+
+
+// websocket -----------------------
+
+let stompClient = null;
+const wsUrl = `ws://${window.location.host}/websocket`;
+
+function setConnected(connected) {
+    if (connected === undefined){
+        return;
+    }
+    console.log("connected -> " + connected)
+}
+
+function connectAndSubscribe() {
+    setConnected(undefined);
+
+    const client = new StompJs.Client({
+        brokerURL: wsUrl,
+        debug: function (str) {
+            console.log(str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+    });
+
+    client.onConnect = function (frame) {
+        // Do something, all subscribes must be done is this callback
+        // This is needed because this will be executed after a (re)connect
+        console.log("StompJs connected to broker over ws");
+        setConnected(true);
+        client.subscribe('/topic/events', (message) => {
+            handleEvent(JSON.parse(message.body));
+        });
+    };
+
+    client.onStompError = function (frame) {
+        // Will be invoked in case of error encountered at Broker
+        // Bad login/passcode typically will cause an error
+        // Complaint brokers will set `message` header with a brief message.
+        // The Body may contain details.
+        // Compliant brokers will terminate the connection after any error
+        console.log('Broker reported error: ' + frame.headers['message']);
+        console.log('Additional details: ' + frame.body);
+    };
+
+    client.activate();
+
+    stompClient = client;
+}
+
+function disconnect() {
+    if (stompClient) {
+        stompClient.deactivate();
+        stompClient = null;
+    }
+    setConnected(false);
+    console.log("Disconnected");
+}
+
+function sendEvent() {
+    stompClient.publish({
+        destination: '/app/events',
+        body: JSON.stringify({'timestamp': Date.now()}),
+        skipContentLengthHeader: true,
+    });
+}
+
+function handleEvent(message) {
+    console.log(message);
+}
+
+if (typeof StompJs === 'undefined') {
+    throw new Error('StompJs is not available');
+}
+
+setConnected(false);
+connectAndSubscribe();
