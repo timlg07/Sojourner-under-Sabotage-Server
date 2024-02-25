@@ -46,6 +46,10 @@
     <script th:inline="javascript">
       window.token = /*[[${@jwtTokenSupplier.getJwtToken().orElse("")}]]*/ '';
       window.userId = /*[[${@userService.getCurrentUserId().get()}]]*/ '';
+      window.csrfHeader = {
+        /*[[${_csrf.headerName}]]*/ ''
+        : /*[[${_csrf.token}]]*/ ''
+      };
     </script>
     <script th:src="@{/js/ws.js}"></script>
     <script th:src="@{/js/game.js}"></script>

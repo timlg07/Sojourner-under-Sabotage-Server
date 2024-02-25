@@ -12,5 +12,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder
 public class RoomUnlockedEvent extends Event {
-    private final long roomId;
+    private final int roomId;
 }

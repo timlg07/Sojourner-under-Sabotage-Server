@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.service.auth;
 
+import java.security.Principal;
 import java.util.Optional;
 
 import de.tim_greller.susserver.dto.UserRegistrationDTO;
@@ -20,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
+    private Object principal;
 
     public UserService(@Autowired UserRepository repository, @Autowired PasswordEncoder encoder) {
         this.userRepository = repository;
@@ -49,16 +51,30 @@ public class UserService {
         return userRepository.findById(username);
     }
 
-    public Optional<String> getCurrentUserId() {
+    public Object getPrincipal() {
+        if (this.principal != null) {
+            return this.principal;
+        }
+
         final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!auth.isAuthenticated()) {
+            return null;
+        }
+
+        return auth.getPrincipal();
+    }
+
+    public Optional<String> getCurrentUserId() {
+        final Object principal = getPrincipal();
+        if (principal == null) {
             return Optional.empty();
         }
 
-        final Object principal = auth.getPrincipal();
         final String username;
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
+        if (principal instanceof UserDetails userDetails) {
+            username = userDetails.getUsername();
+        } else if (principal instanceof Principal p) {
+            username = p.getName();
         } else {
             username = principal.toString();
         }
@@ -67,5 +83,22 @@ public class UserService {
 
     public String requireCurrentUserId() {
         return getCurrentUserId().orElseThrow();
+    }
+
+    /**
+     * Overrides the principal returned by {@link #getPrincipal()}. This is useful for occasions where
+     * the principal is not available in the SecurityContext, e.g., when handling STOMP messages.
+     *
+     * @param principal the principal to return from {@link #getPrincipal()}
+     */
+    public void overridePrincipal(Object principal) {
+        this.principal = principal;
+    }
+
+    /**
+     * Resets the principal returned by {@link #getPrincipal()} to the value from the SecurityContext.
+     */
+    public void resetPrincipal() {
+        this.principal = null;
     }
 }

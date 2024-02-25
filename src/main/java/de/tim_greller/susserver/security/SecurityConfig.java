@@ -51,7 +51,7 @@ public class SecurityConfig {
             return http
                     .securityMatcher(apiUrl + "/**")
                     .cors(withDefaults())
-                    .csrf(AbstractHttpConfigurer::disable)
+                    .csrf(AbstractHttpConfigurer::disable) // TODO enable CSRF
                     .authorizeHttpRequests((requests) -> requests
                             .requestMatchers(apiUrl + "/hello", apiUrl + "/auth").permitAll()
                             .requestMatchers(apiUrl + "/**").authenticated()

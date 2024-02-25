@@ -15,6 +15,7 @@ class EventSystem {
     const wsUrl = `ws://${window.location.host}/websocket`;
     const client = new StompJs.Client({
       brokerURL: wsUrl,
+      connectHeaders: window.csrfHeader,
       debug: function (str) {
         console.log(str);
       },
