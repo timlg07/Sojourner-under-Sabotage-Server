@@ -269,5 +269,5 @@ window.openEditor = async function (componentName) {
 };
 
 
-const es = new EventSystem();
+window.es = new EventSystem();
 es.registerHandler(console.log);

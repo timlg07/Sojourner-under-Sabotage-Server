@@ -63,6 +63,11 @@ class EventSystem {
     console.log("Disconnected");
   }
 
+  /**
+   * Send an event to the server
+   *
+   * @param {SusEvent} event the event to send
+   */
   sendEvent(event) {
     if (!event) event = {};
     if (!event.timestamp) event.timestamp = Date.now();
@@ -72,5 +77,24 @@ class EventSystem {
       body: JSON.stringify(event),
       skipContentLengthHeader: true,
     });
+  }
+}
+
+class SusEvent {
+  timestamp;
+  type;
+}
+
+class RoomUnlockedEvent extends SusEvent {
+  type = ".RoomUnlockedEvent";
+  /** @type {Number} */
+  roomId;
+
+  /**
+   * @param {Number} roomId the room id
+   */
+  constructor(roomId) {
+    super();
+    this.roomId = roomId;
   }
 }
