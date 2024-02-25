@@ -47,6 +47,7 @@
       window.token = /*[[${@jwtTokenSupplier.getJwtToken().orElse("")}]]*/ '';
       window.userId = /*[[${@userService.getCurrentUserId().get()}]]*/ '';
     </script>
+    <script th:src="@{/js/ws.js}"></script>
     <script th:src="@{/js/game.js}"></script>
   </body>
 </html>
