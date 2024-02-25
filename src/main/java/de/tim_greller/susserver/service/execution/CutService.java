@@ -3,32 +3,29 @@ package de.tim_greller.susserver.service.execution;
 import java.util.Optional;
 
 import de.tim_greller.susserver.dto.CutSourceDTO;
+import de.tim_greller.susserver.persistence.entity.ActivePatchEntity;
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
 import de.tim_greller.susserver.persistence.entity.PatchEntity;
 import de.tim_greller.susserver.persistence.keys.ComponentForeignKey;
 import de.tim_greller.susserver.persistence.keys.ComponentKey;
+import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
 import de.tim_greller.susserver.persistence.repository.ComponentRepository;
 import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.tim_greller.susserver.service.auth.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CutService {
 
     private final PatchService patchService;
     private final CutRepository cutRepository;
     private final ComponentRepository componentRepository;
     private final PatchRepository patchRepository;
-
-    @Autowired
-    public CutService(PatchService patchService, CutRepository cutRepository, ComponentRepository componentRepository,
-                      PatchRepository patchRepository) {
-        this.patchService = patchService;
-        this.cutRepository = cutRepository;
-        this.componentRepository = componentRepository;
-        this.patchRepository = patchRepository;
-    }
+    private final ActivePatchRepository activePatchRepository;
+    private final UserService userService;
 
     public Optional<CutSourceDTO> getOriginalCutForComponent(String componentName) {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
@@ -36,16 +33,19 @@ public class CutService {
     }
 
     public Optional<CutSourceDTO> getCurrentCutForComponent(String componentName) {
-        // TODO: get patch id from gameState
-        int patchId = 53;
+        Optional<CutSourceDTO> originalCut = getOriginalCutForComponent(componentName);
+        Optional<ActivePatchEntity> activePatch = activePatchRepository.findByKey(componentName, userService.requireCurrentUserId());
 
-        return getOriginalCutForComponent(componentName).map(cut -> {
-            return patchRepository.findById(patchId).map(patch -> {
-                String newSource = patchService.applyPatch(cut.getSourceCode(), patch.getPatch());
-                cut.setSourceCode(newSource);
-                return cut;
-            }).orElse(cut);
-        });
+        if (originalCut.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final CutSourceDTO cut = originalCut.get();
+        final CutSourceDTO patchedCut = activePatch
+                .map(ActivePatchEntity::getPatch)
+                .map(patch -> applyPatch(cut, patch))
+                .orElse(cut);
+        return Optional.of(patchedCut);
     }
 
     public void storePatch(String componentName, String newSource) {
@@ -53,6 +53,12 @@ public class CutService {
         CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
         String patch = patchService.createPatch(cut.getSourceCode(), newSource);
         patchRepository.save(new PatchEntity(patch, new ComponentForeignKey(component)));
+    }
+
+    private CutSourceDTO applyPatch(CutSourceDTO cut, PatchEntity patch) {
+        String newSource = patchService.applyPatch(cut.getSourceCode(), patch.getPatch());
+        cut.setSourceCode(newSource);
+        return cut;
     }
 
 }

@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.persistence.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import de.tim_greller.susserver.persistence.entity.PatchEntity;
@@ -13,4 +14,6 @@ public interface PatchRepository extends
         JpaRepository<PatchEntity, ComponentKey>,
         JpaSpecificationExecutor<PatchEntity> {
     Optional<PatchEntity> findById(int i);
+
+    List<PatchEntity> findPatchEntitiesByComponentKey_Component_Name(String componentName);
 }
