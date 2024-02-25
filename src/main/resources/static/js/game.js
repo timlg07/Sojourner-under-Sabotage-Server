@@ -237,7 +237,7 @@ execBtn.addEventListener('click', () => {
     });
 });
 
-const authHeader = {'Authorization': `Bearer ${window.token}`};
+const authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
 const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 window.openEditor = async function (componentName) {
     currentComponent = componentName;

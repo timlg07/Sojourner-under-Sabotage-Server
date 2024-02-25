@@ -51,8 +51,10 @@ public class SecurityConfig {
             return http
                     .securityMatcher(apiUrl + "/**")
                     .cors(withDefaults())
-                    .csrf(AbstractHttpConfigurer::disable) // TODO enable CSRF
-                    .authorizeHttpRequests((requests) -> requests
+                    // TODO: enable CSRF protection
+                    // .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(requests -> requests
                             .requestMatchers(apiUrl + "/hello", apiUrl + "/auth").permitAll()
                             .requestMatchers(apiUrl + "/**").authenticated()
                     )
@@ -65,7 +67,7 @@ public class SecurityConfig {
                                     (request) -> request.getRequestURI().startsWith(apiUrl)
                             )
                     )
-                    .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                     .build();
         }
