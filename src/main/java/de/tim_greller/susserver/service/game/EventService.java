@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import de.tim_greller.susserver.events.Event;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,13 +27,13 @@ public class EventService {
     @Setter
     private Consumer<Event> eventPublisher;
 
-    public <T extends Event> void registerHandler(@NotNull Class<T> eventType, @NotNull Consumer<T> handler) {
+    public <T extends Event> void registerHandler(@NonNull Class<T> eventType, @NonNull Consumer<T> handler) {
         eventHandlers.computeIfAbsent(eventType, key -> new ArrayList<>(1));
         eventHandlers.get(eventType).add(handler);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Event> void handleEvent(@NotNull T event) {
+    public <T extends Event> void handleEvent(@NonNull T event) {
         Class<T> eventType = (Class<T>) event.getClass();
         if (eventHandlers.containsKey(eventType)) {
             List<Consumer<? extends Event>> handler = eventHandlers.get(eventType);
@@ -43,7 +43,7 @@ public class EventService {
         }
     }
 
-    public void publishEvent(@NotNull Event event) {
+    public void publishEvent(@NonNull Event event) {
         if (eventPublisher != null) {
             eventPublisher.accept(event);
         } else {
