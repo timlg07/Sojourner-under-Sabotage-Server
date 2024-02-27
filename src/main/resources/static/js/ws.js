@@ -98,3 +98,14 @@ class RoomUnlockedEvent extends SusEvent {
     this.roomId = roomId;
   }
 }
+
+class ComponentTestsActivatedEvent extends SusEvent {
+  type = ".ComponentTestsActivatedEvent";
+  /** @type {String} */
+  componentName;
+
+  constructor(componentName) {
+    super();
+    this.componentName = componentName;
+  }
+}

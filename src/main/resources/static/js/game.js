@@ -266,6 +266,12 @@ window.openEditor = async function (componentName) {
     document.getElementById('editor-save-btn').addEventListener('click', () => {
         saveTest(componentName);
     });
+
+    document.getElementById('editor-activate-test-btn').addEventListener('click', () => {
+        const event = new ComponentTestsActivatedEvent(componentName);
+        window.es.sendEvent(event);
+        renderResult(`<p>Test activated for ${componentName}.</p>`);
+    });
 };
 
 

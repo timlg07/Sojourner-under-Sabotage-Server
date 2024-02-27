@@ -66,11 +66,12 @@ public class ComponentStatusService {
     public ComponentStatusEntity getComponentStatus(String componentName, String userId) {
         return componentStatusRepository.findByKey(componentName, userId)
                 .orElseGet(() -> {
-                            ComponentStatusEntity e = new ComponentStatusEntity(
+                            ComponentStatusEntity e = ComponentStatusEntity.builder().userComponentKey(
                                     new UserComponentKey(
                                             componentRepository.findById(componentName).orElseThrow(),
                                             userRepository.findById(userId).orElseThrow()
-                                    ), 1);
+                                    )
+                            ).build();
                             return componentStatusRepository.save(e);
                         }
                 );
@@ -79,6 +80,9 @@ public class ComponentStatusService {
     public void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
         final String componentName = event.getComponentName();
         log.info("Component tests activated for component {}", componentName);
+        final ComponentStatusEntity componentStatus = getComponentStatus(componentName, userService.requireCurrentUserId());
+        componentStatus.setTestsActivated(true);
+        componentStatusRepository.save(componentStatus);
 
         waitForAttack();
         attackCut(componentName);
