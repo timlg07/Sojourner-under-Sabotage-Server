@@ -4,6 +4,7 @@ class EventSystem {
     this.handlers = []; // TODO: make it a map from event type to func
     this.stompClient = this._initStompClient();
     this.stompClient.activate();
+    this.queue = [];
   }
 
   _initStompClient() {
@@ -32,6 +33,11 @@ class EventSystem {
         const event = JSON.parse(message.body);
         eventSystemInstance._handleEvent(event);
       });
+
+      while (eventSystemInstance.queue.length > 0) {
+        const event = eventSystemInstance.queue.shift();
+        eventSystemInstance.sendEvent(event);
+      }
     };
 
     client.onStompError = function (frame) {
@@ -72,11 +78,15 @@ class EventSystem {
     if (!event) event = {};
     if (!event.timestamp) event.timestamp = Date.now();
 
-    this.stompClient.publish({
-      destination: '/app/events',
-      body: JSON.stringify(event),
-      skipContentLengthHeader: true,
-    });
+    if (this.stompClient.connected) {
+      this.stompClient.publish({
+        destination: '/app/events',
+        body: JSON.stringify(event),
+        skipContentLengthHeader: true,
+      });
+    } else {
+      this.queue.push(event);
+    }
   }
 }
 
@@ -108,4 +118,8 @@ class ComponentTestsActivatedEvent extends SusEvent {
     super();
     this.componentName = componentName;
   }
+}
+
+class GameStartedEvent extends SusEvent {
+  type = ".GameStartedEvent";
 }

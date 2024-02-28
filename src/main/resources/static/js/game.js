@@ -277,3 +277,4 @@ window.openEditor = async function (componentName) {
 
 window.es = new EventSystem();
 es.registerHandler(console.log);
+es.sendEvent(new GameStartedEvent());

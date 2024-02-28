@@ -25,11 +25,13 @@ import de.tim_greller.susserver.persistence.repository.UserRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.ExecutionService;
 import de.tim_greller.susserver.service.execution.TestService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ComponentStatusService {
 
     private final EventService eventService;
@@ -42,26 +44,6 @@ public class ComponentStatusService {
     private final ComponentStatusRepository componentStatusRepository;
     private final ComponentRepository componentRepository;
 
-
-    // Instantiated by the Spring IoC container during startup even if not injected anywhere.
-    // It then registers itself as a handler for the ComponentTestsActivatedEvent.
-    public ComponentStatusService(EventService eventService, PatchRepository patchRepository,
-                                  ActivePatchRepository activePatchRepository, UserService userService,
-                                  UserRepository userRepository, ExecutionService executionService,
-                                  TestService testService, ComponentStatusRepository componentStatusRepository,
-                                  ComponentRepository componentRepository) {
-        this.eventService = eventService;
-        this.patchRepository = patchRepository;
-        this.activePatchRepository = activePatchRepository;
-        this.userService = userService;
-        this.userRepository = userRepository;
-        this.executionService = executionService;
-        this.testService = testService;
-        this.componentStatusRepository = componentStatusRepository;
-        this.componentRepository = componentRepository;
-
-        eventService.registerHandler(ComponentTestsActivatedEvent.class, this::handleComponentTestsActivated);
-    }
 
     public ComponentStatusEntity getComponentStatus(String componentName, String userId) {
         return componentStatusRepository.findByKey(componentName, userId)
@@ -77,40 +59,18 @@ public class ComponentStatusService {
                 );
     }
 
-    public void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
+    void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
         final String componentName = event.getComponentName();
         log.info("Component tests activated for component {}", componentName);
         final ComponentStatusEntity componentStatus = getComponentStatus(componentName, userService.requireCurrentUserId());
         componentStatus.setTestsActivated(true);
         componentStatusRepository.save(componentStatus);
-
-        waitForAttack();
-        attackCut(componentName);
-
-        final TestExecutionResultDTO res = executeTests(componentName);
-        if (res == null) {
-            return;
-        }
-
-        Event e = testExecutionResultToEvent(res, componentName);
-        eventService.publishEvent(e);
-    }
-
-    private void waitForAttack() {
-        final int baseWaitTime = 5_000;
-        final int maxWaitTime = 15_000;
-        final int waitTime = baseWaitTime + (int) (Math.random() * (maxWaitTime - baseWaitTime));
-        try {
-            Thread.sleep(waitTime);
-        } catch (InterruptedException e) {
-            log.error("Thread interrupted", e);
-        }
     }
 
     /**
      * Selects and apply a mutation (=patch) to the component.
      */
-    private void attackCut(final String componentName) {
+    void attackCut(final String componentName) {
         log.info("Component {} is being attacked", componentName);
 
         List<PatchEntity> patches = patchRepository.findPatchEntitiesByComponentKey_Component_Name(componentName);
@@ -128,6 +88,15 @@ public class ComponentStatusService {
                 userRepository.findById(userService.requireCurrentUserId()).orElseThrow()
         );
         activePatchRepository.save(new ActivePatchEntity(key, patch));
+
+        // execute mutated component
+        final TestExecutionResultDTO res = executeTests(componentName);
+        if (res == null) {
+            return;
+        }
+
+        Event e = testExecutionResultToEvent(res, componentName);
+        eventService.publishEvent(e);
     }
 
     private TestExecutionResultDTO executeTests(final String componentName) {
