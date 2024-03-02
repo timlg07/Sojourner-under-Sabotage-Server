@@ -119,6 +119,41 @@ function renderCoverage(coverage) {
     );
 }
 
+/** @param {TestResult} obj */
+function renderTestResultObject(obj) {
+    renderCoverage(obj.coverage);
+
+    let r = `<strong>${obj.testClassName} </strong>`;
+
+    if (obj.testStatus === 'PASSED') {
+        r += `<div class="clr-success">All tests passed.</div>`;
+    } else if (obj.testStatus === 'FAILED') {
+        r += `<div class="clr-error">There are test failures.</div>`;
+    }
+
+    r += '<ul>';
+    for (const [fn, details] of Object.entries(obj.testDetails)) {
+        r += '<li>';
+        r += `${details.className}::<strong>${fn} </strong>`;
+        if (details.accessDenied != null) {
+            r +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
+        } else if (details.expectedTestResult != null || details.actualTestResult != null) {
+            r += `
+                <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
+                <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
+            `;
+        } else if (details.trace != null) {
+            r += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
+        } else {
+            r += `<span class="clr-success">Passed!</span>`;
+        }
+        r += '</li>';
+    }
+    r += '</ul>';
+    renderResult(r + `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`);
+}
+
+
 const autoSave = {
     inactivityTimeoutUntilSave: 3e3, // after 3 seconds of inactivity, auto save
     maxAutosaveInterval: 2e4, // auto save at least 20 seconds after a change
@@ -190,8 +225,6 @@ execBtn.addEventListener('click', () => {
             console.log(obj);
             execBtn.disabled = false;
 
-            renderCoverage(obj.coverage);
-
             if (!res.ok) {
                 renderResult(`
                         <p class="clr-error"><strong>Failed to execute tests.</strong></p>
@@ -200,34 +233,7 @@ execBtn.addEventListener('click', () => {
                 return;
             }
 
-            let resultString = `<strong>${obj.testClassName} </strong>`;
-
-            if (obj.testStatus === 'PASSED') {
-                resultString += `<div class="clr-success">All tests passed.</div>`;
-            } else if (obj.testStatus === 'FAILED') {
-                resultString += `<div class="clr-error">There are test failures.</div>`;
-            }
-
-            resultString += '<ul>';
-            for (const [fn, details] of Object.entries(obj.testDetails)) {
-                resultString += '<li>';
-                resultString += `${details.className}::<strong>${fn} </strong>`;
-                if (details.accessDenied != null) {
-                    resultString +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
-                } else if (details.expectedTestResult != null || details.actualTestResult != null) {
-                    resultString += `
-                            <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
-                            <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
-                        `;
-                } else if (details.trace != null) {
-                    resultString += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
-                } else {
-                    resultString += `<span class="clr-success">Passed!</span>`;
-                }
-                resultString += '</li>';
-            }
-            resultString += '</ul>';
-            renderResult(resultString + `<br><small>Elapsed time: ${obj.elapsedTime} ms</small>`);
+            renderTestResultObject(obj);
         })
     })
     .catch(e => {
@@ -276,5 +282,9 @@ window.openEditor = async function (componentName) {
 
 
 window.es = new EventSystem();
-es.registerHandler(console.log);
+es.registerHandler('*', console.log);
+es.registerHandler('MutatedComponentTestsFailedEvent', evt => {
+    window.unityInstance.SendMessage('BrowserInterface', 'OnMutatedComponentTestsFailed', evt.componentName);
+    renderTestResultObject(evt.executionResult); // TODO: prohibit editor from reloading the code (and therefore overwriting it)
+})
 es.sendEvent(new GameStartedEvent());
