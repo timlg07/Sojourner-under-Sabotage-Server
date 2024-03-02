@@ -21,4 +21,6 @@ public interface ComponentStatusRepository extends
             AND c.userComponentKey.component.name = :componentName
             """)
     Optional<ComponentStatusEntity> findByKey(String componentName, String userId);
+
+    void deleteAllByUserComponentKeyUserEmail(String userId);
 }

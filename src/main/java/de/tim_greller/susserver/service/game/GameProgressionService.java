@@ -61,6 +61,7 @@ public class GameProgressionService {
 
         if (currentComponentStatus.isTestsActivated()) {
             int waitDurationSeconds = gameProgression.getDelaySeconds();
+            log.info("Waiting for {} seconds before attacking component {}", waitDurationSeconds, componentName);
             try {
                 Thread.sleep(waitDurationSeconds * 1_000L);
             } catch (InterruptedException e) {
@@ -72,6 +73,7 @@ public class GameProgressionService {
     }
 
     private void resetGameProgression() {
+        componentStatusService.resetComponentStatus(currentUser().getUser().getEmail());
         userGameProgressionRepository.save(UserGameProgressionEntity.builder()
                 .gameProgression(gameProgressionRepository.getReferenceById(1))
                 .user(currentUser())

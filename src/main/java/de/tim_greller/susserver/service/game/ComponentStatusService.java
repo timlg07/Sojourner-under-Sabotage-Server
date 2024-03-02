@@ -28,6 +28,7 @@ import de.tim_greller.susserver.service.execution.TestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -123,5 +124,12 @@ public class ComponentStatusService {
             TestSourceDTO src = testService.getOrCreateTestDtoForComponent(componentName, userId);
             return new ComponentDestroyedEvent(componentName, src);
         }
+    }
+
+    @Transactional
+    public void resetComponentStatus(String userId) {
+        componentStatusRepository.deleteAllByUserComponentKeyUserEmail(userId);
+        activePatchRepository.deleteAllByComponentKeyUserEmail(userId);
+        // TODO: tests should be deleted as well. Long term this method should only be called on new game creation.
     }
 }
