@@ -1,7 +1,8 @@
 class EventSystem {
 
   constructor() {
-    this.handlers = []; // TODO: make it a map from event type to func
+    /** @type {Map<String, Array<Function>>} */
+    this.handlers = new Map();
     this.stompClient = this._initStompClient();
     this.stompClient.activate();
     this.queue = [];
@@ -54,11 +55,28 @@ class EventSystem {
   }
 
   _handleEvent(event) {
-    this.handlers.forEach(h => h(event));
+    const eventType = event.type.replace(/^(\.)/, '');
+    if (this.handlers.has(eventType)) {
+      this.handlers.get(eventType).forEach((handler) => handler(event));
+    }
+    if (this.handlers.has('*')) {
+      this.handlers.get('*').forEach((handler) => handler(event));
+    }
   }
 
-  registerHandler(eventHandler) {
-    this.handlers.push(eventHandler);
+  /**
+   * Register a handler for a specific event type
+   * @param {String} eventType the name of the event type or * for all events.
+   *                           Can contain a leading dot that will be removed.
+   * @param {Function} eventHandler the handler function
+   */
+  registerHandler(eventType, eventHandler) {
+    eventType = eventType.replace(/^(\.)/, '');
+    if (this.handlers.has(eventType)) {
+      this.handlers.get(eventType).push(eventHandler);
+    } else {
+      this.handlers.set(eventType, [eventHandler]);
+    }
   }
 
   disconnect() {
@@ -96,7 +114,8 @@ class SusEvent {
 }
 
 class RoomUnlockedEvent extends SusEvent {
-  type = ".RoomUnlockedEvent";
+  static type = ".RoomUnlockedEvent";
+  type = RoomUnlockedEvent.type;
   /** @type {Number} */
   roomId;
 
@@ -110,7 +129,8 @@ class RoomUnlockedEvent extends SusEvent {
 }
 
 class ComponentTestsActivatedEvent extends SusEvent {
-  type = ".ComponentTestsActivatedEvent";
+  static type = ".ComponentTestsActivatedEvent";
+  type = ComponentTestsActivatedEvent.type;
   /** @type {String} */
   componentName;
 
@@ -121,5 +141,6 @@ class ComponentTestsActivatedEvent extends SusEvent {
 }
 
 class GameStartedEvent extends SusEvent {
-  type = ".GameStartedEvent";
+  static type = ".GameStartedEvent";
+  type = GameStartedEvent.type;
 }
