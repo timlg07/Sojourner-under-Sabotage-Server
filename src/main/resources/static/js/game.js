@@ -22,9 +22,26 @@
  * @property {string} message
  */
 
+/**
+ * @typedef {Object} SourceDTO
+ * @property {string} cutComponentName
+ * @property {string} className
+ * @property {string} sourceCode
+ * @property {Array<Range>} editable
+ */
+
+/**
+ * @typedef {Object} ComponentData
+ * @property {SourceDTO} test
+ * @property {SourceDTO} cut
+ * @property {TestResult} testResult
+ */
+
 /** @type {string|false} */
 let currentComponent;
 const loadingText = "loading...";
+/** @type {Map<string, ComponentData>} */
+const componentData = new Map();
 
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
 window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
@@ -233,6 +250,12 @@ execBtn.addEventListener('click', () => {
                 return;
             }
 
+            const data = componentData.get(componentName);
+            if (data) { // should always be true, as the component is loaded before executing
+                data.testResult = obj;
+                componentData.set(componentName, data);
+            }
+
             renderTestResultObject(obj);
         })
     })
@@ -245,7 +268,40 @@ execBtn.addEventListener('click', () => {
 
 const authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
 const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
+
+/**
+ * @param {string} componentName
+ * @return {Promise<ComponentData>}
+ */
+async function getComponentData(componentName) {
+    let data = {};
+
+    if (componentData.has(componentName)) {
+        data = componentData.get(componentName);
+    }
+
+    if (!data.cut) {
+        await fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
+          .then(res => res.json())
+          .then(/** @param {SourceDTO} json */json => {
+              data.cut = json;
+          });
+    }
+
+    if (!data.test) {
+        await fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
+          .then(res => res.json())
+          .then(/** @param {SourceDTO} test */test => {
+              data.test = test;
+          });
+    }
+
+    componentData.set(componentName, data);
+    return data;
+}
+
 window.openEditor = async function (componentName) {
+    renderResult('');
     currentComponent = componentName;
     window.monacoEditorDebug.setValue(loadingText);
     window.monacoEditorTest.setValue(loadingText);
@@ -253,21 +309,19 @@ window.openEditor = async function (componentName) {
     window.monacoEditorDebug.layout();
     window.monacoEditorTest.layout();
 
-    fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
-        .then(res => res.json())
-        .then(json => {
-            window.monacoEditorDebug.setValue(json.sourceCode);
-            window.cutClassName = json.className;
-        });
+    const componentData = await getComponentData(componentName);
 
-    fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
-        .then(res => res.json())
-        .then(test => {
-            window.monacoEditorTest.setValue(test.sourceCode);
-            constrain(test.editable);
-            window.testClassName = test.className;
-            autoSave.lastSave = null;
-        });
+    window.monacoEditorDebug.setValue(componentData.cut.sourceCode);
+    window.cutClassName = componentData.cut.className;
+
+    window.monacoEditorTest.setValue(componentData.test.sourceCode);
+    constrain(componentData.test.editable);
+    window.testClassName = componentData.test.className;
+    autoSave.lastSave = null;
+
+    if (componentData.testResult) {
+        renderTestResultObject(componentData.testResult);
+    }
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
         saveTest(componentName);
@@ -285,6 +339,12 @@ window.es = new EventSystem();
 es.registerHandler('*', console.log);
 es.registerHandler('MutatedComponentTestsFailedEvent', evt => {
     window.unityInstance.SendMessage('BrowserInterface', 'OnMutatedComponentTestsFailed', evt.componentName);
-    renderTestResultObject(evt.executionResult); // TODO: prohibit editor from reloading the code (and therefore overwriting it)
-})
+    /** @type {ComponentData} */
+    const data = {
+        testResult: evt.executionResult,
+        cut: evt.cutSource,
+        test: evt.testSource
+    };
+    componentData.set(evt.componentName, data);
+});
 es.sendEvent(new GameStartedEvent());

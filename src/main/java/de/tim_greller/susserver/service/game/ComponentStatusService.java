@@ -23,6 +23,7 @@ import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
 import de.tim_greller.susserver.persistence.repository.UserRepository;
 import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.execution.CutService;
 import de.tim_greller.susserver.service.execution.ExecutionService;
 import de.tim_greller.susserver.service.execution.TestService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class ComponentStatusService {
     private final TestService testService;
     private final ComponentStatusRepository componentStatusRepository;
     private final ComponentRepository componentRepository;
+    private final CutService cutService;
 
 
     public ComponentStatusEntity getComponentStatus(String componentName, String userId) {
@@ -60,12 +62,23 @@ public class ComponentStatusService {
                 );
     }
 
-    void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
+    /**
+     * Handles the ComponentTestsActivatedEvent by setting the testsActivated flag in the component status.
+     *
+     * @param event The event to handle.
+     * @return true if the testsActivated flag was changed, false if it was already active before.
+     */
+    boolean handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
         final String componentName = event.getComponentName();
         log.info("Component tests activated for component {}", componentName);
         final ComponentStatusEntity componentStatus = getComponentStatus(componentName, userService.requireCurrentUserId());
+        if (componentStatus.isTestsActivated()) {
+            log.info("Component tests already activated for component {}", componentName);
+            return false;
+        }
         componentStatus.setTestsActivated(true);
         componentStatusRepository.save(componentStatus);
+        return true;
     }
 
     /**
@@ -115,7 +128,12 @@ public class ComponentStatusService {
     private Event testExecutionResultToEvent(final TestExecutionResultDTO res, final String componentName) {
         if (res.getTestStatus() == TestStatus.FAILED) {
             log.info("Component {} tests failed", componentName);
-            return new MutatedComponentTestsFailedEvent(componentName, res);
+            return MutatedComponentTestsFailedEvent.builder()
+                    .componentName(componentName)
+                    .executionResult(res)
+                    .cutSource(cutService.getCurrentCutForComponent(componentName).orElseThrow())
+                    .testSource(testService.getOrCreateTestDtoForComponent(componentName, userService.requireCurrentUserId()))
+                    .build();
         } else {
             log.info("Component {} tests passed", componentName);
             final String userId = userService.requireCurrentUserId();

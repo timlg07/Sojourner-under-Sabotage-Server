@@ -43,8 +43,9 @@ public class GameProgressionService {
     }
 
     public void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
-        componentStatusService.handleComponentTestsActivated(event);
-        gameLoop();
+        if (componentStatusService.handleComponentTestsActivated(event)) {
+            gameLoop();
+        }
     }
 
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
