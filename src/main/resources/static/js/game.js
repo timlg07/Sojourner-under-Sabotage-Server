@@ -331,6 +331,9 @@ window.openEditor = async function (componentName) {
         const event = new ComponentTestsActivatedEvent(componentName);
         window.es.sendEvent(event);
         renderResult(`<p>Test activated for ${componentName}.</p>`);
+        const btn = document.getElementById('editor-activate-test-btn');
+        btn.disabled = true;
+        btn.innerText = "Test Activated";
     });
 };
 
