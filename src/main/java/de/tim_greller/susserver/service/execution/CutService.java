@@ -6,8 +6,8 @@ import de.tim_greller.susserver.dto.CutSourceDTO;
 import de.tim_greller.susserver.persistence.entity.ActivePatchEntity;
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
 import de.tim_greller.susserver.persistence.entity.PatchEntity;
-import de.tim_greller.susserver.persistence.keys.ComponentForeignKey;
 import de.tim_greller.susserver.persistence.keys.ComponentKey;
+import de.tim_greller.susserver.persistence.keys.ComponentStageKey;
 import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
 import de.tim_greller.susserver.persistence.repository.ComponentRepository;
 import de.tim_greller.susserver.persistence.repository.CutRepository;
@@ -48,11 +48,11 @@ public class CutService {
         return Optional.of(patchedCut);
     }
 
-    public void storePatch(String componentName, String newSource) {
+    public void storePatch(String componentName, int stage,  String newSource) {
         ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
         String patch = patchService.createPatch(cut.getSourceCode(), newSource);
-        patchRepository.save(new PatchEntity(patch, new ComponentForeignKey(component)));
+        patchRepository.save(new PatchEntity(patch, new ComponentStageKey(component, stage)));
     }
 
     private CutSourceDTO applyPatch(CutSourceDTO cut, PatchEntity patch) {

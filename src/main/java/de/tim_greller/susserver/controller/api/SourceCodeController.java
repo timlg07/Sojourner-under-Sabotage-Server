@@ -59,10 +59,11 @@ public class SourceCodeController {
         );
     }
 
-    @PostMapping("${paths.api}/components/{componentName}/cut/patch")
+    @PostMapping("${paths.api}/components/{componentName}/cut/patch/stage-{stage}")
     public void storePatch(@PathVariable String componentName,
+                           @PathVariable int stage,
                            @RequestBody PlainSource newSource) {
-        cutService.storePatch(componentName, newSource.getCode());
+        cutService.storePatch(componentName, stage, newSource.getCode());
     }
 
 }

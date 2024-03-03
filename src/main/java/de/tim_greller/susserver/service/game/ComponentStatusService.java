@@ -1,6 +1,6 @@
 package de.tim_greller.susserver.service.game;
 
-import java.util.List;
+import java.util.Optional;
 
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
@@ -51,12 +51,13 @@ public class ComponentStatusService {
     public ComponentStatusEntity getComponentStatus(String componentName, String userId) {
         return componentStatusRepository.findByKey(componentName, userId)
                 .orElseGet(() -> {
-                            ComponentStatusEntity e = ComponentStatusEntity.builder().userComponentKey(
-                                    new UserComponentKey(
+                            ComponentStatusEntity e = ComponentStatusEntity.builder()
+                                    .userComponentKey(new UserComponentKey(
                                             componentRepository.findById(componentName).orElseThrow(),
-                                            userRepository.findById(userId).orElseThrow()
-                                    )
-                            ).build();
+                                            userRepository.findById(userId).orElseThrow()))
+                                    .stage(1)
+                                    .testsActivated(false)
+                                    .build();
                             return componentStatusRepository.save(e);
                         }
                 );
@@ -71,7 +72,8 @@ public class ComponentStatusService {
     boolean handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
         final String componentName = event.getComponentName();
         log.info("Component tests activated for component {}", componentName);
-        final ComponentStatusEntity componentStatus = getComponentStatus(componentName, userService.requireCurrentUserId());
+        final ComponentStatusEntity componentStatus =
+                getComponentStatus(componentName, userService.requireCurrentUserId());
         if (componentStatus.isTestsActivated()) {
             log.info("Component tests already activated for component {}", componentName);
             return false;
@@ -87,15 +89,17 @@ public class ComponentStatusService {
     void attackCut(final String componentName) {
         log.info("Component {} is being attacked", componentName);
 
-        List<PatchEntity> patches = patchRepository.findPatchEntitiesByComponentKey_Component_Name(componentName);
+        int stage = getComponentStatus(componentName, userService.requireCurrentUserId()).getStage();
+        Optional<PatchEntity> patches =
+                patchRepository.findPatchEntitiesByComponentKey_ComponentNameAndComponentKey_Stage(
+                        componentName, stage);
 
         if (patches.isEmpty()) {
             log.info("No patches found for component {}", componentName);
             return;
         }
 
-        // TODO: not a random patch, but same for everyone to make it better comparable.
-        PatchEntity patch = patches.get((int) (Math.random() * patches.size()));
+        PatchEntity patch = patches.get();
 
         UserComponentKey key = new UserComponentKey(
                 patch.getComponentKey().getComponent(),
@@ -132,7 +136,8 @@ public class ComponentStatusService {
                     .componentName(componentName)
                     .executionResult(res)
                     .cutSource(cutService.getCurrentCutForComponent(componentName).orElseThrow())
-                    .testSource(testService.getOrCreateTestDtoForComponent(componentName, userService.requireCurrentUserId()))
+                    .testSource(testService.getOrCreateTestDtoForComponent(componentName,
+                            userService.requireCurrentUserId()))
                     .build();
         } else {
             log.info("Component {} tests passed", componentName);

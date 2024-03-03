@@ -4,6 +4,7 @@ import de.tim_greller.susserver.persistence.keys.UserComponentKey;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,6 @@ public class ActivePatchEntity {
     private UserComponentKey componentKey;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumns({@JoinColumn, @JoinColumn})
     private PatchEntity patch;
 }
