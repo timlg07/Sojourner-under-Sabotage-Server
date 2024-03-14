@@ -35,6 +35,8 @@
  * @property {SourceDTO} test
  * @property {SourceDTO} cut
  * @property {TestResult} testResult
+ *
+ * @property {boolean} isTestActive
  */
 
 /** @type {string|false} */
@@ -296,6 +298,11 @@ async function getComponentData(componentName) {
           });
     }
 
+    if (!'isTestActive' in data) {
+        // TODO: maybe get state via API?
+        data.isTestActive = false;
+    }
+
     componentData.set(componentName, data);
     return data;
 }
@@ -309,19 +316,23 @@ window.openEditor = async function (componentName) {
     window.monacoEditorDebug.layout();
     window.monacoEditorTest.layout();
 
-    const componentData = await getComponentData(componentName);
+    const currentComponentData = await getComponentData(componentName);
 
-    window.monacoEditorDebug.setValue(componentData.cut.sourceCode);
-    window.cutClassName = componentData.cut.className;
+    window.monacoEditorDebug.setValue(currentComponentData.cut.sourceCode);
+    window.cutClassName = currentComponentData.cut.className;
 
-    window.monacoEditorTest.setValue(componentData.test.sourceCode);
-    constrain(componentData.test.editable);
-    window.testClassName = componentData.test.className;
+    window.monacoEditorTest.setValue(currentComponentData.test.sourceCode);
+    constrain(currentComponentData.test.editable);
+    window.testClassName = currentComponentData.test.className;
     autoSave.lastSave = null;
 
-    if (componentData.testResult) {
-        renderTestResultObject(componentData.testResult);
+    if (currentComponentData.testResult) {
+        renderTestResultObject(currentComponentData.testResult);
     }
+
+    const activateButton = document.getElementById('editor-activate-test-btn');
+    activateButton.disabled = !!currentComponentData.isTestActive;
+    activateButton.innerText = currentComponentData.isTestActive ? "Test Activated" : "Activate Test";
 
     document.getElementById('editor-save-btn').addEventListener('click', () => {
         saveTest(componentName);
@@ -330,6 +341,10 @@ window.openEditor = async function (componentName) {
     document.getElementById('editor-activate-test-btn').addEventListener('click', () => {
         const event = new ComponentTestsActivatedEvent(componentName);
         window.es.sendEvent(event);
+        const data = componentData.get(componentName); // should always be present at this point
+        data.isTestActive = true;
+        componentData.set(componentName, data);
+
         renderResult(`<p>Test activated for ${componentName}.</p>`);
         const btn = document.getElementById('editor-activate-test-btn');
         btn.disabled = true;
@@ -346,7 +361,8 @@ es.registerHandler('MutatedComponentTestsFailedEvent', evt => {
     const data = {
         testResult: evt.executionResult,
         cut: evt.cutSource,
-        test: evt.testSource
+        test: evt.testSource,
+        isTestActive: false,
     };
     componentData.set(evt.componentName, data);
 });
