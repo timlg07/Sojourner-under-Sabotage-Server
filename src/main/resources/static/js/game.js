@@ -15,7 +15,7 @@
 /**
  * @typedef {Object} TestResult
  * @property {string} testClassName
- * @property {string} testStatus
+ * @property {'PASSED' | 'FAILED' | 'IGNORED'} testStatus
  * @property {number} elapsedTime
  * @property {Object<string, TestDetails>} testDetails
  * @property {Object<string, Object<string, number>>} coverage
@@ -259,6 +259,7 @@ execBtn.addEventListener('click', () => {
             }
 
             renderTestResultObject(obj);
+            updateActivateButtonState(componentName);
         })
     })
     .catch(e => {
@@ -307,7 +308,27 @@ async function getComponentData(componentName) {
     return data;
 }
 
+function updateActivateButtonState(componentName) {
+    const btn = document.getElementById('editor-activate-test-btn');
+    const data = componentData.get(componentName);
+
+    // can be activated if not already active and tests passed under the original CUT
+    const isActivated = data.isTestActive;
+    const testsPassed = data.testResult?.testStatus === 'PASSED';
+    const canActivate = !isActivated && testsPassed;
+
+    btn.disabled = !canActivate;
+    btn.innerText = canActivate ? "Activate Test" :
+                    isActivated ? "Test Activated" : "tests need to pass to activate";
+}
+
 window.openEditor = async function (componentName) {
+    const saveButton = document.getElementById('editor-save-btn');
+    const activateButton = document.getElementById('editor-activate-test-btn');
+    saveButton.disabled = true;
+    execBtn.disabled = true;
+    activateButton.disabled = true;
+
     renderResult('');
     currentComponent = componentName;
     window.monacoEditorDebug.setValue(loadingText);
@@ -330,15 +351,12 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    const activateButton = document.getElementById('editor-activate-test-btn');
-    activateButton.disabled = !!currentComponentData.isTestActive;
-    activateButton.innerText = currentComponentData.isTestActive ? "Test Activated" : "Activate Test";
-
-    document.getElementById('editor-save-btn').addEventListener('click', () => {
+    saveButton.addEventListener('click', () => {
         saveTest(componentName);
     });
+    saveButton.disabled = false;
 
-    document.getElementById('editor-activate-test-btn').addEventListener('click', () => {
+    activateButton.addEventListener('click', () => {
         const event = new ComponentTestsActivatedEvent(componentName);
         window.es.sendEvent(event);
         const data = componentData.get(componentName); // should always be present at this point
@@ -346,10 +364,11 @@ window.openEditor = async function (componentName) {
         componentData.set(componentName, data);
 
         renderResult(`<p>Test activated for ${componentName}.</p>`);
-        const btn = document.getElementById('editor-activate-test-btn');
-        btn.disabled = true;
-        btn.innerText = "Test Activated";
+        updateActivateButtonState(componentName);
     });
+    updateActivateButtonState(componentName);
+
+    execBtn.disabled = false;
 };
 
 
