@@ -85,6 +85,10 @@ public class UserService {
         return getCurrentUserId().orElseThrow();
     }
 
+    public UserEntity requireCurrentUser() {
+        return loadUserByEmail(requireCurrentUserId()).orElseThrow();
+    }
+
     /**
      * Overrides the principal returned by {@link #getPrincipal()}. This is useful for occasions where
      * the principal is not available in the SecurityContext, e.g., when handling STOMP messages.

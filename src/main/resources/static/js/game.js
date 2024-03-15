@@ -103,6 +103,36 @@ function saveTest(componentName) {
     });
 }
 
+function saveCut(componentName) {
+    const saveButton = document.getElementById('editor-save-cut-btn');
+    saveButton.disabled = true;
+    saveButton.innerText = "Saving...";
+    const cut = window.monacoEditorDebug.getValue();
+    fetch(`/api/components/${componentName}/cut/src`, {
+        method: 'PUT',
+        headers: jsonHeader,
+        body: JSON.stringify({code: cut}),
+    }).then(res => {
+        if (res.status === 401) {
+            renderResult(`<p class="clr-error">Your session has expired.
+                <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
+        }
+        saveButton.disabled = false;
+        saveButton.innerText = res.ok ? "CUT Saved!" : "Save Failed";
+        setTimeout(() => {
+            saveButton.innerText = "Save CUT";
+        }, 3e3);
+        // if (res.ok) autoSave.lastSave = Date.now(); // TODO: auto-save for CUT
+    }).catch(e => {
+        console.error(e);
+        saveButton.disabled = false;
+        saveButton.innerText = "Save Failed";
+        setTimeout(() => {
+            saveButton.innerText = "Save CUT";
+        }, 3e3);
+    });
+}
+
 /**
  * @param {Array<Range>} editableRanges
  */
@@ -323,9 +353,11 @@ function updateActivateButtonState(componentName) {
 }
 
 window.openEditor = async function (componentName) {
-    const saveButton = document.getElementById('editor-save-btn');
+    const saveCutButton = document.getElementById('editor-save-cut-btn');
+    const saveTestButton = document.getElementById('editor-save-btn');
     const activateButton = document.getElementById('editor-activate-test-btn');
-    saveButton.disabled = true;
+    saveCutButton.disabled = true;
+    saveTestButton.disabled = true;
     execBtn.disabled = true;
     activateButton.disabled = true;
 
@@ -351,10 +383,15 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    saveButton.addEventListener('click', () => {
+    saveCutButton.addEventListener('click', () => {
+        saveCut(componentName);
+    });
+    saveCutButton.disabled = false;
+
+    saveTestButton.addEventListener('click', () => {
         saveTest(componentName);
     });
-    saveButton.disabled = false;
+    saveTestButton.disabled = false;
 
     activateButton.addEventListener('click', () => {
         const event = new ComponentTestsActivatedEvent(componentName);
@@ -374,7 +411,10 @@ window.openEditor = async function (componentName) {
 
 window.es = new EventSystem();
 es.registerHandler('*', console.log);
-es.registerHandler('MutatedComponentTestsFailedEvent', evt => {
+es.registerHandler(
+  'MutatedComponentTestsFailedEvent',
+  /** @param {{executionResult:TestResult, cutSource:SourceDTO, testSource:SourceDTO, componentName:string}} evt */
+  evt => {
     window.unityInstance.SendMessage('BrowserInterface', 'OnMutatedComponentTestsFailed', evt.componentName);
     /** @type {ComponentData} */
     const data = {

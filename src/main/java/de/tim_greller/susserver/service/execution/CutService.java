@@ -5,13 +5,18 @@ import java.util.Optional;
 import de.tim_greller.susserver.dto.CutSourceDTO;
 import de.tim_greller.susserver.persistence.entity.ActivePatchEntity;
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
+import de.tim_greller.susserver.persistence.entity.Patch;
 import de.tim_greller.susserver.persistence.entity.PatchEntity;
+import de.tim_greller.susserver.persistence.entity.UserEntity;
+import de.tim_greller.susserver.persistence.entity.UserModifiedCutEntity;
 import de.tim_greller.susserver.persistence.keys.ComponentKey;
 import de.tim_greller.susserver.persistence.keys.ComponentStageKey;
+import de.tim_greller.susserver.persistence.keys.UserComponentKey;
 import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
 import de.tim_greller.susserver.persistence.repository.ComponentRepository;
 import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
+import de.tim_greller.susserver.persistence.repository.UserModifiedCutRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,7 @@ public class CutService {
     private final ComponentRepository componentRepository;
     private final PatchRepository patchRepository;
     private final ActivePatchRepository activePatchRepository;
+    private final UserModifiedCutRepository userModifiedCutRepository;
     private final UserService userService;
 
     public Optional<CutSourceDTO> getOriginalCutForComponent(String componentName) {
@@ -35,12 +41,16 @@ public class CutService {
     public Optional<CutSourceDTO> getCurrentCutForComponent(String componentName) {
         Optional<CutSourceDTO> originalCut = getOriginalCutForComponent(componentName);
         Optional<ActivePatchEntity> activePatch = activePatchRepository.findByKey(componentName, userService.requireCurrentUserId());
+        Optional<UserModifiedCutEntity> userMod = userModifiedCutRepository.findByKey(componentName, userService.requireCurrentUserId());
 
         if (originalCut.isEmpty()) {
             return Optional.empty();
         }
 
         final CutSourceDTO cut = originalCut.get();
+        if (userMod.isPresent()) {
+            return userMod.map(patch -> applyPatch(cut, patch));
+        }
         final CutSourceDTO patchedCut = activePatch
                 .map(ActivePatchEntity::getPatch)
                 .map(patch -> applyPatch(cut, patch))
@@ -55,7 +65,32 @@ public class CutService {
         patchRepository.save(new PatchEntity(patch, new ComponentStageKey(component, stage)));
     }
 
-    private CutSourceDTO applyPatch(CutSourceDTO cut, PatchEntity patch) {
+    /**
+     * Stores a user modification of the CUT source code as a patch compared to the original CUT.
+     * <p>
+     * TODO: maybe base patch on mutated CUT.
+     *       (problem: 2 separate methods, once apply all patches, once only the mutation)
+     *
+     * @param componentName The name of the component to store the modification for.
+     * @param newSource The source code of the CUT after the user modification.
+     */
+    public void storeUserModification(String componentName, String newSource) {
+        ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
+        CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
+        UserEntity user = userService.requireCurrentUser();
+        String patch = patchService.createPatch(cut.getSourceCode(), newSource);
+        userModifiedCutRepository.save(UserModifiedCutEntity.builder()
+                .patch(patch)
+                .userComponentKey(new UserComponentKey(component, user))
+                .build()
+        );
+    }
+
+    public void removeUserModification(String componentName) {
+        userModifiedCutRepository.deleteByKey(componentName, userService.requireCurrentUserId());
+    }
+
+    private CutSourceDTO applyPatch(CutSourceDTO cut, Patch patch) {
         String newSource = patchService.applyPatch(cut.getSourceCode(), patch.getPatch());
         cut.setSourceCode(newSource);
         return cut;

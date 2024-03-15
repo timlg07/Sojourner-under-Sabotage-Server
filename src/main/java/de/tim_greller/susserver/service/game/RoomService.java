@@ -33,7 +33,7 @@ public class RoomService {
         final RoomEntity room = roomRepository
                 .findByKey(event.getRoomId(), userService.requireCurrentUserId())
                 .orElseGet(() -> {
-                    final UserEntity user = userRepository.findById(userService.requireCurrentUserId()).orElseThrow();
+                    final UserEntity user = userService.requireCurrentUser();
                     final UserRoomKey key = new UserRoomKey(event.getRoomId(), user);
                     return new RoomEntity(key, true);
                 });

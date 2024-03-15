@@ -17,7 +17,7 @@ import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository
 import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.FallbackTestRepository;
 import de.tim_greller.susserver.persistence.repository.TestRepository;
-import de.tim_greller.susserver.persistence.repository.UserRepository;
+import de.tim_greller.susserver.service.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 public class TestService {
 
     private final TestRepository testRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ComponentRepository componentRepository;
     private final CutRepository cutRepository;
     private final ComponentStatusRepository componentStatusRepository;
@@ -39,7 +39,7 @@ public class TestService {
     private TestEntity getOrCreateTestEntityForComponent(String componentName, String userId) {
         return getTestForComponent(componentName, userId).orElseGet(() -> {
             final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-            final UserEntity user = userRepository.findById(userId).orElseThrow();
+            final UserEntity user = userService.loadUserByEmail(userId).orElseThrow();
             final UserComponentKey key = new UserComponentKey(component, user);
             return createEmptyTest(key);
         });

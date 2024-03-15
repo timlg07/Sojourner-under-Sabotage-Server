@@ -103,7 +103,7 @@ public class ComponentStatusService {
 
         UserComponentKey key = new UserComponentKey(
                 patch.getComponentKey().getComponent(),
-                userRepository.findById(userService.requireCurrentUserId()).orElseThrow()
+                userService.requireCurrentUser()
         );
         activePatchRepository.save(new ActivePatchEntity(key, patch));
 

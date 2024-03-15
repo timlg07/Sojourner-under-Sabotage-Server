@@ -41,6 +41,12 @@ public class SourceCodeController {
                 )));
     }
 
+    @PutMapping("${paths.api}/components/{componentName}/cut/src")
+    public void updateCutSourceCode(@PathVariable String componentName,
+                                   @RequestBody PlainSource newSource) {
+        cutService.storeUserModification(componentName, newSource.getCode());
+    }
+
     @GetMapping("${paths.api}/components/{componentName}/test/src")
     public TestSourceDTO getTestSourceCode(@PathVariable String componentName) {
         return testService.getOrCreateTestDtoForComponent(
