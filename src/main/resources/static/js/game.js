@@ -139,12 +139,12 @@ function save(componentName = currentComponent) {
 
 /**
  * @param {Array<Range>} editableRanges
+ * @param {editor.IStandaloneCodeEditor} editor
  */
-function constrain(editableRanges) {
-    const model = window.monacoEditorTest.getModel();
+function constrain(editableRanges, editor = window.monacoEditorTest) {
     const constrainedInstance = constrainedEditor(monaco);
-    constrainedInstance.initializeIn(window.monacoEditorTest);
-    constrainedInstance.addRestrictionsTo(model, editableRanges.map(range => ({
+    constrainedInstance.initializeIn(editor);
+    constrainedInstance.addRestrictionsTo(editor.getModel(), editableRanges.map(range => ({
         range: [range.startLine, range.startColumn, range.endLine, range.endColumn],
         allowMultiline: true
     })));
@@ -376,10 +376,11 @@ window.openEditor = async function (componentName) {
     const currentComponentData = await getComponentData(componentName);
 
     window.monacoEditorDebug.setValue(currentComponentData.cut.sourceCode);
+    constrain([], window.monacoEditorDebug);
     window.cutClassName = currentComponentData.cut.className;
 
     window.monacoEditorTest.setValue(currentComponentData.test.sourceCode);
-    constrain(currentComponentData.test.editable);
+    constrain(currentComponentData.test.editable, window.monacoEditorTest);
     window.testClassName = currentComponentData.test.className;
     autoSave.lastSave = null;
 
