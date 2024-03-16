@@ -73,10 +73,24 @@ function renderResult(content) {
     monacoEditorDebug.layout();
     editorContainers.forEach(el => el.style.height = 'initial');
 }
-function saveTest(componentName) {
+
+function sessionExpired(saveButton) {
+    renderResult(`<p class="clr-error">Your session has expired.
+                <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
+    saveButton.disabled = false;
+    saveButton.innerText = "Save Failed";
+    setTimeout(() => {
+        saveButton.innerText = "Save";
+    }, 3e3);
+}
+
+function save(componentName = currentComponent) {
+    let noSaveFailure = true;
     const saveButton = document.getElementById('editor-save-btn');
     saveButton.disabled = true;
     saveButton.innerText = "Saving...";
+
+    // 1 ─ Save test
     const test = window.monacoEditorTest.getValue();
     fetch(`/api/components/${componentName}/test/src`, {
         method: 'PUT',
@@ -84,29 +98,16 @@ function saveTest(componentName) {
         body: JSON.stringify({code: test}),
     }).then(res => {
         if (res.status === 401) {
-            renderResult(`<p class="clr-error">Your session has expired.
-                <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
+            sessionExpired(saveButton);
+            return;
         }
-        saveButton.disabled = false;
-        saveButton.innerText = res.ok ? "Test Saved!" : "Save Failed";
-        setTimeout(() => {
-            saveButton.innerText = "Save Test";
-        }, 3e3);
-        if (res.ok) autoSave.lastSave = Date.now();
+        noSaveFailure &= res.ok;
     }).catch(e => {
         console.error(e);
-        saveButton.disabled = false;
-        saveButton.innerText = "Save Failed";
-        setTimeout(() => {
-            saveButton.innerText = "Save Test";
-        }, 3e3);
+        noSaveFailure = false;
     });
-}
 
-function saveCut(componentName) {
-    const saveButton = document.getElementById('editor-save-cut-btn');
-    saveButton.disabled = true;
-    saveButton.innerText = "Saving...";
+    // 2 ─ Save cut
     const cut = window.monacoEditorDebug.getValue();
     fetch(`/api/components/${componentName}/cut/src`, {
         method: 'PUT',
@@ -114,23 +115,26 @@ function saveCut(componentName) {
         body: JSON.stringify({code: cut}),
     }).then(res => {
         if (res.status === 401) {
-            renderResult(`<p class="clr-error">Your session has expired.
-                <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
+            sessionExpired(saveButton);
+            return;
         }
-        saveButton.disabled = false;
-        saveButton.innerText = res.ok ? "CUT Saved!" : "Save Failed";
-        setTimeout(() => {
-            saveButton.innerText = "Save CUT";
-        }, 3e3);
-        // if (res.ok) autoSave.lastSave = Date.now(); // TODO: auto-save for CUT
+        noSaveFailure &= res.ok;
     }).catch(e => {
         console.error(e);
+        noSaveFailure = false;
+    });
+
+    if (noSaveFailure) {
+        saveButton.disabled = false;
+        saveButton.innerText = "Saved!";
+        autoSave.lastSave = Date.now();
+    } else {
         saveButton.disabled = false;
         saveButton.innerText = "Save Failed";
-        setTimeout(() => {
-            saveButton.innerText = "Save CUT";
-        }, 3e3);
-    });
+    }
+    setTimeout(() => {
+        saveButton.innerText = "Save";
+    }, 3e3);
 }
 
 /**
@@ -212,10 +216,12 @@ const autoSave = {
 function enqueueAutoSave (componentName) {
     autoSave.timeout = setTimeout(() => {
         autoSave.timeout = null;
-        saveTest(componentName);
+        save(componentName);
     }, autoSave.inactivityTimeoutUntilSave);
 }
-window.monacoEditorTest.onDidChangeModelContent(_ => {
+window.monacoEditorTest.onDidChangeModelContent(onContentChanged);
+window.monacoEditorDebug.onDidChangeModelContent(onContentChanged);
+function onContentChanged() {
     const componentName = currentComponent;
     if (!componentName || window.monacoEditorTest.getValue() === loadingText) {
         // reset
@@ -231,7 +237,7 @@ window.monacoEditorTest.onDidChangeModelContent(_ => {
         if (notSavedForMs > autoSave.maxAutosaveInterval) {
             // still editing, but not saved for a longer time -> save now
             autoSave.timeout = null;
-            saveTest(componentName);
+            save(componentName);
         } else {
             // push back auto-save longer, because the code is still being edited and was saved recently
             enqueueAutoSave(componentName);
@@ -239,10 +245,10 @@ window.monacoEditorTest.onDidChangeModelContent(_ => {
     } else { // tracking changes, change happened, no save in queue
         enqueueAutoSave(componentName);
     }
-});
+}
 
 document.getElementById('editor-close-btn').addEventListener('click', () => {
-    if (currentComponent) saveTest(currentComponent); // auto save on close
+    if (currentComponent) save(currentComponent); // auto save on close
     currentComponent = false;
     autoSave.lastSave = null;
     uiOverlay.style.display = 'none';
@@ -353,11 +359,9 @@ function updateActivateButtonState(componentName) {
 }
 
 window.openEditor = async function (componentName) {
-    const saveCutButton = document.getElementById('editor-save-cut-btn');
-    const saveTestButton = document.getElementById('editor-save-btn');
+    const saveButton = document.getElementById('editor-save-btn');
     const activateButton = document.getElementById('editor-activate-test-btn');
-    saveCutButton.disabled = true;
-    saveTestButton.disabled = true;
+    saveButton.disabled = true;
     execBtn.disabled = true;
     activateButton.disabled = true;
 
@@ -383,15 +387,10 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    saveCutButton.addEventListener('click', () => {
-        saveCut(componentName);
+    saveButton.addEventListener('click', () => {
+        save(componentName);
     });
-    saveCutButton.disabled = false;
-
-    saveTestButton.addEventListener('click', () => {
-        saveTest(componentName);
-    });
-    saveTestButton.disabled = false;
+    saveButton.disabled = false;
 
     activateButton.addEventListener('click', () => {
         const event = new ComponentTestsActivatedEvent(componentName);
