@@ -36,7 +36,7 @@
  * @property {SourceDTO} cut
  * @property {TestResult} testResult
  *
- * @property {boolean} isTestActive
+ * @property {'INITIAL' | 'TESTS_ACTIVE' | 'MUTATED'} state
  */
 
 /** @type {string|false} */
@@ -84,7 +84,7 @@ function sessionExpired(saveButton) {
     }, 3e3);
 }
 
-function save(componentName = currentComponent) {
+async function save(componentName = currentComponent) {
     let noSaveFailure = true;
     const saveButton = document.getElementById('editor-save-btn');
     saveButton.disabled = true;
@@ -92,7 +92,7 @@ function save(componentName = currentComponent) {
 
     // 1 ─ Save test
     const test = window.monacoEditorTest.getValue();
-    fetch(`/api/components/${componentName}/test/src`, {
+    await fetch(`/api/components/${componentName}/test/src`, {
         method: 'PUT',
         headers: jsonHeader,
         body: JSON.stringify({code: test}),
@@ -107,22 +107,24 @@ function save(componentName = currentComponent) {
         noSaveFailure = false;
     });
 
-    // 2 ─ Save cut
-    const cut = window.monacoEditorDebug.getValue();
-    fetch(`/api/components/${componentName}/cut/src`, {
-        method: 'PUT',
-        headers: jsonHeader,
-        body: JSON.stringify({code: cut}),
-    }).then(res => {
-        if (res.status === 401) {
-            sessionExpired(saveButton);
-            return;
-        }
-        noSaveFailure &= res.ok;
-    }).catch(e => {
-        console.error(e);
-        noSaveFailure = false;
-    });
+    // 2 ─ Save cut (only in debug mode, after a component was mutated)
+    if (componentData.get(componentName).state === 'MUTATED') {
+        const cut = window.monacoEditorDebug.getValue();
+        await fetch(`/api/components/${componentName}/cut/src`, {
+            method: 'PUT',
+            headers: jsonHeader,
+            body: JSON.stringify({code: cut}),
+        }).then(res => {
+            if (res.status === 401) {
+                sessionExpired(saveButton);
+                return;
+            }
+            noSaveFailure &= res.ok;
+        }).catch(e => {
+            console.error(e);
+            noSaveFailure = false;
+        });
+    }
 
     if (noSaveFailure) {
         saveButton.disabled = false;
@@ -335,9 +337,9 @@ async function getComponentData(componentName) {
           });
     }
 
-    if (!'isTestActive' in data) {
+    if (!'state' in data) {
         // TODO: maybe get state via API?
-        data.isTestActive = false;
+        data.state = 'INITIAL';
     }
 
     componentData.set(componentName, data);
@@ -349,7 +351,7 @@ function updateActivateButtonState(componentName) {
     const data = componentData.get(componentName);
 
     // can be activated if not already active and tests passed under the original CUT
-    const isActivated = data.isTestActive;
+    const isActivated = data.state === 'TESTS_ACTIVE';
     const testsPassed = data.testResult?.testStatus === 'PASSED';
     const canActivate = !isActivated && testsPassed;
 
@@ -397,7 +399,7 @@ window.openEditor = async function (componentName) {
         const event = new ComponentTestsActivatedEvent(componentName);
         window.es.sendEvent(event);
         const data = componentData.get(componentName); // should always be present at this point
-        data.isTestActive = true;
+        data.state = 'TESTS_ACTIVE';
         componentData.set(componentName, data);
 
         renderResult(`<p>Test activated for ${componentName}.</p>`);
@@ -421,7 +423,7 @@ es.registerHandler(
         testResult: evt.executionResult,
         cut: evt.cutSource,
         test: evt.testSource,
-        isTestActive: false,
+        state: 'MUTATED',
     };
     componentData.set(evt.componentName, data);
 });
