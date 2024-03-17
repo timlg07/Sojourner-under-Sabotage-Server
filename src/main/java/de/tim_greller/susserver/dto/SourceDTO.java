@@ -25,7 +25,13 @@ public abstract class SourceDTO {
 
     @SuppressWarnings("unchecked")
     public final <T extends SourceDTO> T restrictTo(Range range) {
-        editable.add(range);
+        try {
+            editable.add(range);
+        } catch (UnsupportedOperationException e) {
+            // handle ImmutableCollections
+            editable = new ArrayList<>(editable);
+            editable.add(range);
+        }
         return (T) this;
     }
 }

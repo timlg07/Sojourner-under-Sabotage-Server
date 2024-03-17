@@ -44,9 +44,11 @@ let currentComponent;
 const loadingText = "loading...";
 /** @type {Map<string, ComponentData>} */
 const componentData = new Map();
+/** @type {{monaco:Record<string, ICodeEditor>, restricted:Record<string, constrainedEditor>}} */
+window.editors = {monaco:{}, restricted:{}};
 
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
-window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
+window.editors.monaco.debug = monaco.editor.create(monacoContainerDebug, {
     value: '',
     language: 'java',
     theme: 'vs-dark',
@@ -54,7 +56,7 @@ window.monacoEditorDebug = monaco.editor.create(monacoContainerDebug, {
 });
 
 const monacoContainerTest = document.getElementById('monaco-container-test');
-window.monacoEditorTest = monaco.editor.create(monacoContainerTest, {
+window.editors.monaco.test = monaco.editor.create(monacoContainerTest, {
     value: '',
     language: 'java',
     theme: 'vs-dark',
@@ -69,8 +71,8 @@ function renderResult(content) {
     result.innerHTML = content;
     const editorContainers = document.querySelectorAll('.monaco-editor-container');
     editorContainers.forEach(el => el.style.height = '0');
-    monacoEditorTest.layout();
-    monacoEditorDebug.layout();
+    editors.monaco.test.layout();
+    editors.monaco.debug.layout();
     editorContainers.forEach(el => el.style.height = 'initial');
 }
 
@@ -91,7 +93,7 @@ async function save(componentName = currentComponent) {
     saveButton.innerText = "Saving...";
 
     // 1 ─ Save test
-    const test = window.monacoEditorTest.getValue();
+    const test = window.editors.monaco.test.getValue();
     await fetch(`/api/components/${componentName}/test/src`, {
         method: 'PUT',
         headers: jsonHeader,
@@ -109,7 +111,7 @@ async function save(componentName = currentComponent) {
 
     // 2 ─ Save cut (only in debug mode, after a component was mutated)
     if (componentData.get(componentName).state === 'MUTATED') {
-        const cut = window.monacoEditorDebug.getValue();
+        const cut = window.editors.monaco.debug.getValue();
         await fetch(`/api/components/${componentName}/cut/src`, {
             method: 'PUT',
             headers: jsonHeader,
@@ -141,11 +143,21 @@ async function save(componentName = currentComponent) {
 
 /**
  * @param {Array<Range>} editableRanges
- * @param {editor.IStandaloneCodeEditor} editor
+ * @param {string} editorName
  */
-function constrain(editableRanges, editor = window.monacoEditorTest) {
-    const constrainedInstance = constrainedEditor(monaco);
-    constrainedInstance.initializeIn(editor);
+function constrain(editableRanges, editorName = 'test') {
+    const editor = editors.monaco[editorName];
+    let constrainedInstance;
+
+    if (editors.restricted[editorName]) {
+        constrainedInstance = editors.restricted[editorName];
+        constrainedInstance.removeRestrictionsIn(editor.getModel());
+    } else {
+        constrainedInstance = constrainedEditor(monaco);
+        editors.restricted[editorName] = constrainedInstance;
+        constrainedInstance.initializeIn(editor);
+    }
+
     constrainedInstance.addRestrictionsTo(editor.getModel(), editableRanges.map(range => ({
         range: [range.startLine, range.startColumn, range.endLine, range.endColumn],
         allowMultiline: true
@@ -153,7 +165,7 @@ function constrain(editableRanges, editor = window.monacoEditorTest) {
 }
 
 function renderCoverage(coverage) {
-    const model = window.monacoEditorDebug.getModel();
+    const model = window.editors.monaco.debug.getModel();
     const cutClassId = window.cutClassName + '#' + window.userId;
     const linesVisited = Object.entries(coverage?.[cutClassId] ?? {});
     const decorations = linesVisited.map(cov => {
@@ -221,11 +233,11 @@ function enqueueAutoSave (componentName) {
         save(componentName);
     }, autoSave.inactivityTimeoutUntilSave);
 }
-window.monacoEditorTest.onDidChangeModelContent(onContentChanged);
-window.monacoEditorDebug.onDidChangeModelContent(onContentChanged);
+window.editors.monaco.test.onDidChangeModelContent(onContentChanged);
+window.editors.monaco.debug.onDidChangeModelContent(onContentChanged);
 function onContentChanged() {
     const componentName = currentComponent;
-    if (!componentName || window.monacoEditorTest.getValue() === loadingText) {
+    if (!componentName || window.editors.monaco.test.getValue() === loadingText) {
         // reset
         if (autoSave.timeout) clearTimeout(autoSave.timeout);
         autoSave.timeout = null;
@@ -247,6 +259,9 @@ function onContentChanged() {
     } else { // tracking changes, change happened, no save in queue
         enqueueAutoSave(componentName);
     }
+
+    // disable activate button, because the tests need to be executed again
+    disableActivateButton();
 }
 
 document.getElementById('editor-close-btn').addEventListener('click', () => {
@@ -265,7 +280,7 @@ execBtn.addEventListener('click', () => {
         renderResult(`<p class="clr-error">There is no component loaded currently.</p>`);
         return;
     }
-    const code = window.monacoEditorTest.getValue();
+    const code = window.editors.monaco.test.getValue();
     renderResult('<p>Executing test...</p>');
     execBtn.disabled = true;
     fetch(`/api/components/${componentName}/test/execute`, {
@@ -360,29 +375,41 @@ function updateActivateButtonState(componentName) {
                     isActivated ? "Test Activated" : "tests need to pass to activate";
 }
 
+function disableActivateButton() {
+    const btn = document.getElementById('editor-activate-test-btn');
+    btn.disabled = true;
+    btn.innerText = "tests need to pass to activate";
+}
+
 window.openEditor = async function (componentName) {
     const saveButton = document.getElementById('editor-save-btn');
     const activateButton = document.getElementById('editor-activate-test-btn');
     saveButton.disabled = true;
     execBtn.disabled = true;
     activateButton.disabled = true;
+    constrain([], 'debug');
+    constrain([], 'test');
 
     renderResult('');
     currentComponent = componentName;
-    window.monacoEditorDebug.setValue(loadingText);
-    window.monacoEditorTest.setValue(loadingText);
+    window.editors.monaco.debug.setValue(loadingText);
+    window.editors.monaco.test.setValue(loadingText);
     document.getElementById('ui-overlay').style.display = "initial";
-    window.monacoEditorDebug.layout();
-    window.monacoEditorTest.layout();
+    window.editors.monaco.debug.layout();
+    window.editors.monaco.test.layout();
 
     const currentComponentData = await getComponentData(componentName);
 
-    window.monacoEditorDebug.setValue(currentComponentData.cut.sourceCode);
-    constrain([], window.monacoEditorDebug);
+    window.editors.monaco.debug.setValue(currentComponentData.cut.sourceCode);
+    if (currentComponentData.state === 'MUTATED') {
+        constrain(currentComponentData.cut.editable, 'debug');
+    } else { // make it not editable if not attacked/mutated.
+        constrain([], 'debug');
+    }
     window.cutClassName = currentComponentData.cut.className;
 
-    window.monacoEditorTest.setValue(currentComponentData.test.sourceCode);
-    constrain(currentComponentData.test.editable, window.monacoEditorTest);
+    window.editors.monaco.test.setValue(currentComponentData.test.sourceCode);
+    constrain(currentComponentData.test.editable, 'test');
     window.testClassName = currentComponentData.test.className;
     autoSave.lastSave = null;
 
@@ -393,7 +420,6 @@ window.openEditor = async function (componentName) {
     saveButton.addEventListener('click', () => {
         save(componentName);
     });
-    saveButton.disabled = false;
 
     activateButton.addEventListener('click', () => {
         const event = new ComponentTestsActivatedEvent(componentName);
@@ -402,12 +428,18 @@ window.openEditor = async function (componentName) {
         data.state = 'TESTS_ACTIVE';
         componentData.set(componentName, data);
 
-        renderResult(`<p>Test activated for ${componentName}.</p>`);
+        constrain([], 'test');
+        execBtn.disabled = true;
         updateActivateButtonState(componentName);
+        renderResult(`<p>Test activated for ${componentName}.</p>`);
     });
+
     updateActivateButtonState(componentName);
 
-    execBtn.disabled = false;
+    if (currentComponentData.state !== 'TESTS_ACTIVE') {
+        execBtn.disabled = false;
+        saveButton.disabled = false;
+    }
 };
 
 

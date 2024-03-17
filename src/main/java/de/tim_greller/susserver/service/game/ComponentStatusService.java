@@ -78,6 +78,7 @@ public class ComponentStatusService {
             log.info("Component tests already activated for component {}", componentName);
             return false;
         }
+        // TODO: server side validation: check for no test failures
         componentStatus.setTestsActivated(true);
         componentStatusRepository.save(componentStatus);
         return true;

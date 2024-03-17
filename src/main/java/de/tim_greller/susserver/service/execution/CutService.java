@@ -3,6 +3,7 @@ package de.tim_greller.susserver.service.execution;
 import java.util.Optional;
 
 import de.tim_greller.susserver.dto.CutSourceDTO;
+import de.tim_greller.susserver.dto.Range;
 import de.tim_greller.susserver.persistence.entity.ActivePatchEntity;
 import de.tim_greller.susserver.persistence.entity.ComponentEntity;
 import de.tim_greller.susserver.persistence.entity.Patch;
@@ -35,7 +36,38 @@ public class CutService {
 
     public Optional<CutSourceDTO> getOriginalCutForComponent(String componentName) {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-        return cutRepository.findById(new ComponentKey(component)).map(CutSourceDTO::fromCutEntity);
+        return cutRepository.findById(new ComponentKey(component))
+                .map(CutSourceDTO::fromCutEntity)
+                .map(CutService::restrictToMethodBody);
+    }
+
+    static CutSourceDTO restrictToMethodBody(CutSourceDTO cut) {
+        final String[] lines = cut.getSourceCode().split("\n");
+        int depth = 0;
+        int startLine = 0;
+        int startColumn = 0;
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.contains("{")) {
+                if (depth == 1) {
+                    startLine = i + 1;
+                    startColumn = line.indexOf("{") + 2;
+                }
+                depth++;
+            }
+            if (line.contains("}")) {
+                depth--;
+                if (depth == 1) {
+                    cut.restrictTo(new Range(
+                            startLine, startColumn,
+                            i + 1, line.indexOf("}") + 1
+                    ));
+                }
+            }
+        }
+
+        return cut;
     }
 
     public Optional<CutSourceDTO> getCurrentCutForComponent(String componentName) {
