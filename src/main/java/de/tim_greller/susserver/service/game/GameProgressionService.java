@@ -8,6 +8,7 @@ import de.tim_greller.susserver.persistence.entity.UserGameProgressionEntity;
 import de.tim_greller.susserver.persistence.keys.UserKey;
 import de.tim_greller.susserver.persistence.repository.GameProgressionRepository;
 import de.tim_greller.susserver.persistence.repository.UserGameProgressionRepository;
+import de.tim_greller.susserver.persistence.repository.UserModifiedCutRepository;
 import de.tim_greller.susserver.persistence.repository.UserRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,8 @@ public class GameProgressionService {
     private final UserGameProgressionRepository userGameProgressionRepository;
     private final GameProgressionRepository gameProgressionRepository;
     private final ComponentStatusService componentStatusService;
-    private final UserRepository userRepository;
     private final UserService userService;
+    private final UserModifiedCutRepository userModifiedCutRepository;
 
     private UserKey user;
 
@@ -31,12 +32,12 @@ public class GameProgressionService {
     GameProgressionService(EventService eventService, UserGameProgressionRepository userGameProgressionRepository,
                            GameProgressionRepository gameProgressionRepository,
                            ComponentStatusService componentStatusService, UserRepository userRepository,
-                           UserService userService) {
+                           UserService userService, UserModifiedCutRepository userModifiedCutRepository) {
         this.userGameProgressionRepository = userGameProgressionRepository;
         this.gameProgressionRepository = gameProgressionRepository;
         this.componentStatusService = componentStatusService;
-        this.userRepository = userRepository;
         this.userService = userService;
+        this.userModifiedCutRepository = userModifiedCutRepository;
 
         eventService.registerHandler(GameStartedEvent.class, this::handleGameStarted);
         eventService.registerHandler(ComponentTestsActivatedEvent.class, this::handleComponentTestsActivated);
@@ -80,11 +81,12 @@ public class GameProgressionService {
                 .user(currentUser())
                 .build()
         );
+        userModifiedCutRepository.deleteAllByUserComponentKey_User_Email(currentUser().getUser().getEmail());
     }
 
     private UserKey currentUser() {
         if (user == null) {
-            user = new UserKey(userRepository.getReferenceById(userService.requireCurrentUserId()));
+            user = new UserKey(userService.requireCurrentUser());
         }
         return user;
     }

@@ -30,4 +30,8 @@ public interface UserModifiedCutRepository extends
             AND u.userComponentKey.user.email = :userId
             """)
     void deleteByKey(String componentName, String userId);
+
+    @Transactional
+    @Modifying
+    void deleteAllByUserComponentKey_User_Email(String username);
 }
