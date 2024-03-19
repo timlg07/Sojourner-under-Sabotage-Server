@@ -50,6 +50,7 @@ public class ExecutionService {
         res.setTestDetails(listener.getMap());
         res.setElapsedTime(listener.getTestSuiteElapsedTime());
         res.setCoverage(CoverageTracker.getInstance().getCoverage());
+        res.setVariables(CoverageTracker.getInstance().getVars());
         OutputWriter.writeShellOutput(CoverageTracker.getInstance().getClassTrackers());
         return res;
     }

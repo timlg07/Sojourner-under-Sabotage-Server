@@ -19,6 +19,7 @@
  * @property {number} elapsedTime
  * @property {Object<string, TestDetails>} testDetails
  * @property {Object<string, Object<string, number>>} coverage
+ * @property {Object<string, Object<number, Map<string, string>>>} variables
  * @property {string} message
  */
 
@@ -186,9 +187,47 @@ function renderCoverage(coverage) {
     );
 }
 
+/**
+ * @param {Object<string, Object<number, Object<string, string>>>} variables
+ */
+function renderDebugValues(variables) {
+    const cutClassId = window.cutClassName + '#' + window.userId;
+    const data = variables?.[cutClassId] ?? {};
+    const hints = [];
+    for (const [line, vars] of Object.entries(data)) {
+        for (const [varName, value] of Object.entries(vars)) {
+            const shortName = varName.split('/').pop();
+            hints.push({
+                kind: monaco.languages.InlayHintKind.Type,
+                position: { column: Number.MAX_VALUE, lineNumber: parseInt(line) },
+                label: `// ${shortName} = ${value}`,
+                paddingLeft: true,
+                tooltip: `The variable ${shortName} is assigned to the value "${value}" here.`,
+            });
+        }
+    }
+
+    monaco.languages.registerInlayHintsProvider("java", {
+        resolveInlayHint(hint, token) {
+            return hint;
+        }
+    })
+    monaco.languages.registerInlayHintsProvider("java", {
+        provideInlayHints(model, range, token) {
+            const dispose = () => {};
+            if (model === window.editors.monaco.debug.getModel()) {
+                return {hints, dispose};
+            } else {
+                return {hints: [], dispose};
+            }
+        },
+    });
+}
+
 /** @param {TestResult} obj */
 function renderTestResultObject(obj) {
     renderCoverage(obj.coverage);
+    renderDebugValues(obj.variables);
 
     let r = `<strong>${obj.testClassName} </strong>`;
 

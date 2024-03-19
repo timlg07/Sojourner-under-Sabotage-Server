@@ -18,5 +18,6 @@ public class TestExecutionResultDTO {
     private long elapsedTime;
     private Map<String, TestDetailsDTO> testDetails;
     private Map<String, Map<Integer, Integer>> coverage;
+    private Map<String, Map<Integer, Map<String, String>>> variables;
 
 }
