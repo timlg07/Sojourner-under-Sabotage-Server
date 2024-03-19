@@ -1,9 +1,10 @@
 public class Foo {
     public static int add(int a, int b) {
-        if (a == 6) {
-            return 6 + b;
-        } else {
-            return a + b;
+        int s = a, x = b;
+        while (x > 0) {
+            x = x - 1;
+            s = s + 1;
         }
+        return s;
     }
 }

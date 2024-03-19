@@ -195,24 +195,22 @@ function renderDebugValues(variables) {
     const data = variables?.[cutClassId] ?? {};
     const hints = [];
     for (const [line, vars] of Object.entries(data)) {
+        let sep = '//';
         for (const [varName, value] of Object.entries(vars)) {
             const shortName = varName.split('/').pop();
             hints.push({
                 kind: monaco.languages.InlayHintKind.Type,
                 position: { column: Number.MAX_VALUE, lineNumber: parseInt(line) },
-                label: `// ${shortName} = ${value}`,
+                label: `${sep} ${shortName} = ${value}`,
                 paddingLeft: true,
                 tooltip: `The variable ${shortName} is assigned to the value "${value}" here.`,
             });
+            sep = ',';
         }
     }
 
-    monaco.languages.registerInlayHintsProvider("java", {
-        resolveInlayHint(hint, token) {
-            return hint;
-        }
-    })
-    monaco.languages.registerInlayHintsProvider("java", {
+    if (window.disposeHints) window.disposeHints.dispose();
+    window.disposeHints = monaco.languages.registerInlayHintsProvider("java", {
         provideInlayHints(model, range, token) {
             const dispose = () => {};
             if (model === window.editors.monaco.debug.getModel()) {
