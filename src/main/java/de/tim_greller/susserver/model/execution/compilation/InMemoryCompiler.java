@@ -3,6 +3,7 @@ package de.tim_greller.susserver.model.execution.compilation;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,7 +55,7 @@ public class InMemoryCompiler {
 
     public void compile() throws CompilationException {
         final JavaCompiler.CompilationTask task = compiler.getTask(
-                null, fileManager, diagnostics, null, null, getCompilationUnits());
+                null, fileManager, diagnostics, List.of("-g"), null, getCompilationUnits());
 
         final boolean allCompiledSuccessfully = task.call();
 
@@ -116,7 +117,12 @@ public class InMemoryCompiler {
 
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
+
+                writeToFile(bytes, classId);
+
                 bytes = transformer.transform(bytes, classId);
+
+                writeToFile(bytes, classId + "_transformed");
 
                 Class<?> c = defineClass(name, bytes, 0, bytes.length);
                 if (USE_SANDBOX) Sandbox.confine(c);
@@ -142,5 +148,14 @@ public class InMemoryCompiler {
                 }
             }
         };
+    }
+
+    private void writeToFile(byte[] bytes, String classId) {
+        try {
+            String path = "C:\\Users\\timlg\\" + classId + ".class";
+            java.nio.file.Files.write(java.nio.file.Paths.get(path), bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -81,7 +81,7 @@ public class GameProgressionService {
                 .user(currentUser())
                 .build()
         );
-        userModifiedCutRepository.deleteAllByUserComponentKey_User_Email(currentUser().getUser().getEmail());
+        //userModifiedCutRepository.deleteAllByUserComponentKey_User_Email(currentUser().getUser().getEmail());
     }
 
     private UserKey currentUser() {

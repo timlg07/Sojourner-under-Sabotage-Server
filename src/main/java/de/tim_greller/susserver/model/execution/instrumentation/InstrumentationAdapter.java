@@ -25,8 +25,7 @@ public class InstrumentationAdapter extends ClassVisitor {
             final String pDescriptor,
             final String pSignature,
             final String[] pExceptions) {
-        final MethodVisitor mv =
-                super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
+        final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
 
         return new MethodVisitor(ASM7, mv) {
             @Override
@@ -42,6 +41,68 @@ public class InstrumentationAdapter extends ClassVisitor {
                         "(ILjava/lang/String;)V",
                         false);
             }
+
+            @Override
+            public void visitVarInsn(int opcode, int varIndex) {
+                super.visitVarInsn(opcode, varIndex);
+
+                if (opcode >= 54 && opcode <= 58) { // visitVarInsn STORE Opcodes
+                    String descriptor = switch (opcode) {
+                        case Opcodes.ISTORE -> "I";
+                        case Opcodes.FSTORE -> "F";
+                        case Opcodes.DSTORE -> "D";
+                        case Opcodes.LSTORE -> "J";
+                        default -> "Ljava/lang/Object;";
+                    };
+                    int loadOpcode = opcode - 33;
+                    visitVarInsn(loadOpcode, varIndex);
+                    visitLdcInsn(varIndex);
+                    visitLdcInsn(classId);
+                    visitLdcInsn(pName);
+                    visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            Type.getInternalName(CoverageTracker.class),
+                            "trackVar",
+                            "("+descriptor+"ILjava/lang/String;Ljava/lang/String;)V",
+                            false);
+                }
+            }
+
+            @Override
+            public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end,
+                                           int index) {
+                super.visitLocalVariable(name, descriptor, signature, start, end, index);
+                // todo: visit method does not work here?
+                CoverageTracker.trackVarDef(index, name, descriptor, classId, pName);
+            }
+
+            /*
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                if (owner.equals("java/io/PrintStream") && name.equals("println") && descriptor.equals("(Ljava/lang/String;)V")) {
+                    System.out.println("###### MethodInsn: " + owner + " " + name + " " + descriptor+" op:" + opcode);
+                    super.visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            Type.getInternalName(CoverageTracker.class),
+                            "log",
+                            "(ILjava/lang/String;)V",
+                            false);
+                } else {
+                    super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                }
+            }
+
+            @Override
+            public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+                if (opcode == Opcodes.GETSTATIC
+                        && owner.equals("java/lang/System")
+                        && name.equals("out")
+                        && desc.equals("Ljava/io/PrintStream;")) {
+                    super.visitFieldInsn(opcode, Type.getInternalName(CoverageTracker.class), name, desc);
+                } else {
+                    super.visitFieldInsn(opcode, owner, name, desc);
+                }
+            }*/
         };
     }
 }

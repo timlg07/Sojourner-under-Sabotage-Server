@@ -7,7 +7,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 
+import de.tim_greller.susserver.dto.CutSourceDTO;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestStatus;
 import de.tim_greller.susserver.exception.ClassLoadException;
@@ -50,6 +52,7 @@ public class ExecutionService {
         res.setTestDetails(listener.getMap());
         res.setElapsedTime(listener.getTestSuiteElapsedTime());
         res.setCoverage(CoverageTracker.getInstance().getCoverage());
+        System.out.println("Vars: " + CoverageTracker.getInstance().getVars());
         OutputWriter.writeShellOutput(CoverageTracker.getInstance().getClassTrackers());
         return res;
     }
@@ -71,6 +74,7 @@ public class ExecutionService {
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
         var testSource = testService.getOrCreateTestDtoForComponent(componentName, userId);
 
+        // logTransform(cutSource);
         compiler.addSource(cutSource);
         compiler.addSource(testSource);
         compiler.addTransformer(new CoverageClassTransformer(), cutSource.getClassName());
@@ -80,6 +84,29 @@ public class ExecutionService {
                 .orElseThrow(() -> new ClassLoadException(
                         "Error loading the test class \"" + testSource.getClassName() + "\"."
                 ));
+    }
+
+    private void logTransform(CutSourceDTO cutSource) {
+        var code = new StringBuilder();
+        var lines = cutSource.getSourceCode().split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            var line = lines[i];
+
+            var variableChangeRegex = "\\s*(?:this\\.)?([a-zA-Z_$][a-zA-Z\\d_$]+)\\s*[+\\-*/~|&%]?=[^=].*";
+            var variablePattern = Pattern.compile(variableChangeRegex);
+            var matcher = variablePattern.matcher(line);
+            if (matcher.matches()) {
+                var varName = matcher.group(1);
+                code.append("System.out.println(\"").append(varName).append(" = \" + ").append(varName).append(");");
+            }
+
+            code.append(line);
+            code.append("\n");
+        }
+
+
+        cutSource.setSourceCode(code.toString());
+        System.out.println("Transformed code: " + cutSource.getSourceCode());
     }
 
     private Result run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {

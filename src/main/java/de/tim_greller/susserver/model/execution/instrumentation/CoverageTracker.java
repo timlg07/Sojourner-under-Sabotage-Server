@@ -63,6 +63,53 @@ public class CoverageTracker {
         }
     }
 
+    public static void trackVar(final Object value, final int pVarIndex, final String pClassName, final String methodName) {
+        if (classTrackers.containsKey(pClassName)) {
+            classTrackers.get(pClassName).trackVariableValueChanged(value, pVarIndex, methodName);
+        } else {
+            final ClassTracker classTracker = new ClassTracker();
+            classTracker.trackVariableValueChanged(value, pVarIndex, methodName);
+            classTrackers.put(pClassName, classTracker);
+        }
+        System.out.println(pVarIndex + " " + pClassName);
+    }
+    public static void trackVar(final int value, final int pVarIndex, final String pClassName, final String methodName) {
+        trackVar((Integer) value, pVarIndex, pClassName, methodName);
+    }
+    public static void trackVar(final long value, final int pVarIndex, final String pClassName, final String methodName) {
+        trackVar((Long) value, pVarIndex, pClassName, methodName);
+    }
+    public static void trackVar(final float value, final int pVarIndex, final String pClassName, final String methodName) {
+        trackVar((Float) value, pVarIndex, pClassName, methodName);
+    }
+    public static void trackVar(final double value, final int pVarIndex, final String pClassName, final String methodName) {
+        trackVar((Double) value, pVarIndex, pClassName, methodName);
+    }
+
+    public static void trackVarDef(final int pVarIndex, final String pVarName, final String pVarDesc,
+                                   final String pClassName, final String methodName) {
+        if (classTrackers.containsKey(pClassName)) {
+            classTrackers.get(pClassName).trackVariableDefinition(pVarIndex, methodName + "/" + pVarName, pVarDesc, methodName);
+        } else {
+            final ClassTracker classTracker = new ClassTracker();
+            classTracker.trackVariableDefinition(pVarIndex, methodName + "/" + pVarName, pVarDesc, methodName);
+            classTrackers.put(pClassName, classTracker);
+        }
+        System.out.println(pVarIndex + " " + pVarName + " " + pVarDesc + " " + pClassName+"::"+methodName);
+    }
+
+    public static String getVarType(final int pVarIndex, final String pClassName, final String methodName) {
+        if (classTrackers.containsKey(pClassName)) {
+            return classTrackers.get(pClassName).getVarType(pVarIndex, methodName);
+        } else {
+            return null;
+        }
+    }
+
+    public static void log(final String msg) {//final PrintStream _ignored,
+        System.out.println(msg);
+    }
+
     public Map<String, Map<Integer, Integer>> getCoverage() {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getVisitedLines());
     }
@@ -71,10 +118,17 @@ public class CoverageTracker {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getLines());
     }
 
+    public Map<String, Map<Integer, Map<String, Object>>> getVars() {
+        return mapMap(classTrackers, (className, classTracker) -> classTracker.getVars());
+    }
+
     @Getter
     public static class ClassTracker {
+        private int lastVisitedLine = 0;
         private final Map<Integer, Integer> visitedLines = new TreeMap<>();
         private final Set<Integer> lines = new HashSet<>();
+        private final Map<String, String[]> currentIndexToVarNameAndDescriptor = new TreeMap<>();
+        private final Map<Integer, Map<String, Object>> vars = new TreeMap<>();
 
         void visitLine(final int pLineNumber) {
             if (visitedLines.containsKey(pLineNumber)) {
@@ -82,15 +136,48 @@ public class CoverageTracker {
             } else {
                 visitedLines.put(pLineNumber, 1);
             }
+            lastVisitedLine = pLineNumber;
         }
 
         void trackLine(final int pLineNumber) {
             lines.add(pLineNumber);
         }
 
+        void trackVariableValueChanged(final Object value, final int pVarIndex, final String methodName) {
+            String varId = methodName + "/" + pVarIndex;
+            if (!currentIndexToVarNameAndDescriptor.containsKey(varId)) {
+                System.out.println("No var def found for " + varId);
+                return;
+            }
+            String varName = currentIndexToVarNameAndDescriptor.get(varId)[0];
+            if (vars.containsKey(lastVisitedLine)) {
+                vars.get(lastVisitedLine).put(varName, value);
+            } else {
+                final Map<String, Object> varMap = new TreeMap<>();
+                varMap.put(varName, value);
+                vars.put(lastVisitedLine, varMap);
+            }
+        }
+
+        public void trackVariableDefinition(final int pVarIndex, final String pVarName, String pVarDesc, final String methodName) {
+            String varId = methodName + "/" + pVarIndex;
+            currentIndexToVarNameAndDescriptor.put(varId, new String[] {pVarName, pVarDesc});
+        }
+
+        public String getVarType(final int pVarIndex, String methodName) {
+            String varId = methodName + "/" + pVarIndex;
+            if (currentIndexToVarNameAndDescriptor.containsKey(varId)) {
+                return currentIndexToVarNameAndDescriptor.get(varId)[1];
+            } else {
+                return null;
+            }
+        }
+
         public void clear() {
             visitedLines.clear();
             lines.clear();
+            currentIndexToVarNameAndDescriptor.clear();
+            vars.clear();
         }
     }
 }
