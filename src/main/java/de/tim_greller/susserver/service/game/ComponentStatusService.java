@@ -108,6 +108,9 @@ public class ComponentStatusService {
         );
         activePatchRepository.save(new ActivePatchEntity(key, patch));
 
+        // remove user modification as it would overrule the attack mutation
+        cutService.removeUserModification(componentName);
+
         // execute mutated component
         final TestExecutionResultDTO res = executeTests(componentName);
         if (res == null) {
