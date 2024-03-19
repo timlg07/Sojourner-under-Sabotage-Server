@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PatchEntity implements Patch {
 
-    @Column
+    @Column(length = 10_000)
     private String patch;
 
     @EmbeddedId

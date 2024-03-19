@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserModifiedCutEntity implements Patch {
 
-    @Column
+    @Column(length = 10_000)
     private String patch;
 
     @EmbeddedId
