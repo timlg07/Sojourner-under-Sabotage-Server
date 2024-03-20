@@ -44,14 +44,6 @@ public class ClassLoadingFilter {
             "org.junit.platform."
     );
 
-    private boolean isWhitelisted(String className) {
-        return isIn(className, WHITELISTED_CLASSES) || isInPackage(className, WHITELISTED_PACKAGES);
-    }
-
-    private boolean isBlacklisted(String className) {
-        return isIn(className, BLACKLISTED_CLASSES) || isInPackage(className, BLACKLISTED_PACKAGES);
-    }
-
     private boolean isIn(String className, List<String> list) {
         return list.stream().anyMatch(className::equals);
     }
@@ -61,6 +53,11 @@ public class ClassLoadingFilter {
     }
 
     public boolean allowDelegateLoadingOf(String className) {
-        return isWhitelisted(className) && !isBlacklisted(className);
+        boolean isAllowed = false;
+        isAllowed |=  isInPackage(className, WHITELISTED_PACKAGES);
+        isAllowed &= !isInPackage(className, BLACKLISTED_PACKAGES);
+        isAllowed |=  isIn(className, WHITELISTED_CLASSES);
+        isAllowed &= !isIn(className, BLACKLISTED_CLASSES);
+        return isAllowed;
     }
 }
