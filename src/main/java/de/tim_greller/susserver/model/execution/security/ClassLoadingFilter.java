@@ -5,7 +5,7 @@ import java.util.List;
 public class ClassLoadingFilter {
 
     private static final List<String> WHITELISTED_CLASSES = List.of(
-
+            "java.lang.invoke.StringConcatFactory" // needed to concat variables with strings for logging
     );
 
     private static final List<String> WHITELISTED_PACKAGES = List.of(

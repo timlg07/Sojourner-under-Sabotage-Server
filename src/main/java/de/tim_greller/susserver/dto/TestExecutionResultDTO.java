@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.dto;
 
+import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -19,5 +20,6 @@ public class TestExecutionResultDTO {
     private Map<String, TestDetailsDTO> testDetails;
     private Map<String, Map<Integer, Integer>> coverage;
     private Map<String, Map<Integer, Map<String, String>>> variables;
+    private Map<String, List<LogEntry>> logs;
 
 }

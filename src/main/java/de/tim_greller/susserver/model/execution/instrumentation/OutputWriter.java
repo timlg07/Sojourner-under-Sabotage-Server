@@ -8,10 +8,10 @@ public class OutputWriter {
 
   private OutputWriter() {}
 
-  public static void writeShellOutput(final Map<String, CoverageTracker.ClassTracker> pTrackedMap) {
-    for (Entry<String, CoverageTracker.ClassTracker> tracker : pTrackedMap.entrySet()) {
+  public static void writeShellOutput(final Map<String, InstrumentationTracker.ClassTracker> pTrackedMap) {
+    for (Entry<String, InstrumentationTracker.ClassTracker> tracker : pTrackedMap.entrySet()) {
       final String className = tracker.getKey();
-      final CoverageTracker.ClassTracker classTracker = tracker.getValue();
+      final InstrumentationTracker.ClassTracker classTracker = tracker.getValue();
       final Set<Integer> lines = classTracker.getLines();
       final Map<Integer, Integer> visitedLines = classTracker.getVisitedLines();
       final int linesSize = lines.size();

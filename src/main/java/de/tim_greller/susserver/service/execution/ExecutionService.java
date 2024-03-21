@@ -17,7 +17,7 @@ import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
-import de.tim_greller.susserver.model.execution.instrumentation.CoverageTracker;
+import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.OutputWriter;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
 import org.junit.runner.JUnitCore;
@@ -44,14 +44,16 @@ public class ExecutionService {
         var listener = new TestRunListener();
         Result r = run(testClass, listener);
 
+        // TODO: filter maps to only include the relevant data (at least check userid)
         var res = new TestExecutionResultDTO();
         res.setTestClassName(testClass.getName());
         res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
         res.setTestDetails(listener.getMap());
         res.setElapsedTime(listener.getTestSuiteElapsedTime());
-        res.setCoverage(CoverageTracker.getInstance().getCoverage());
-        res.setVariables(CoverageTracker.getInstance().getVars());
-        OutputWriter.writeShellOutput(CoverageTracker.getInstance().getClassTrackers());
+        res.setCoverage(InstrumentationTracker.getInstance().getCoverage());
+        res.setVariables(InstrumentationTracker.getInstance().getVars());
+        res.setLogs(InstrumentationTracker.getInstance().getLogs());
+        OutputWriter.writeShellOutput(InstrumentationTracker.getInstance().getClassTrackers());
         return res;
     }
 

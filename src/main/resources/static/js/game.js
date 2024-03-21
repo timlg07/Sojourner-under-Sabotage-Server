@@ -13,13 +13,21 @@
  */
 
 /**
+ * @typedef {Object} LogEntry
+ * @property {string} message
+ * @property {string} methodName
+ * @property {number} lineNumber
+ */
+
+/**
  * @typedef {Object} TestResult
  * @property {string} testClassName
  * @property {'PASSED' | 'FAILED' | 'IGNORED'} testStatus
  * @property {number} elapsedTime
  * @property {Object<string, TestDetails>} testDetails
  * @property {Object<string, Object<string, number>>} coverage
- * @property {Object<string, Object<number, Map<string, string>>>} variables
+ * @property {Object<string, Object<number, Object<string, string>>>} variables
+ * @property {Object<string, Array<LogEntry>>} logs
  * @property {string} message
  */
 
@@ -222,10 +230,37 @@ function renderDebugValues(variables) {
     });
 }
 
+/**
+ * @param {Object<string, Array<LogEntry>>} logs
+ */
+function renderLogs(logs) {
+    const cutClassId = window.cutClassName + '#' + window.userId;
+    const data = logs?.[cutClassId] ?? [];
+    const decorations = [];
+    for (const log of data) {
+        const range = new monaco.Range(log.lineNumber, 1, log.lineNumber, 1);
+        const decoration = {
+            range,
+            options: {
+                isWholeLine: true,
+                className: 'log',
+                glyphMarginClassName: 'log-glyph',
+                hoverMessage: { value: log.message },
+            }
+        };
+        decorations.push(decoration);
+    }
+    window.logDecorations = window.editors.monaco.debug.deltaDecorations(
+      window.logDecorations ?? [],
+      decorations
+    );
+}
+
 /** @param {TestResult} obj */
 function renderTestResultObject(obj) {
     renderCoverage(obj.coverage);
     renderDebugValues(obj.variables);
+    renderLogs(obj.logs);
 
     let r = `<strong>${obj.testClassName} </strong>`;
 

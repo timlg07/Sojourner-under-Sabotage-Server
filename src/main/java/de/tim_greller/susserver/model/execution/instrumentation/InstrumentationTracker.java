@@ -1,6 +1,8 @@
 package de.tim_greller.susserver.model.execution.instrumentation;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -8,21 +10,22 @@ import java.util.TreeMap;
 
 import static de.tim_greller.susserver.util.Utils.mapMap;
 
+import de.tim_greller.susserver.dto.LogEntry;
 import lombok.Getter;
 
 /**
  * Tracks coverage information, i.e., which line was visited how many times.
  */
 // Needs to be public to be callable during test execution.
-public class CoverageTracker {
+public class InstrumentationTracker {
 
-    private static final CoverageTracker INSTANCE = new CoverageTracker();
+    private static final InstrumentationTracker INSTANCE = new InstrumentationTracker();
     private static final Map<String, ClassTracker> classTrackers = new TreeMap<>();
 
-    private CoverageTracker() {
+    private InstrumentationTracker() {
     }
 
-    public static CoverageTracker getInstance() {
+    public static InstrumentationTracker getInstance() {
         return INSTANCE;
     }
 
@@ -104,6 +107,11 @@ public class CoverageTracker {
         System.out.println(pVarIndex + " " + pVarName + " " + pVarDesc + " " + pClassName+"::"+methodName);
     }
 
+    public static void trackLog(String message, String pClassName, String methodName) {
+        classTrackers.computeIfAbsent(pClassName, k -> new ClassTracker());
+        classTrackers.get(pClassName).trackLog(message, methodName);
+    }
+
     public Map<String, Map<Integer, Integer>> getCoverage() {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getVisitedLines());
     }
@@ -120,6 +128,10 @@ public class CoverageTracker {
                         )));
     }
 
+    public Map<String, List<LogEntry>> getLogs() {
+        return mapMap(classTrackers, (className, classTracker) -> classTracker.getLogs());
+    }
+
     @Getter
     public static class ClassTracker {
         private int lastVisitedLine = 0;
@@ -127,6 +139,7 @@ public class CoverageTracker {
         private final Set<Integer> lines = new HashSet<>();
         private final Map<String, String[]> currentIndexToVarNameAndDescriptor = new TreeMap<>();
         private final Map<Integer, Map<String, Object>> vars = new TreeMap<>();
+        private final List<LogEntry> logs = new LinkedList<>();
 
         void visitLine(final int pLineNumber) {
             if (visitedLines.containsKey(pLineNumber)) {
@@ -162,11 +175,18 @@ public class CoverageTracker {
             currentIndexToVarNameAndDescriptor.put(varId, new String[] {pVarName, pVarDesc});
         }
 
+        public void trackLog(String message, String methodName) {
+            logs.add(new LogEntry(message, methodName, lastVisitedLine));
+        }
+
         public void clear() {
             visitedLines.clear();
             lines.clear();
             currentIndexToVarNameAndDescriptor.clear();
             vars.clear();
+            logs.clear();
+
+            lastVisitedLine = 0;
         }
     }
 }
