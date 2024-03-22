@@ -330,6 +330,9 @@ function onContentChanged() {
         }
     } else { // tracking changes, change happened, no save in queue
         enqueueAutoSave(componentName);
+
+        // hide variable value hints, as they can get confusing while editing
+        if (window.disposeHints) window.disposeHints.dispose();
     }
 
     // disable activate button, because the tests need to be executed again
