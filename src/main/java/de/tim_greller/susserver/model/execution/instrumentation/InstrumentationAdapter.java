@@ -119,10 +119,10 @@ public class InstrumentationAdapter extends ClassVisitor {
                         && owner.equals("java/lang/System")
                         && name.equals("out")
                         && desc.equals("Ljava/io/PrintStream;")) {
-
-                } else {
-                    super.visitFieldInsn(opcode, owner, name, desc);
+                    return;
                 }
+
+                super.visitFieldInsn(opcode, owner, name, desc);
             }
         };
     }
