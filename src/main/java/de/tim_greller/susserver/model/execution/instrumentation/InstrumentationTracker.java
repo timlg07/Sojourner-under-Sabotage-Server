@@ -57,7 +57,6 @@ public class InstrumentationTracker {
      * @param pLineNumber The line number to track
      * @param pClassName  The class in which the line is
      */
-    // Needs to be public to be callable during test execution.
     public static void trackLine(final int pLineNumber, final String pClassName) {
         if (classTrackers.containsKey(pClassName)) {
             classTrackers.get(pClassName).trackLine(pLineNumber);
@@ -112,6 +111,12 @@ public class InstrumentationTracker {
         classTrackers.get(pClassName).trackLog(message, methodName);
     }
 
+    @SuppressWarnings("unused")
+    public static void trackEnterTestMethod(String pTestClassName, String pTestMethodName, String pCutClassId) {
+        classTrackers.computeIfAbsent(pCutClassId, k -> new ClassTracker());
+        classTrackers.get(pCutClassId).trackEnterTestMethod(pTestMethodName);
+    }
+
     public Map<String, Map<Integer, Integer>> getCoverage() {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getVisitedLines());
     }
@@ -135,6 +140,8 @@ public class InstrumentationTracker {
     @Getter
     public static class ClassTracker {
         private int lastVisitedLine = 0;
+        private int logIndex = 0;
+        private String currentTestMethod = null;
         private final Map<Integer, Integer> visitedLines = new TreeMap<>();
         private final Set<Integer> lines = new HashSet<>();
         private final Map<String, String[]> currentIndexToVarNameAndDescriptor = new TreeMap<>();
@@ -170,13 +177,17 @@ public class InstrumentationTracker {
             }
         }
 
-        public void trackVariableDefinition(final int pVarIndex, final String pVarName, String pVarDesc, final String methodName) {
+        void trackVariableDefinition(final int pVarIndex, final String pVarName, String pVarDesc, final String methodName) {
             String varId = methodName + "/" + pVarIndex;
             currentIndexToVarNameAndDescriptor.put(varId, new String[] {pVarName, pVarDesc});
         }
 
-        public void trackLog(String message, String methodName) {
-            logs.add(new LogEntry(message, methodName, lastVisitedLine));
+        void trackLog(String message, String methodName) {
+            logs.add(new LogEntry(logIndex++, message, methodName, lastVisitedLine, currentTestMethod));
+        }
+
+        void trackEnterTestMethod(final String pMethodName) {
+            currentTestMethod = pMethodName;
         }
 
         public void clear() {

@@ -16,9 +16,10 @@ import de.tim_greller.susserver.exception.NotFoundException;
 import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
-import de.tim_greller.susserver.model.execution.instrumentation.CoverageClassTransformer;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.OutputWriter;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.TestClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -77,6 +78,7 @@ public class ExecutionService {
         compiler.addSource(cutSource);
         compiler.addSource(testSource);
         compiler.addTransformer(new CoverageClassTransformer(), cutSource.getClassName());
+        compiler.addTransformer(new TestClassTransformer(cutSource.getClassName()), testSource.getClassName());
         compiler.compile();
 
         return compiler.getClass(testSource.getClassName())

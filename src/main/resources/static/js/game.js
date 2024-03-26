@@ -14,9 +14,11 @@
 
 /**
  * @typedef {Object} LogEntry
+ * @property {number} orderIndex
  * @property {string} message
  * @property {string} methodName
  * @property {number} lineNumber
+ * @property {string} testMethodName
  */
 
 /**
@@ -245,7 +247,10 @@ function renderLogs(logs) {
                 isWholeLine: true,
                 className: 'log',
                 glyphMarginClassName: 'log-glyph',
-                hoverMessage: { value: log.message },
+                hoverMessage: {
+                    value: `<i>${log.testMethodName}:</i> ${log.message}`,
+                    supportHtml: true
+                },
             }
         };
         decorations.push(decoration);
@@ -286,6 +291,17 @@ function renderTestResultObject(obj) {
         } else {
             r += `<span class="clr-success">Passed!</span>`;
         }
+        r += `<details><summary>Log messages</summary>`;
+        r += `<ul>`;
+
+        const logs = obj.logs[window.cutClassName + '#' + window.userId] ?? [];
+        logs.sort((a, b) => a.orderIndex - b.orderIndex);
+        for (const log of logs) {
+            if (log.testMethodName !== fn) continue;
+            r += `<li><!--${log.orderIndex}-->[${log.methodName}:${log.lineNumber}] <strong><code>${log.message}</code></strong></li>`;
+        }
+        r += `</ul></details>`;
+
         r += '</li>';
     }
     r += '</ul>';

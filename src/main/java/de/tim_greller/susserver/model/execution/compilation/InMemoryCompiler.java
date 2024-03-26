@@ -21,8 +21,8 @@ import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
 import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
-import de.tim_greller.susserver.model.execution.instrumentation.IClassTransformer;
-import de.tim_greller.susserver.model.execution.instrumentation.IdentityClassTransformer;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.IClassTransformer;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.IdentityClassTransformer;
 import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
 import de.tim_greller.susserver.model.execution.security.Sandbox;
 

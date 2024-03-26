@@ -1,4 +1,4 @@
-package de.tim_greller.susserver.model.execution.instrumentation;
+package de.tim_greller.susserver.model.execution.instrumentation.transformer;
 
 public class IdentityClassTransformer implements IClassTransformer {
 

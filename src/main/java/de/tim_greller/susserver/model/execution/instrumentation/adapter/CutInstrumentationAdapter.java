@@ -1,7 +1,9 @@
-package de.tim_greller.susserver.model.execution.instrumentation;
+package de.tim_greller.susserver.model.execution.instrumentation.adapter;
 
 import static org.springframework.asm.Opcodes.ASM7;
 
+import de.tim_greller.susserver.model.execution.instrumentation.Debug;
+import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import org.springframework.asm.ClassVisitor;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Label;
@@ -9,11 +11,11 @@ import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Opcodes;
 import org.springframework.asm.Type;
 
-public class InstrumentationAdapter extends ClassVisitor {
+public class CutInstrumentationAdapter extends ClassVisitor {
 
     private final String classId;
 
-    public InstrumentationAdapter(final ClassWriter pClassWriter, final String pClassId) {
+    public CutInstrumentationAdapter(final ClassWriter pClassWriter, final String pClassId) {
         super(ASM7, pClassWriter);
         classId = pClassId;
     }
