@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static de.tim_greller.susserver.util.Utils.filterMap;
 import static de.tim_greller.susserver.util.Utils.mapMap;
 
 import de.tim_greller.susserver.dto.LogEntry;
@@ -135,6 +136,22 @@ public class InstrumentationTracker {
 
     public Map<String, List<LogEntry>> getLogs() {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getLogs());
+    }
+
+    public Map<String, Map<Integer, Integer>> getCoverageForUser(String userId) {
+        return filterMap(getCoverage(), (className, lines) -> className.endsWith("#" + userId));
+    }
+
+    public Map<String, Set<Integer>> getLinesForUser(String userId) {
+        return filterMap(getLines(), (className, lines) -> className.endsWith("#" + userId));
+    }
+
+    public Map<String, Map<Integer, Map<String, String>>> getVarsForUser(String userId) {
+        return filterMap(getVars(), (className, lines) -> className.endsWith("#" + userId));
+    }
+
+    public Map<String, List<LogEntry>> getLogsForUser(String userId) {
+        return filterMap(getLogs(), (className, lines) -> className.endsWith("#" + userId));
     }
 
     @Getter

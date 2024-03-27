@@ -45,15 +45,14 @@ public class ExecutionService {
         var listener = new TestRunListener();
         Result r = run(testClass, listener);
 
-        // TODO: filter maps to only include the relevant data (at least check userid)
         var res = new TestExecutionResultDTO();
         res.setTestClassName(testClass.getName());
         res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
         res.setTestDetails(listener.getMap());
         res.setElapsedTime(listener.getTestSuiteElapsedTime());
-        res.setCoverage(InstrumentationTracker.getInstance().getCoverage());
-        res.setVariables(InstrumentationTracker.getInstance().getVars());
-        res.setLogs(InstrumentationTracker.getInstance().getLogs());
+        res.setCoverage(InstrumentationTracker.getInstance().getCoverageForUser(userId));
+        res.setVariables(InstrumentationTracker.getInstance().getVarsForUser(userId));
+        res.setLogs(InstrumentationTracker.getInstance().getLogsForUser(userId));
         OutputWriter.writeShellOutput(InstrumentationTracker.getInstance().getClassTrackers());
         return res;
     }

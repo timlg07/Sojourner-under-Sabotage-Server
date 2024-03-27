@@ -16,4 +16,17 @@ public class Utils {
         }
         return mappedMap;
     }
+
+    public static <Key, Value> Map<Key, Value> filterMap(
+            Map<Key, Value> map,
+            BiFunction<Key, Value, Boolean> filter
+    ) {
+        final Map<Key, Value> filteredMap = new HashMap<>();
+        for (Map.Entry<Key, Value> e : map.entrySet()) {
+            if (filter.apply(e.getKey(), e.getValue())) {
+                filteredMap.put(e.getKey(), e.getValue());
+            }
+        }
+        return filteredMap;
+    }
 }
