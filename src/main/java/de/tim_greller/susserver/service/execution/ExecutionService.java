@@ -1,6 +1,7 @@
 package de.tim_greller.susserver.service.execution;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,53 +9,86 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import de.tim_greller.susserver.dto.TestDetailsDTO;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
+import de.tim_greller.susserver.dto.TestSourceDTO;
 import de.tim_greller.susserver.dto.TestStatus;
+import de.tim_greller.susserver.events.ComponentFixedEvent;
+import de.tim_greller.susserver.events.ComponentTestsExtendedEvent;
 import de.tim_greller.susserver.exception.ClassLoadException;
 import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.exception.NotFoundException;
 import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
-import de.tim_greller.susserver.model.execution.instrumentation.transformer.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.OutputWriter;
-import de.tim_greller.susserver.model.execution.instrumentation.transformer.TestClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.CoverageClassTransformer;
+import de.tim_greller.susserver.model.execution.instrumentation.transformer.TestClassTransformer;
+import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
+import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository;
+import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.game.EventService;
+import lombok.RequiredArgsConstructor;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ExecutionService {
 
     private static final int MAX_TEST_EXECUTION_TIME_SECONDS = 3;
     private final CutService cutService;
     private final TestService testService;
+    private final UserService userService;
+    private final ComponentStatusRepository componentStatusRepository;
+    private final EventService eventService;
+    private final ActivePatchRepository activePatchRepository;
 
-    @Autowired
-    public ExecutionService(CutService cutService, TestService testService) {
-        this.cutService = cutService;
-        this.testService = testService;
-    }
 
     public TestExecutionResultDTO execute(String componentName, String userId)
             throws ClassLoadException, NotFoundException, TestExecutionException, CompilationException {
+        var clientResultDto = new TestExecutionResultDTO();
         Class<?> testClass = compile(componentName, userId);
         var listener = new TestRunListener();
         Result r = run(testClass, listener);
 
-        var res = new TestExecutionResultDTO();
-        res.setTestClassName(testClass.getName());
-        res.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
-        res.setTestDetails(listener.getMap());
-        res.setElapsedTime(listener.getTestSuiteElapsedTime());
-        res.setCoverage(InstrumentationTracker.getInstance().getCoverageForUser(userId));
-        res.setVariables(InstrumentationTracker.getInstance().getVarsForUser(userId));
-        res.setLogs(InstrumentationTracker.getInstance().getLogsForUser(userId));
+        if (r.wasSuccessful() && cutService.isUserModified(componentName)) { // tests passed, but the CUT was edited by the user.
+            Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
+            var fallbackListener = new TestRunListener();
+            Result fallbackResult = run(fallbackTestClass, fallbackListener);
+            if (fallbackResult.wasSuccessful()) {
+                clientResultDto.setHiddenTestsPassed(true);
+                eventService.publishAndHandleEvent(new ComponentFixedEvent(componentName));
+            } else {
+                clientResultDto.setHiddenTestsPassed(false);
+                // TODO: add all failing methods or only one?
+                for (Map.Entry<String, TestDetailsDTO> entry : fallbackListener.getMap().entrySet()) {
+                    String methodName = entry.getKey();
+                    TestDetailsDTO testDetails = entry.getValue();
+                    if (testDetails.getTestStatus() == TestStatus.FAILED) {
+                        testService.addHiddenTestMethodToUserTest(methodName, componentName, userId);
+                        eventService.publishEvent(new ComponentTestsExtendedEvent(componentName, methodName));
+                        // execute tests again.
+                        // (Now the user tests will fail, so the hidden tests aren't executed again)
+                        return execute(componentName, userId);
+                    }
+                }
+            }
+        }
+
         OutputWriter.writeShellOutput(InstrumentationTracker.getInstance().getClassTrackers());
-        return res;
+
+        clientResultDto.setTestClassName(testClass.getName());
+        clientResultDto.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
+        clientResultDto.setTestDetails(listener.getMap());
+        clientResultDto.setElapsedTime(listener.getTestSuiteElapsedTime());
+        clientResultDto.setCoverage(InstrumentationTracker.getInstance().getCoverageForUser(userId));
+        clientResultDto.setVariables(InstrumentationTracker.getInstance().getVarsForUser(userId));
+        clientResultDto.setLogs(InstrumentationTracker.getInstance().getLogsForUser(userId));
+        return clientResultDto;
     }
 
     /**
@@ -68,11 +102,24 @@ public class ExecutionService {
      */
     private Class<?> compile(String componentName, String userId)
             throws NotFoundException, ClassLoadException, CompilationException {
+        var testSource = testService.getOrCreateTestDtoForComponent(componentName, userId);
+        return compile(testSource, componentName, userId);
+    }
+
+    private Class<?> compileFallbackTests(String componentName, String userId)
+            throws NotFoundException, ClassLoadException, CompilationException {
+        // Cannot inject componentStatusService due to circular dependency. But the component should always have a status.
+        var componentStatus = componentStatusRepository.findByKey(componentName, userId).orElseThrow();
+        var testSource = testService.getHiddenTestForComponent(componentStatus);
+        return compile(testSource, componentName, userId);
+    }
+
+    private Class<?> compile(TestSourceDTO testSource, String componentName, String userId)
+            throws NotFoundException, CompilationException, ClassLoadException {
         var compiler = new InMemoryCompiler(userId);
         var cutSource = cutService
                 .getCurrentCutForComponent(componentName)
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
-        var testSource = testService.getOrCreateTestDtoForComponent(componentName, userId);
 
         compiler.addSource(cutSource);
         compiler.addSource(testSource);

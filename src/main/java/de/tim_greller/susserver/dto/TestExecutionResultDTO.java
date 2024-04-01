@@ -21,5 +21,6 @@ public class TestExecutionResultDTO {
     private Map<String, Map<Integer, Integer>> coverage;
     private Map<String, Map<Integer, Map<String, String>>> variables;
     private Map<String, List<LogEntry>> logs;
+    private boolean hiddenTestsPassed = false;
 
 }

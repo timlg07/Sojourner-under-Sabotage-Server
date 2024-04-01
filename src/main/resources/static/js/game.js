@@ -575,5 +575,22 @@ es.registerHandler(
       };
       componentData.set(evt.componentName, data);
   }
-)
+);
+es.registerHandler(
+  'ComponentTestsExtendedEvent',
+  /** @param {{componentName:string, addedTestMethodName:string}} evt */
+  evt => {
+      fetch(`/api/components/${evt.componentName}/test/src`, {headers: authHeader})
+        .then(res => res.json())
+        .then(/** @param {SourceDTO} test */ test => {
+            const data = componentData.get(evt.componentName);
+            data.test = test;
+            componentData.set(evt.componentName, data);
+            if (currentComponent === evt.componentName) {
+                window.editors.monaco.test.setValue(test.sourceCode);
+                constrain(test.editable, 'test');
+            }
+        });
+  }
+);
 es.sendEvent(new GameStartedEvent());

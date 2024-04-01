@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.service.game;
 
+import de.tim_greller.susserver.events.ComponentFixedEvent;
 import de.tim_greller.susserver.events.ComponentTestsActivatedEvent;
 import de.tim_greller.susserver.events.GameStartedEvent;
 import de.tim_greller.susserver.persistence.entity.ComponentStatusEntity;
@@ -41,6 +42,7 @@ public class GameProgressionService {
 
         eventService.registerHandler(GameStartedEvent.class, this::handleGameStarted);
         eventService.registerHandler(ComponentTestsActivatedEvent.class, this::handleComponentTestsActivated);
+        eventService.registerHandler(ComponentFixedEvent.class, this::handleComponentFixed);
     }
 
     public void handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
@@ -52,6 +54,23 @@ public class GameProgressionService {
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
         resetGameProgression();
         gameLoop();
+    }
+
+    /**
+     * Bump user game progression. Update the user component status.
+     * @param componentFixedEvent the event
+     */
+    private void handleComponentFixed(ComponentFixedEvent componentFixedEvent) {
+        var userProgress = userGameProgressionRepository.findById(currentUser()).orElseThrow();
+        var progression = userProgress.getGameProgression();
+        var newProgression = gameProgressionRepository.getReferenceById(progression.getOrderIndex() + 1);
+        userProgress.setGameProgression(newProgression);
+        // TODO: handle game finished on max level reached
+        userGameProgressionRepository.save(userProgress);
+
+        // Set the component stage
+        componentStatusService.getComponentStatus(newProgression.getComponent().getName(), currentUser().getUser().getEmail())
+                .setStage(newProgression.getStage());
     }
 
     private void gameLoop() {

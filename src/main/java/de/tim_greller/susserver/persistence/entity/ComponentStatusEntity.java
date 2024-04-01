@@ -22,9 +22,11 @@ public class ComponentStatusEntity {
     private UserComponentKey userComponentKey;
 
     @Setter
+    @Builder.Default
     private int stage = 1;
 
     @Setter
+    @Builder.Default
     private boolean testsActivated = false;
 
 }

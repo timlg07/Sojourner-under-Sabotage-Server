@@ -60,6 +60,13 @@ public class TestService {
         updateTestForComponent(componentName, userId, fallbackTest.getSourceCode());
     }
 
+    public TestSourceDTO getHiddenTestForComponent(ComponentStatusEntity componentStatus) {
+        final String componentName = componentStatus.getUserComponentKey().getComponent().getName();
+        final int stage = componentStatus.getStage();
+        final FallbackTestEntity fallbackTest = fallbackTestRepository.findByKey(componentName, stage).orElseThrow();
+        return TestSourceDTO.fromFallbackTestEntity(fallbackTest);
+    }
+
     public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
         final TestEntity test = getOrCreateTestEntityForComponent(componentName, userId);
         if (!checkTestUsesTemplateParts(test.getClassName(), newSourceCode)) {
@@ -125,6 +132,50 @@ public class TestService {
         
         }
         """);
+    }
+
+    // TODO: fallback test method may have same name as an already existing test method
+    public void addHiddenTestMethodToUserTest(String methodName, String componentName, String userId) {
+        var userTest = getOrCreateTestDtoForComponent(componentName, userId);
+        // Cannot inject componentStatusService due to circular dependency. But the component should always have a status.
+        var componentStatus = componentStatusRepository.findByKey(componentName, userId).orElseThrow();
+        var hiddenTest = getHiddenTestForComponent(componentStatus);
+
+        var hiddenTestMethod = new StringBuilder();
+        var lines = hiddenTest.getSourceCode().lines().toList();
+        String lastLine = null;
+        boolean isTestBegin = false;
+        boolean isTargetTest = false;
+        int curlyBraceCount = 0;
+        for (var line : lines) {
+            if (isTestBegin && line.matches("^\\s*(public|private|protected)?\\s+void\\s+" + methodName + "\\s*\\(.*\\)\\s*\\{.*$")) {
+                isTargetTest = true;
+                hiddenTestMethod.append("\n").append(lastLine).append("\n").append(line).append("\n");
+                curlyBraceCount = 1;
+            } else if (isTargetTest) {
+                hiddenTestMethod.append(line).append("\n");
+
+                int curlyOpen = line.length() - line.replace("{", "").length();
+                int curlyClose = line.length() - line.replace("}", "").length();
+                curlyBraceCount += curlyOpen - curlyClose;
+                if (curlyBraceCount == 0) {
+                    break;
+                }
+            }
+
+            isTestBegin = line.matches("^\\s*@Test[\\s(]?.*$");
+            lastLine = line;
+        }
+
+        if (hiddenTestMethod.isEmpty()) {
+            throw new IllegalArgumentException("Method not found in hidden test.");
+        }
+
+        var userTestSource = userTest.getSourceCode();
+        var userTestSourceWithoutTemplateEnd = userTestSource.substring(0, userTestSource.lastIndexOf(getTestTemplateEnd()));
+        var newSourceCode = userTestSourceWithoutTemplateEnd + hiddenTestMethod + getTestTemplateEnd();
+
+        updateTestForComponent(componentName, userId, newSourceCode);
     }
 
     public void resetTestsForUser(String userId) {

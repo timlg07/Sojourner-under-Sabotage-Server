@@ -16,6 +16,9 @@ import org.junit.runner.notification.RunListener;
 @Getter
 public class TestRunListener extends RunListener {
 
+    /**
+     * The map of test suite details. Maps the test method name to the details.
+     */
     private final Map<String, TestDetailsDTO> map = new LinkedHashMap<>();
 
     private long testSuiteStartTime;

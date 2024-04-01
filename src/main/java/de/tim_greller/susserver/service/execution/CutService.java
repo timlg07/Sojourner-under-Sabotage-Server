@@ -90,6 +90,10 @@ public class CutService {
         return Optional.of(patchedCut);
     }
 
+    public boolean isUserModified(String componentName) {
+        return userModifiedCutRepository.findByKey(componentName, userService.requireCurrentUserId()).isPresent();
+    }
+
     public void storePatch(String componentName, int stage,  String newSource) {
         ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();

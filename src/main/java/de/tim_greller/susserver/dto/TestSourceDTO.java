@@ -2,6 +2,7 @@ package de.tim_greller.susserver.dto;
 
 import java.util.List;
 
+import de.tim_greller.susserver.persistence.entity.FallbackTestEntity;
 import de.tim_greller.susserver.persistence.entity.TestEntity;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,14 @@ public class TestSourceDTO extends SourceDTO {
         t.setCutComponentName(testEntity.getUserComponentKey().getComponent().getName());
         t.setClassName(testEntity.getClassName());
         t.setSourceCode(testEntity.getSourceCode());
+        return t;
+    }
+
+    public static TestSourceDTO fromFallbackTestEntity(FallbackTestEntity fallbackTest) {
+        var t = new TestSourceDTO();
+        t.setCutComponentName(fallbackTest.getComponentStageKey().getComponent().getName());
+        t.setClassName(fallbackTest.getClassName());
+        t.setSourceCode(fallbackTest.getSourceCode());
         return t;
     }
 }
