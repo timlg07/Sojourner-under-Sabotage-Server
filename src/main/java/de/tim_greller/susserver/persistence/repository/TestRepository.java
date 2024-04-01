@@ -20,4 +20,6 @@ public interface TestRepository
             AND t.userComponentKey.user.email = ?2
             """)
     Optional<TestEntity> findByKey(String componentName, String userEmail);
+
+    void deleteAllByUserComponentKeyUserEmail(String userId);
 }

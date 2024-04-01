@@ -91,17 +91,17 @@ public class ComponentStatusService {
     void attackCut(final String componentName) {
         log.info("Component {} is being attacked", componentName);
 
-        int stage = getComponentStatus(componentName, userService.requireCurrentUserId()).getStage();
-        Optional<PatchEntity> patches =
+        final int stage = getComponentStatus(componentName, userService.requireCurrentUserId()).getStage();
+        final Optional<PatchEntity> patchOpt =
                 patchRepository.findPatchEntitiesByComponentKey_ComponentNameAndComponentKey_Stage(
                         componentName, stage);
 
-        if (patches.isEmpty()) {
+        if (patchOpt.isEmpty()) {
             log.info("No patches found for component {}", componentName);
             return;
         }
 
-        PatchEntity patch = patches.get();
+        final PatchEntity patch = patchOpt.get();
 
         UserComponentKey key = new UserComponentKey(
                 patch.getComponentKey().getComponent(),
@@ -161,10 +161,11 @@ public class ComponentStatusService {
         }
     }
 
+    // TODO: Long term this method should only be called on new game creation.
     @Transactional
     public void resetComponentStatus(String userId) {
         componentStatusRepository.deleteAllByUserComponentKeyUserEmail(userId);
         activePatchRepository.deleteAllByComponentKeyUserEmail(userId);
-        // TODO: tests should be deleted as well. Long term this method should only be called on new game creation.
+        testService.resetTestsForUser(userId);
     }
 }

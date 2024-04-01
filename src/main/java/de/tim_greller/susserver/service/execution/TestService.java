@@ -126,4 +126,8 @@ public class TestService {
         }
         """);
     }
+
+    public void resetTestsForUser(String userId) {
+        testRepository.deleteAllByUserComponentKeyUserEmail(userId);
+    }
 }
