@@ -1,5 +1,9 @@
 package de.tim_greller.susserver.persistence.entity;
 
+import static de.tim_greller.susserver.dto.GameProgressStatus.TALK;
+import static jakarta.persistence.FetchType.EAGER;
+
+import de.tim_greller.susserver.dto.GameProgressStatus;
 import de.tim_greller.susserver.persistence.keys.UserKey;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -19,9 +23,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class UserGameProgressionEntity {
+
     @EmbeddedId
     private UserKey user;
 
-    @ManyToOne
+    @ManyToOne(fetch = EAGER)
     private GameProgressionEntity gameProgression;
+
+    @Builder.Default
+    private GameProgressStatus status = TALK; // Talk as default cause first room got no door
+
 }

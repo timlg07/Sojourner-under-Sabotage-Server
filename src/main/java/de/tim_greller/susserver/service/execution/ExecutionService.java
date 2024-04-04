@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import de.tim_greller.susserver.dto.GameProgressStatus;
 import de.tim_greller.susserver.dto.TestDetailsDTO;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
 import de.tim_greller.susserver.dto.TestSourceDTO;
@@ -26,8 +27,10 @@ import de.tim_greller.susserver.model.execution.instrumentation.OutputWriter;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.TestClassTransformer;
+import de.tim_greller.susserver.persistence.keys.UserKey;
 import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
 import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository;
+import de.tim_greller.susserver.persistence.repository.UserGameProgressionRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.game.EventService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +48,7 @@ public class ExecutionService {
     private final UserService userService;
     private final ComponentStatusRepository componentStatusRepository;
     private final EventService eventService;
+    private final UserGameProgressionRepository userGameProgressionRepository;
     private final ActivePatchRepository activePatchRepository;
 
 
@@ -55,7 +59,8 @@ public class ExecutionService {
         var listener = new TestRunListener();
         Result r = run(testClass, listener);
 
-        if (r.wasSuccessful() && cutService.isUserModified(componentName)) { // tests passed, but the CUT was edited by the user.
+        boolean isDebugging = userGameProgressionRepository.findById(new UserKey(userService.requireCurrentUser())).orElseThrow().getStatus() == GameProgressStatus.DEBUGGING;
+        if (r.wasSuccessful() && isDebugging) { // tests passed while in debug mode: check if really fixed
             Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
             var fallbackListener = new TestRunListener();
             Result fallbackResult = run(fallbackTestClass, fallbackListener);

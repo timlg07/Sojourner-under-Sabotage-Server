@@ -36,6 +36,17 @@
 #button-bar #editor-close-btn:hover, #button-bar #editor-close-btn:focus {
     --clr-bg: #ff3f3f;
 }
+.button-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(3);
+    background: forestgreen !important;
+    z-index: 10;
+}
+.button-popup.hidden {
+    display: none;
+}
 
 .ui-overlay-layout {
     display: flex;

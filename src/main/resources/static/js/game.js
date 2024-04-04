@@ -50,8 +50,19 @@
  * @property {'INITIAL' | 'TESTS_ACTIVE' | 'MUTATED'} state
  */
 
+/**
+ * @typedef {Object} UserGameProgressionDTO
+ * @property {number} id
+ * @property {number} room
+ * @property {string} componentName
+ * @property {number} stage
+ * @property {'DOOR'|'TALK'|'TEST'|'TESTS_ACTIVE'|'DESTROYED'|'MUTATED'|'DEBUGGING'} status
+ */
+
 /** @type {string|false} */
 let currentComponent;
+/** @type {UserGameProgressionDTO | false} */
+let gameProgress = false;
 const loadingText = "loading...";
 /** @type {Map<string, ComponentData>} */
 const componentData = new Map();
@@ -105,27 +116,29 @@ async function save(componentName = currentComponent) {
     const data = componentData.get(componentName);
 
     // 1 ─ Save test
-    const test = window.editors.monaco.test.getValue();
-    await fetch(`/api/components/${componentName}/test/src`, {
-        method: 'PUT',
-        headers: jsonHeader,
-        body: JSON.stringify({code: test}),
-    }).then(res => {
-        if (res.status === 401) {
-            sessionExpired(saveButton);
-            return;
-        }
-        noSaveFailure &= res.ok;
-    }).catch(e => {
-        console.error(e);
-        noSaveFailure = false;
-    });
+    if (gameProgress?.status === 'TEST' || gameProgress?.status === 'DEBUGGING') {
+        const test = window.editors.monaco.test.getValue();
+        await fetch(`/api/components/${componentName}/test/src`, {
+            method: 'PUT',
+            headers: jsonHeader,
+            body: JSON.stringify({code: test}),
+        }).then(res => {
+            if (res.status === 401) {
+                sessionExpired(saveButton);
+                return;
+            }
+            noSaveFailure &= res.ok;
+        }).catch(e => {
+            console.error(e);
+            noSaveFailure = false;
+        });
 
-    // 1.2 ─ Update in local cache
-    data.test.sourceCode = test;
+        // 1.2 ─ Update in local cache
+        data.test.sourceCode = test;
+    }
 
     // 2 ─ Save cut (only in debug mode, after a component was mutated)
-    if (data.state === 'MUTATED') {
+    if (gameProgress?.status === 'DEBUGGING') {
         const cut = window.editors.monaco.debug.getValue();
         await fetch(`/api/components/${componentName}/cut/src`, {
             method: 'PUT',
@@ -376,7 +389,7 @@ document.getElementById('editor-close-btn').addEventListener('click', () => {
 });
 
 const execBtn = document.getElementById('editor-execute-btn');
-execBtn.addEventListener('click', () => {
+execBtn.addEventListener('click', async () => {
     const componentName = currentComponent;
     if (!componentName) {
         renderResult(`<p class="clr-error">There is no component loaded currently.</p>`);
@@ -385,7 +398,12 @@ execBtn.addEventListener('click', () => {
     const code = window.editors.monaco.test.getValue();
     renderResult('<p>Executing test...</p>');
     execBtn.disabled = true;
-    fetch(`/api/components/${componentName}/test/execute`, {
+
+    if (gameProgress?.status === 'DEBUGGING') {
+        await save(componentName); // save CUT
+    }
+
+    return fetch(`/api/components/${componentName}/test/execute`, {
         method: 'POST',
         headers: jsonHeader,
         body: JSON.stringify({code}),
@@ -542,6 +560,15 @@ window.openEditor = async function (componentName) {
         execBtn.disabled = false;
         saveButton.disabled = false;
     }
+
+    if (gameProgress?.status === 'MUTATED' || gameProgress?.status === 'DESTROYED') {
+        const debugBtn = document.getElementById('editor-start-debugging-btn');
+        debugBtn.classList.remove('hidden');
+        debugBtn.addEventListener('click', () => {
+            es.sendEvent(new DebugStartEvent(componentName));
+            debugBtn.classList.add('hidden');
+        });
+    }
 };
 
 
@@ -586,6 +613,8 @@ es.registerHandler(
             const data = componentData.get(evt.componentName);
             data.test = test;
             componentData.set(evt.componentName, data);
+            console.log('Test for ' + evt.componentName + ' extended with ' + evt.addedTestMethodName);
+
             if (currentComponent === evt.componentName) {
                 window.editors.monaco.test.setValue(test.sourceCode);
                 constrain(test.editable, 'test');
@@ -593,4 +622,24 @@ es.registerHandler(
         });
   }
 );
-es.sendEvent(new GameStartedEvent());
+es.registerHandler(
+  'GameProgressionChangedEvent',
+  /** @param {{progression:UserGameProgressionDTO}} evt */
+  evt => {
+      gameProgress = evt.progression;
+      window.unityInstance.SendMessage('BrowserInterface', 'OnGameProgressionChanged', JSON.stringify(evt.progression));
+
+      console.log('Game progression changed: ', evt.progression);
+  }
+);
+es.registerHandler(
+  'ComponentFixedEvent',
+  /** @param {{componentName:string}} evt */
+  evt => {
+      const data = componentData.get(evt.componentName);
+      data.state = 'INITIAL';
+      componentData.set(evt.componentName, data);
+      alert('Congratulations! You fixed the component ' + evt.componentName + '.');
+      window.unityInstance.SendMessage('BrowserInterface', 'OnComponentFixed', evt.componentName);
+  }
+);

@@ -33,5 +33,6 @@ public interface UserModifiedCutRepository extends
 
     @Transactional
     @Modifying
-    void deleteAllByUserComponentKey_User_Email(String username);
+    @Query("DELETE FROM UserModifiedCutEntity u WHERE u.userComponentKey.user.email = :username")
+    void deleteByUserId(String username);
 }

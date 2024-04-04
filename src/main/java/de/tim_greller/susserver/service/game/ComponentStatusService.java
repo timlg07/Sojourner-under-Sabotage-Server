@@ -119,7 +119,7 @@ public class ComponentStatusService {
         }
 
         Event e = testExecutionResultToEvent(res, componentName);
-        eventService.publishEvent(e);
+        eventService.publishAndHandleEvent(e);
     }
 
     private TestExecutionResultDTO executeTests(final String componentName) {

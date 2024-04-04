@@ -144,3 +144,32 @@ class GameStartedEvent extends SusEvent {
   static type = ".GameStartedEvent";
   type = GameStartedEvent.type;
 }
+
+class ConversationFinishedEvent extends SusEvent {
+  static type = ".ConversationFinishedEvent";
+  type = ConversationFinishedEvent.type;
+}
+
+class DebugStartEvent extends SusEvent {
+  static type = ".DebugStartEvent";
+  type = DebugStartEvent.type;
+  /** @type {String} */
+  componentName;
+
+  constructor(componentName) {
+    super();
+    this.componentName = componentName;
+  }
+}
+
+class GameProgressionChangedEvent extends SusEvent {
+  static type = ".GameProgressionChangedEvent";
+  type = GameProgressionChangedEvent.type;
+  /** @type {UserGameProgressionDTO} */
+  progression;
+
+  constructor(progression) {
+    super();
+    this.progression = progression;
+  }
+}
