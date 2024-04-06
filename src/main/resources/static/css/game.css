@@ -108,4 +108,5 @@
 .covered {
     background: #044313;
     margin-left: 1px;
+    z-index: -1;
 }
