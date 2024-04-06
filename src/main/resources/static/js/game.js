@@ -288,7 +288,7 @@ function renderLogs(logs) {
 /** @param {TestResult} obj */
 function renderTestResultObject(obj) {
     renderCoverage(obj.coverage);
-    renderDebugValues(obj.variables);
+    // renderDebugValues(obj.variables); // not very useful without breakpoints
     renderLogs(obj.logs);
 
     let r = `<strong>${obj.testClassName} </strong>`;
