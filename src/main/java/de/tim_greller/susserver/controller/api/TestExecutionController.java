@@ -9,7 +9,7 @@ import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.execution.ExecutionService;
 import de.tim_greller.susserver.service.execution.TestService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,19 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
+@RequiredArgsConstructor
 public class TestExecutionController {
 
     private final TestService testService;
     private final UserService userService;
     private final ExecutionService executionService;
 
-    @Autowired
-    public TestExecutionController(TestService testService, UserService userService,
-                                   ExecutionService executionService) {
-        this.testService = testService;
-        this.userService = userService;
-        this.executionService = executionService;
-    }
 
     @PostMapping(value = "${paths.api}/components/{componentName}/test/execute")
     public @ResponseBody TestExecutionResultDTO execute(@PathVariable String componentName,

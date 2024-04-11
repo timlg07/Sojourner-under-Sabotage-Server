@@ -5,8 +5,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,20 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
+@RequiredArgsConstructor
 public class ApiAuthenticationController {
 
     final UserDetailsService jwtUserDetailsService;
     final JwtTokenService jwtTokenService;
     final AuthenticationManager authenticationManager;
-
-    @Autowired
-    public ApiAuthenticationController(UserDetailsService jwtUserDetailsService, JwtTokenService jwtTokenService,
-                                       AuthenticationManager authenticationManager) {
-        this.jwtUserDetailsService = jwtUserDetailsService;
-        this.jwtTokenService = jwtTokenService;
-        this.authenticationManager = authenticationManager;
-    }
-
 
     @PostMapping("${paths.api}/auth")
     public AuthenticationResponse authenticate(@RequestBody @Valid final AuthenticationRequest authenticationRequest) {

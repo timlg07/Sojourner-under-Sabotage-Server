@@ -5,7 +5,7 @@ import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.service.auth.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,13 +17,11 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
+@RequiredArgsConstructor
 public class RegistrationController {
 
     private final  UserService userService;
 
-    public RegistrationController(@Autowired UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/register")
     public String showRegistrationForm(WebRequest request, Model model) {
