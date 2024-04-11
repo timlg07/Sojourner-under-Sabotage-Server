@@ -583,5 +583,7 @@ es.registerHandler(
 );
 es.registerHandler(
     GameStartedEvent.type,
-    () => void Popup.instance.open('welcome')
+    () => void Popup.instance.open('welcome').onClose(() => {
+        document.getElementById('unity-canvas').focus();
+    })
 );
