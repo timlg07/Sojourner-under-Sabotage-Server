@@ -380,8 +380,8 @@ execBtn.addEventListener('click', async () => {
     });
 });
 
-const authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
-const jsonHeader = {'Content-Type': 'application/json', ...authHeader};
+window.authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
+window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 
 /**
  * @param {string} componentName
@@ -440,6 +440,15 @@ function disableActivateButton() {
 }
 
 window.openEditor = async function (componentName) {
+    // Check if the introduction should be shown. Then show it immediately, so the user can read it while the editor is still loading.
+    Settings.instance.get(Settings.keys.codeEditorIntroductionShown).then(introductionShown => {
+        if (!introductionShown) {
+            Popup.instance.open('code editor introduction').onClose(() => {
+                Settings.instance.set(Settings.keys.codeEditorIntroductionShown, true);
+            });
+        }
+    });
+
     const saveButton = document.getElementById('editor-save-btn');
     const activateButton = document.getElementById('editor-activate-test-btn');
     saveButton.disabled = true;
