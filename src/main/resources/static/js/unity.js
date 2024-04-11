@@ -2,7 +2,6 @@ var container = document.querySelector("#unity-container");
 var canvas = document.querySelector("#unity-canvas");
 var loadingBar = document.querySelector("#unity-loading-bar");
 var progressBarFull = document.querySelector("#unity-progress-bar-full");
-var fullscreenButton = document.querySelector("#unity-fullscreen-button");
 var warningBanner = document.querySelector("#unity-warning");
 
 // Shows a temporary message banner/ribbon for a few seconds, or
@@ -41,7 +40,7 @@ var config = {
     showBanner: unityShowBanner,
 };
 
-// By default Unity keeps WebGL canvas render target size matched with
+// By default, Unity keeps WebGL canvas render target size matched with
 // the DOM size of the canvas element (scaled by window.devicePixelRatio)
 // Set this to false if you want to decouple this synchronization from
 // happening inside the engine, and you would instead like to size up
@@ -79,9 +78,6 @@ script.onload = () => {
         progressBarFull.style.width = 100 * progress + "%";
     }).then((unityInstance) => {
         loadingBar.style.display = "none";
-        fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);//TODO
-        };
         window.unloadUnity = function() {
             unityInstance.Quit().then(function() {
                 console.log("unity unloaded");
