@@ -4,6 +4,15 @@
     z-index: 100;
     background: #0b0b0e;
     overflow: auto;
+    transition: opacity 0.3s, visibility 0s;
+}
+#ui-overlay[aria-hidden="true"] {
+    /* animating this to/from transform:scale(0) causes serious performance issues (I mean really serious, the whole
+        website freezes for more than a few seconds) (wtf is monaco doing lol). So just a simple opacity fade in: */
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s, visibility 0s 0.3s;
+    opacity: 0;
 }
 
 #button-bar {
@@ -12,7 +21,7 @@
     gap: 1rem;
 }
 
-#button-bar .button {
+.button-bar .button {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     --clr-bg: #5865f2;
@@ -22,10 +31,10 @@
     margin: 0;
     cursor: pointer;
 }
-#button-bar .button:hover, #button-bar .button:focus {
+.button-bar .button:hover, .button-bar .button:focus {
     --clr-bg: #4b5bd1;
 }
-#button-bar .button:disabled {
+.button-bar .button:disabled {
     --clr-bg: #6a6b9f;
     cursor: not-allowed;
 }
@@ -35,17 +44,6 @@
 }
 #button-bar #editor-close-btn:hover, #button-bar #editor-close-btn:focus {
     --clr-bg: #ff3f3f;
-}
-.button-popup {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(3);
-    background: forestgreen !important;
-    z-index: 10;
-}
-.button-popup.hidden {
-    display: none;
 }
 
 .ui-overlay-layout {
@@ -109,4 +107,59 @@
     background: #044313;
     margin-left: 1px;
     z-index: -1;
+}
+
+#popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s, opacity 0.3s, visibility 0s;
+
+    padding-block: 2rem;
+    padding-inline: 4rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+}
+#popup[aria-hidden="true"] {
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s, opacity 0.3s, visibility 0s 0.3s;
+    opacity: 0;
+}
+#popup .button-bar {
+    flex: 1;
+}
+#popup > * {
+    margin: 0;
+    text-align: center;
+}
+
+#unity-footer {
+    display: none;
+}
+#unity-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+#unity-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    margin-block-end: -8px; /* for some reason the canvas is a few pixels too large */
 }

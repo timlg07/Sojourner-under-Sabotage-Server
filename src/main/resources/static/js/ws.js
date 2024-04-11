@@ -3,12 +3,12 @@ class EventSystem {
   constructor() {
     /** @type {Map<String, Array<Function>>} */
     this.handlers = new Map();
-    this.stompClient = this._initStompClient();
+    this.stompClient = this.#initStompClient();
     this.stompClient.activate();
     this.queue = [];
   }
 
-  _initStompClient() {
+  #initStompClient() {
     if (typeof StompJs === 'undefined') {
       throw new Error('StompJs is not available');
     }
@@ -32,7 +32,7 @@ class EventSystem {
       console.log("StompJs connected to broker over ws");
       client.subscribe('/user/queue/events', (message) => {
         const event = JSON.parse(message.body);
-        eventSystemInstance._handleEvent(event);
+        eventSystemInstance.#handleEvent(event);
       });
 
       while (eventSystemInstance.queue.length > 0) {
@@ -54,7 +54,7 @@ class EventSystem {
     return client;
   }
 
-  _handleEvent(event) {
+  #handleEvent(event) {
     const eventType = event.type.replace(/^(\.)/, '');
     if (this.handlers.has(eventType)) {
       this.handlers.get(eventType).forEach((handler) => handler(event));
@@ -88,7 +88,7 @@ class EventSystem {
   }
 
   /**
-   * Send an event to the server
+   * Send an event to the server (and to client listeners if they subscribe to client events)
    *
    * @param {SusEvent} event the event to send
    */
@@ -105,6 +105,8 @@ class EventSystem {
     } else {
       this.queue.push(event);
     }
+
+    this.#handleEvent(event);
   }
 }
 
