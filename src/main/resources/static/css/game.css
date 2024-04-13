@@ -163,3 +163,26 @@
     height: 100% !important;
     margin-block-end: -8px; /* for some reason the canvas is a few pixels too large */
 }
+
+#alarm {
+    position: fixed;
+    inset: -10vw;
+    background-image: radial-gradient(closest-side, transparent 0%, rgba(255, 77, 77, .1) 45%, rgba(255, 43, 11,.5) 100%);
+    opacity: 0;
+    pointer-events: none;
+}
+#alarm.active {
+    opacity: 1;
+    animation: alarm 1.5s infinite;
+}
+@keyframes alarm {
+    0% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
