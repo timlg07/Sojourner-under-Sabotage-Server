@@ -38,6 +38,12 @@ class Popup {
                 cta: `Let's start!`,
             },
         ]],
+        ['component fixed', {
+            title: 'Great job!',
+            content: `<p>You've fixed the bug and saved the component from failure.</p>
+                      <p>The component is now up and running again!</p>`,
+            cta: 'Continue',
+        }]
     ]);
 
     /** @type {Popup} */
@@ -45,6 +51,8 @@ class Popup {
 
     /** @type {Array<Function>} */
     #onClose = [];
+    /** @type {Array<Function>} */
+    #onTransitionEnd = [];
     /** @type {false|{key:string,index:number}} */
     #multistep = false;
 
@@ -111,6 +119,11 @@ class Popup {
     }
 
     #close() {
+        this.element.addEventListener('transitionend', () => {
+            this.#onTransitionEnd.forEach(fn => fn());
+            this.#onTransitionEnd = [];
+        }, { once: true });
+
         this.element.ariaHidden = 'true';
         this.#onClose.forEach(fn => fn());
         this.#onClose = [];
@@ -118,5 +131,9 @@ class Popup {
 
     onClose(fn) {
         this.#onClose.push(fn);
+    }
+
+    onTransitionEnd(fn) {
+        this.#onTransitionEnd.push(fn);
     }
 }

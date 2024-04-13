@@ -317,14 +317,15 @@ function onContentChanged() {
     disableActivateButton();
 }
 
-document.getElementById('editor-close-btn').addEventListener('click', () => {
+function closeEditor() {
     if (currentComponent) save(currentComponent); // auto save on close
     currentComponent = false;
     autoSave.lastSave = null;
     uiOverlay.ariaHidden = 'true';
     document.getElementById('unity-canvas').focus();
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
-});
+}
+document.getElementById('editor-close-btn').addEventListener('click', closeEditor);
 
 const execBtn = document.getElementById('editor-execute-btn');
 execBtn.addEventListener('click', async () => {
@@ -586,8 +587,8 @@ es.registerHandler(
       const data = componentData.get(evt.componentName);
       data.state = 'INITIAL';
       componentData.set(evt.componentName, data);
-      alert('Congratulations! You fixed the component ' + evt.componentName + '.');
       window.unityInstance.SendMessage('BrowserInterface', 'OnComponentFixed', evt.componentName);
+      Popup.instance.open('component fixed').onTransitionEnd(closeEditor);
   }
 );
 es.registerHandler(
