@@ -597,3 +597,15 @@ es.registerHandler(
         document.getElementById('unity-canvas').focus();
     })
 );
+
+document.addEventListener('keydown', e => {
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    if (ctrlOrCmd && e.key === 's') {
+        e.preventDefault();
+        if (uiOverlay.ariaHidden === 'false' && currentComponent) {
+            save(currentComponent);
+        } else {
+            console.log('Editor closed, not saving.');
+        }
+    }
+});
