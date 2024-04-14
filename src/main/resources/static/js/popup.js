@@ -1,6 +1,6 @@
 class Popup {
 
-    /** @typedef {{title:string, content:string, cta:string}} PopupText */
+    /** @typedef {{title:string, content:string, cta:string, [btnClass]:string}} PopupText */
     /** @type {Map<string, PopupText|array<PopupText>>} */
     static #text = new Map([
         ['welcome', {
@@ -43,7 +43,17 @@ class Popup {
             content: `<p>You've fixed the bug and saved the component from failure.</p>
                       <p>The component is now up and running again!</p>`,
             cta: 'Continue',
-        }]
+        }],
+        ['tests activated', {
+            title: 'Tests activated',
+            content: `<p>Nice! Now the tests are active and will detect if something is wrong with the component.</p>`,
+            cta: 'Close component',
+        }],
+        ['can activate tests', {
+            title: 'The tests passed!',
+            content: `<p>The tests for the component are passing. If you think they're finished, you can activate them now!</p>`,
+            cta: 'Close', btnClass: 'clr-error',
+        }],
     ]);
 
     /** @type {Popup} */
@@ -71,6 +81,7 @@ class Popup {
         this.button.addEventListener('click', this.close.bind(this));
     }
 
+    /** @param {string} contentKey */
     open(contentKey) {
         if (Popup.#text.has(contentKey) === false) {
             throw new Error(`No content found for key ${contentKey}`);
@@ -99,6 +110,10 @@ class Popup {
         this.heading.innerText = text.title;
         this.content.innerHTML = text.content;
         this.button.innerText = text.cta;
+        if (text.btnClass) {
+            this.button.classList.add(text.btnClass);
+            this.onTransitionEnd(() => this.button.classList.remove(text.btnClass));
+        }
         this.element.ariaHidden = 'false';
     }
 
@@ -129,11 +144,32 @@ class Popup {
         this.#onClose = [];
     }
 
+    /** @param {Function} fn */
     onClose(fn) {
         this.#onClose.push(fn);
     }
 
+    /** @param {Function} fn */
     onTransitionEnd(fn) {
         this.#onTransitionEnd.push(fn);
+    }
+
+    /**
+     * @param {string} text - The text for the button
+     * @param {Function} callback - The function to execute when the button is clicked
+     * @param {string[]} [className] - Additional classes for the button
+     * @param {boolean} [before] - Insert before the default button
+     */
+    addButton(text, callback, className = [], before = true) {
+        const button = document.createElement('button');
+        button.innerText = text;
+        button.addEventListener('click', callback);
+        button.classList.add(...className, 'button');
+        if (before) {
+            this.button.parentNode.insertBefore(button, this.button);
+        } else {
+            this.button.parentNode.appendChild(button);
+        }
+        this.onTransitionEnd(button.remove.bind(button));
     }
 }

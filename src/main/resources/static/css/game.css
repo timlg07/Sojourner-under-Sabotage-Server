@@ -139,10 +139,18 @@
 }
 #popup .button-bar {
     flex: 1;
+    display: flex;
+    gap: 1rem;
 }
 #popup > * {
     margin: 0;
     text-align: center;
+}
+.button.clr-error {
+    --clr-bg: #ff4d4d;
+}
+.button.clr-error:hover, .button.clr-error:focus {
+    --clr-bg: #ff3f3f;
 }
 
 #unity-footer {

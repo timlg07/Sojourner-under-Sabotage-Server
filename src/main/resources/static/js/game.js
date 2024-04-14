@@ -372,6 +372,14 @@ execBtn.addEventListener('click', async () => {
 
             renderTestResultObject(obj);
             updateActivateButtonState(componentName);
+
+            if (data.state !== 'TESTS_ACTIVE' && data.testResult?.testStatus === 'PASSED' && !data.activationPopupShown) {
+                Popup.instance.open('can activate tests').addButton('Activate', () => {
+                    activateTests(componentName);
+                });
+                data.activationPopupShown = true;
+                componentData.set(componentName, data);
+            }
         })
     })
     .catch(e => {
@@ -440,6 +448,21 @@ function disableActivateButton() {
     btn.innerText = "tests need to pass to activate";
 }
 
+function activateTests(componentName) {
+    const event = new ComponentTestsActivatedEvent(componentName);
+    window.es.sendEvent(event);
+    const data = componentData.get(componentName); // should always be present at this point
+    data.state = 'TESTS_ACTIVE';
+    componentData.set(componentName, data);
+
+    constrain([], 'test');
+    execBtn.disabled = true;
+    updateActivateButtonState(componentName);
+    renderResult(`<p>Test activated for ${componentName}.</p>`);
+
+    Popup.instance.open('tests activated').onTransitionEnd(closeEditor);
+}
+
 window.openEditor = async function (componentName) {
     // Check if the introduction should be shown. Then show it immediately, so the user can read it while the editor is still loading.
     Settings.instance.get(Settings.keys.codeEditorIntroductionShown).then(introductionShown => {
@@ -490,16 +513,7 @@ window.openEditor = async function (componentName) {
     });
 
     activateButton.addEventListener('click', () => {
-        const event = new ComponentTestsActivatedEvent(componentName);
-        window.es.sendEvent(event);
-        const data = componentData.get(componentName); // should always be present at this point
-        data.state = 'TESTS_ACTIVE';
-        componentData.set(componentName, data);
-
-        constrain([], 'test');
-        execBtn.disabled = true;
-        updateActivateButtonState(componentName);
-        renderResult(`<p>Test activated for ${componentName}.</p>`);
+        activateTests(componentName);
     });
 
     updateActivateButtonState(componentName);

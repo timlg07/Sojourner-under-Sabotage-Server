@@ -47,6 +47,8 @@
  * @property {SourceDTO} cut
  * @property {TestResult} testResult
  *
+ * @property {boolean} [activationPopupShown]
+ *
  * @property {'INITIAL' | 'TESTS_ACTIVE' | 'MUTATED'} state
  */
 
