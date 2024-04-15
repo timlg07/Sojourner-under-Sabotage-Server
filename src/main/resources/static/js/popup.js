@@ -163,13 +163,16 @@ class Popup {
     addButton(text, callback, className = [], before = true) {
         const button = document.createElement('button');
         button.innerText = text;
-        button.addEventListener('click', callback);
+        button.addEventListener('click', () => {
+            this.onTransitionEnd(callback.bind(this));
+            this.close();
+        });
         button.classList.add(...className, 'button');
         if (before) {
             this.button.parentNode.insertBefore(button, this.button);
         } else {
             this.button.parentNode.appendChild(button);
         }
-        this.onTransitionEnd(button.remove.bind(button));
+        this.onClose(button.remove.bind(button));
     }
 }

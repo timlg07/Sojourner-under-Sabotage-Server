@@ -460,7 +460,7 @@ function activateTests(componentName) {
     updateActivateButtonState(componentName);
     renderResult(`<p>Test activated for ${componentName}.</p>`);
 
-    Popup.instance.open('tests activated').onTransitionEnd(closeEditor);
+    Popup.instance.open('tests activated').onClose(closeEditor);
 }
 
 window.openEditor = async function (componentName) {
