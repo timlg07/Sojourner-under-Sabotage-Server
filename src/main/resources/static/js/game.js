@@ -373,7 +373,8 @@ execBtn.addEventListener('click', async () => {
             renderTestResultObject(obj);
             updateActivateButtonState(componentName);
 
-            if (data.state !== 'TESTS_ACTIVE' && data.testResult?.testStatus === 'PASSED' && !data.activationPopupShown) {
+            const isInTestState = gameProgress.status === 'TEST' && gameProgress.componentName === componentName;
+            if (isInTestState && data.testResult?.testStatus === 'PASSED' && !data.activationPopupShown) {
                 Popup.instance.open('can activate tests').addButton('Activate', () => {
                     activateTests(componentName);
                 });
