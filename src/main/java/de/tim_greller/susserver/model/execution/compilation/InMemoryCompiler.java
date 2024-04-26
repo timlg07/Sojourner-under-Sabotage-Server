@@ -1,11 +1,14 @@
 package de.tim_greller.susserver.model.execution.compilation;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.FileObject;
@@ -25,8 +28,9 @@ import de.tim_greller.susserver.model.execution.instrumentation.transformer.ICla
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.IdentityClassTransformer;
 import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
 import de.tim_greller.susserver.model.execution.security.Sandbox;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class InMemoryCompiler {
     private final Map<String, JavaStringObject> sources = new HashMap<>();
     private final Map<String, JavaByteObject> compiledClasses = new HashMap<>();
@@ -36,9 +40,11 @@ public class InMemoryCompiler {
     private final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
     private final JavaFileManager fileManager = createFileManager();
     private final ClassLoader inMemoryClassLoader;
+    private final Collection<String> jarsToInclude;
 
-    public InMemoryCompiler(final String identifier) {
+    public InMemoryCompiler(final String identifier, final Collection<String> jarsToInclude) {
         inMemoryClassLoader = createClassLoader(identifier);
+        this.jarsToInclude = jarsToInclude;
     }
 
     public void addSource(SourceDTO testSource) {
@@ -54,8 +60,27 @@ public class InMemoryCompiler {
     }
 
     public void compile() throws CompilationException {
+        final var options = List.of(
+                /*
+                 * The -g option causes the compiler to generate the LocalVariableTable attribute in the class file.
+                 * The Converter uses this attribute to determine local variable types.
+                 * => required to trace variable assignments.
+                 *
+                 * And also:
+                 * If you do not use the -g option, the Converter attempts to determine the variable types on its own.
+                 * This is expensive in terms of processing and might not produce the most efficient code.
+                 */
+                "-g",
+
+                "-classpath", Stream.concat(
+                        Stream.of(System.getProperty("java.class.path")), // adding to default value, not replacing it
+                        jarsToInclude.stream() // add libraries
+                ).collect(Collectors.joining(":"))
+        );
+        log.info("Compilation options: {}", options);
+
         final JavaCompiler.CompilationTask task = compiler.getTask(
-                null, fileManager, diagnostics, List.of("-g"), null, getCompilationUnits());
+                null, fileManager, diagnostics, options, null, getCompilationUnits());
 
         final boolean allCompiledSuccessfully = task.call();
 
@@ -129,16 +154,20 @@ public class InMemoryCompiler {
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {
                 synchronized (getClassLoadingLock(name)) {
+                    // using the parent class loader ({@code super}) does only work locally, not for the deployed WAR.
+                    // So use the web applications class loader instead:
+                    var classLoader = InMemoryCompiler.class.getClassLoader();
+
                     if (filter.allowDelegateLoadingOf(name)) {
                         System.out.println("Delegate loading of " + name + " to parent class loader.");
-                        return super.loadClass(name);
+                        return classLoader.loadClass(name);
                     }
                     System.out.println("Prohibit class from delegating: " + name);
 
                     try {
                         return findClass(name);
                     } catch (ClassNotFoundException e) {
-                        super.loadClass(name); // throws ClassNotFoundException if class does not exist at all
+                        classLoader.loadClass(name); // throws ClassNotFoundException if class does not exist at all
                         throw new SecurityException("Access to the class \"" + name + "\" was denied.");
                     }
                 }

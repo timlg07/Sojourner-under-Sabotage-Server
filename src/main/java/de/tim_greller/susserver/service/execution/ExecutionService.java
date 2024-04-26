@@ -36,6 +36,7 @@ import de.tim_greller.susserver.service.game.EventService;
 import lombok.RequiredArgsConstructor;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,6 +51,7 @@ public class ExecutionService {
     private final EventService eventService;
     private final UserGameProgressionRepository userGameProgressionRepository;
     private final ActivePatchRepository activePatchRepository;
+    @Value("${jarsToInclude}") private List<String> jarsToInclude;
 
 
     public TestExecutionResultDTO execute(String componentName, String userId)
@@ -121,7 +123,7 @@ public class ExecutionService {
 
     private Class<?> compile(TestSourceDTO testSource, String componentName, String userId)
             throws NotFoundException, CompilationException, ClassLoadException {
-        var compiler = new InMemoryCompiler(userId);
+        var compiler = new InMemoryCompiler(userId, jarsToInclude);
         var cutSource = cutService
                 .getCurrentCutForComponent(componentName)
                 .orElseThrow(() -> new NotFoundException("CUT for the specified component was not found"));
