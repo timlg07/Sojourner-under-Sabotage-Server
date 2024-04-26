@@ -5,6 +5,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import de.tim_greller.susserver.service.auth.SusUserDetailsService;
 import de.tim_greller.susserver.service.auth.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +22,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 public class SecurityConfig {
@@ -39,24 +42,29 @@ public class SecurityConfig {
 
         private final String apiUrl;
         private final JwtRequestFilter jwtRequestFilter;
+        private final MvcRequestMatcher.Builder mvc;
 
         @Autowired
-        public ApiSecurityConfig(JwtRequestFilter jwtRequestFilter, @Value("${paths.api}") String apiUrl) {
+        public ApiSecurityConfig(JwtRequestFilter jwtRequestFilter, MvcRequestMatcher.Builder mvc,
+                                 @Value("${paths.api}") String apiUrl) {
             this.jwtRequestFilter = jwtRequestFilter;
+            this.mvc = mvc;
             this.apiUrl = apiUrl;
         }
 
         @Bean
         public SecurityFilterChain securityFilterChainAPI(HttpSecurity http) throws Exception {
             return http
-                    .securityMatcher(apiUrl + "/**")
+                    .securityMatcher(mvc.pattern(apiUrl + "/**"))
                     .cors(withDefaults())
                     // TODO: enable CSRF protection
                     // .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(requests -> requests
-                            .requestMatchers(apiUrl + "/hello", apiUrl + "/auth").permitAll()
-                            .requestMatchers(apiUrl + "/**").authenticated()
+                            .requestMatchers(
+                                    mvc.pattern(apiUrl + "/hello"),
+                                    mvc.pattern(apiUrl + "/auth")).permitAll()
+                            .requestMatchers(mvc.pattern(apiUrl + "/**")).authenticated()
                     )
                     // disable redirect to log in form and send 401 instead
                     .exceptionHandling(ehc -> ehc
@@ -92,12 +100,19 @@ public class SecurityConfig {
      */
     @Configuration
     @Order(Ordered.HIGHEST_PRECEDENCE + 2)
+    @RequiredArgsConstructor
     public static class WebSecurityConfig {
+
+        private final MvcRequestMatcher.Builder mvc;
+
         @Bean
         public SecurityFilterChain securityFilterChainWeb(HttpSecurity http) throws Exception {
             return http
                     .authorizeHttpRequests((requests) -> requests
-                            .requestMatchers("/", "/home", "/register").permitAll()
+                            .requestMatchers(
+                                    mvc.pattern("/"),
+                                    mvc.pattern("/home"),
+                                    mvc.pattern("/register")).permitAll()
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form
@@ -120,5 +135,10 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
+        return new MvcRequestMatcher.Builder(introspector);
     }
 }
