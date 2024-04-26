@@ -21,9 +21,8 @@ import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.FallbackTestRepository;
 import de.tim_greller.susserver.persistence.repository.GameProgressionRepository;
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
-import de.tim_greller.susserver.persistence.repository.RoomRepository;
 import de.tim_greller.susserver.service.execution.PatchService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
@@ -33,6 +32,7 @@ import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class InsertInitialData implements CommandLineRunner {
 
     private static final Pattern CLASS_NAME_REGEX = Pattern.compile(
@@ -45,33 +45,18 @@ public class InsertInitialData implements CommandLineRunner {
     private final PatchRepository patchRepository;
     private final FallbackTestRepository fallbackTestRepository;
     private final GameProgressionRepository gameProgressionRepository;
-    private final RoomRepository roomRepository;
     private final PatchService patchService;
     private final ResourceLoader resourceLoader;
-    private final boolean initData;
-    private final String cutPattern;
-    private final String fallbackTestPattern;
 
-    @Autowired
-    public InsertInitialData(ComponentRepository componentRepository, CutRepository cutRepository,
-                             PatchRepository patchRepository, FallbackTestRepository fallbackTestRepository,
-                             GameProgressionRepository gameProgressionRepository, RoomRepository roomRepository,
-                             PatchService patchService, ResourceLoader resourceLoader,
-                             @Value("${initData:false}") boolean initData,
-                             @Value("${cutPattern:classpath:cut/*.java}") String cutPattern,
-                             @Value("${fallbackTestPattern:classpath:test/stage-*/*.java}") String fallbackTestPattern) {
-        this.componentRepository = componentRepository;
-        this.cutRepository = cutRepository;
-        this.patchRepository = patchRepository;
-        this.fallbackTestRepository = fallbackTestRepository;
-        this.gameProgressionRepository = gameProgressionRepository;
-        this.roomRepository = roomRepository;
-        this.patchService = patchService;
-        this.resourceLoader = resourceLoader;
-        this.initData = initData;
-        this.cutPattern = cutPattern;
-        this.fallbackTestPattern = fallbackTestPattern;
-    }
+    @Value("${initData:false}")
+    private boolean initData;
+
+    @Value("${cutPattern:classpath:cut/*.java}")
+    private String cutPattern;
+
+    @Value("${fallbackTestPattern:classpath:test/stage-*/*.java}")
+    private String fallbackTestPattern;
+
 
     @Override
     public void run(String... args) throws Exception {
