@@ -143,7 +143,9 @@ public class InMemoryCompiler {
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
                 bytes = transformer.transform(bytes, classId);
-                writeToFile(bytes, classId + "_transformed");
+
+                // DEBUG // print transformed class to file
+                // writeToFile(bytes, classId + "_transformed");
 
                 Class<?> c = defineClass(name, bytes, 0, bytes.length);
                 if (USE_SANDBOX) Sandbox.confine(c);
