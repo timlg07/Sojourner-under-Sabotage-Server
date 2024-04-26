@@ -6,8 +6,20 @@
       "description": "The file pattern matching the paths to the CUT files."
     },
     {
+      "name": "fallbackTestPattern",
+      "type": "java.lang.String",
+      "description": "The file pattern matching the paths to the hidden/fallback test files."
+    },
+    {
       "name": "initData",
       "type": "java.lang.Boolean",
-      "description": "If this is set to true, the application will look for java files and insert them in the DB as CUTs."
+      "description": "If this is set to true, the application will look for java files and insert them in the DB as CUTs.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "jarsToInclude",
+      "type": "java.util.List<java.lang.String>",
+      "description": "A list of jar files to include in the classpath when running the tests."
     }
-  ] }
+  ]
+}
