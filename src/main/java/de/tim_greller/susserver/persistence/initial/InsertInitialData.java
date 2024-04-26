@@ -57,6 +57,12 @@ public class InsertInitialData implements CommandLineRunner {
     @Value("${fallbackTestPattern:classpath:test/stage-*/*.java}")
     private String fallbackTestPattern;
 
+    @Value("${mutantFilePattern:classpath:mutants/stage-*/*.java}")
+    private String mutantPattern;
+
+    @Value("${gameProgressionCSV:classpath:game/game-progression.csv}")
+    private String gameProgressionCSV;
+
 
     @Override
     public void run(String... args) throws Exception {
@@ -106,7 +112,7 @@ public class InsertInitialData implements CommandLineRunner {
      */
     private void readAndSavePatches() throws IOException {
         ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
-        for (Resource resource : resolver.getResources("classpath:mutants/stage-*/*.java")) {
+        for (Resource resource : resolver.getResources(mutantPattern)) {
             var mutatedSourceCode = resource.getContentAsString(UTF_8);
             var component = componentRepository.getOrCreate(getComponentName(resource));
             var cut = cutRepository.findById(new ComponentKey(component)).orElseThrow();
@@ -139,7 +145,7 @@ public class InsertInitialData implements CommandLineRunner {
 
     private void readAndSaveGameProgression() throws IOException {
         ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
-        Resource resource = resolver.getResource("classpath:game/game-progression.csv");
+        Resource resource = resolver.getResource(gameProgressionCSV);
 
         try (Stream<String> lines = new BufferedReader(new InputStreamReader(resource.getInputStream(), UTF_8)).lines()) {
             lines.skip(1) // Skip the header line
