@@ -13,6 +13,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import de.tim_greller.susserver.persistence.entity.CutEntity;
 import de.tim_greller.susserver.persistence.entity.FallbackTestEntity;
 import de.tim_greller.susserver.persistence.entity.GameProgressionEntity;
+import de.tim_greller.susserver.persistence.entity.PatchEntity;
 import de.tim_greller.susserver.persistence.keys.ComponentKey;
 import de.tim_greller.susserver.persistence.keys.ComponentStageKey;
 import de.tim_greller.susserver.persistence.repository.ComponentRepository;
@@ -21,6 +22,7 @@ import de.tim_greller.susserver.persistence.repository.FallbackTestRepository;
 import de.tim_greller.susserver.persistence.repository.GameProgressionRepository;
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
 import de.tim_greller.susserver.persistence.repository.RoomRepository;
+import de.tim_greller.susserver.service.execution.PatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -44,6 +46,7 @@ public class InsertInitialData implements CommandLineRunner {
     private final FallbackTestRepository fallbackTestRepository;
     private final GameProgressionRepository gameProgressionRepository;
     private final RoomRepository roomRepository;
+    private final PatchService patchService;
     private final ResourceLoader resourceLoader;
     private final boolean initData;
     private final String cutPattern;
@@ -53,7 +56,7 @@ public class InsertInitialData implements CommandLineRunner {
     public InsertInitialData(ComponentRepository componentRepository, CutRepository cutRepository,
                              PatchRepository patchRepository, FallbackTestRepository fallbackTestRepository,
                              GameProgressionRepository gameProgressionRepository, RoomRepository roomRepository,
-                             ResourceLoader resourceLoader,
+                             PatchService patchService, ResourceLoader resourceLoader,
                              @Value("${initData:false}") boolean initData,
                              @Value("${cutPattern:classpath:cut/*.java}") String cutPattern,
                              @Value("${fallbackTestPattern:classpath:test/stage-*/*.java}") String fallbackTestPattern) {
@@ -63,6 +66,7 @@ public class InsertInitialData implements CommandLineRunner {
         this.fallbackTestRepository = fallbackTestRepository;
         this.gameProgressionRepository = gameProgressionRepository;
         this.roomRepository = roomRepository;
+        this.patchService = patchService;
         this.resourceLoader = resourceLoader;
         this.initData = initData;
         this.cutPattern = cutPattern;
@@ -75,6 +79,7 @@ public class InsertInitialData implements CommandLineRunner {
             readAndSaveCuts();
             readAndSaveFallbackTests();
             readAndSaveGameProgression();
+            readAndSavePatches();
         }
     }
 
@@ -82,7 +87,7 @@ public class InsertInitialData implements CommandLineRunner {
         ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
         for (Resource resource : resolver.getResources(cutPattern)) {
             // component name = name of file
-            var name = Objects.requireNonNull(resource.getFilename()).split("\\.java")[0];
+            var name = getComponentName(resource);
             var content = resource.getContentAsString(UTF_8);
             // extract the classname via regex
             var className = extractClassName(content);
@@ -97,8 +102,7 @@ public class InsertInitialData implements CommandLineRunner {
     private void readAndSaveFallbackTests() throws IOException {
         ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
         for (Resource resource : resolver.getResources(fallbackTestPattern)) {
-            // stage number = folder name
-            var stage = Integer.parseInt(resource.getURL().getPath().split("/stage-")[1].split("/")[0]);
+            var stage = getStageNumber(resource);
             // component name = name of file without -Test.java
             var name = Objects.requireNonNull(resource.getFilename()).split("Test\\.java")[0];
             var content = resource.getContentAsString(UTF_8);
@@ -109,6 +113,36 @@ public class InsertInitialData implements CommandLineRunner {
             var componentKey = new ComponentStageKey(componentRepository.getOrCreate(name), stage);
             fallbackTestRepository.save(new FallbackTestEntity(componentKey, className, content));
         }
+    }
+
+    /**
+     * Reads all patches from the classpath and saves them to the database.
+     * Requires {@link InsertInitialData#readAndSaveCuts()} to be called first, so all CUTs are available.
+     */
+    private void readAndSavePatches() throws IOException {
+        ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+        for (Resource resource : resolver.getResources("classpath:mutants/stage-*/*.java")) {
+            var mutatedSourceCode = resource.getContentAsString(UTF_8);
+            var component = componentRepository.getOrCreate(getComponentName(resource));
+            var cut = cutRepository.findById(new ComponentKey(component)).orElseThrow();
+            var patch = patchService.createPatch(cut.getSourceCode(), mutatedSourceCode);
+            var mutant = new PatchEntity(patch, new ComponentStageKey(component,  getStageNumber(resource)));
+            patchRepository.save(mutant);
+        }
+    }
+
+    /**
+     * The component name is the filename without the .java extension.
+     */
+    private String getComponentName(Resource resource) {
+        return Objects.requireNonNull(resource.getFilename()).split("\\.java")[0];
+    }
+
+    /**
+     * The stage is the number after "stage-" in the folder name.
+     */
+    private int getStageNumber(Resource resource) throws IOException {
+        return Integer.parseInt(resource.getURL().getPath().split("/stage-")[1].split("/")[0]);
     }
 
     private static String extractClassName(String content) {
