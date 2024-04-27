@@ -39,8 +39,6 @@ public class GameProgressionService {
     private final EventService eventService;
     private final UserModifiedCutRepository userModifiedCutRepository;
 
-    private UserKey user;
-
 
     // Instantiated by the Spring IoC container during startup even if not injected anywhere.
     // It then registers itself as a handler for the ComponentTestsActivatedEvent.
@@ -183,10 +181,7 @@ public class GameProgressionService {
     }
 
     private UserKey currentUser() {
-        if (user == null) {
-            user = new UserKey(userService.requireCurrentUser());
-        }
-        return user;
+        return new UserKey(userService.requireCurrentUser());
     }
 
     private void changeGameProgression(UserGameProgressionEntity ugp) {
