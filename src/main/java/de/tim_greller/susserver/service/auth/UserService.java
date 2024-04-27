@@ -1,14 +1,17 @@
 package de.tim_greller.susserver.service.auth;
 
 import java.security.Principal;
+import java.util.Collection;
 import java.util.Optional;
 
 import de.tim_greller.susserver.dto.UserRegistrationDTO;
 import de.tim_greller.susserver.exception.UserAlreadyExistException;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.persistence.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,16 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
-    private Object principal;
-
-    public UserService(@Autowired UserRepository repository, @Autowired PasswordEncoder encoder) {
-        this.userRepository = repository;
-        this.encoder = encoder;
-    }
 
     public UserEntity registerNewUserAccount(UserRegistrationDTO userDto) throws UserAlreadyExistException {
         if (emailExists(userDto.getEmail())) {
@@ -52,10 +50,6 @@ public class UserService {
     }
 
     public Object getPrincipal() {
-        if (this.principal != null) {
-            return this.principal;
-        }
-
         final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!auth.isAuthenticated()) {
             return null;
@@ -95,14 +89,20 @@ public class UserService {
      *
      * @param principal the principal to return from {@link #getPrincipal()}
      */
-    public void overridePrincipal(Object principal) {
-        this.principal = principal;
+    public void overridePrincipal(Principal principal) {
+        SecurityContextHolder.getContext().setAuthentication(new InternalPrincipalWrapper(principal));
     }
 
-    /**
-     * Resets the principal returned by {@link #getPrincipal()} to the value from the SecurityContext.
-     */
-    public void resetPrincipal() {
-        this.principal = null;
+    @Getter
+    @RequiredArgsConstructor
+    @SuppressWarnings("ClassCanBeRecord") // no, thanks
+    private static class InternalPrincipalWrapper implements Authentication {
+        private final Principal principal;
+        @Override public Collection<? extends GrantedAuthority> getAuthorities() { throw new UnsupportedOperationException(); }
+        @Override public Object getCredentials() { throw new UnsupportedOperationException(); }
+        @Override public Object getDetails() { throw new UnsupportedOperationException(); }
+        @Override public boolean isAuthenticated() { return true; }
+        @Override public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException { throw new UnsupportedOperationException(); }
+        @Override public String getName() { return principal.getName(); }
     }
 }
