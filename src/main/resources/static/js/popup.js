@@ -54,6 +54,11 @@ class Popup {
             content: `<p>The tests for the component are passing. If you think they're finished, you can activate them now!</p>`,
             cta: 'Close', btnClass: 'clr-error',
         }],
+        ['error', {
+            title: 'An Error occurred',
+            content: `<p>Something went wrong. Please try again.</p>`,
+            cta: 'Close', btnClass: 'clr-error',
+        }]
     ]);
 
     /** @type {Popup} */

@@ -399,25 +399,37 @@ window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
  */
 async function getComponentData(componentName) {
     let data = {};
+    const onError = res => {
+        Popup.instance.open('error').onClose(closeEditor);
+        console.error(res);
+    }
 
     if (componentData.has(componentName)) {
         data = componentData.get(componentName);
     }
 
     if (!data.cut) {
-        await fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader})
-          .then(res => res.json())
-          .then(/** @param {SourceDTO} json */json => {
-              data.cut = json;
-          });
+        await fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader}).then(res => {
+            if (!res.ok) {
+                onError(res);
+            } else {
+                return res.json().then(/** @param {SourceDTO} json */json => {
+                    data.cut = json;
+                });
+            }
+        }).catch(onError);
     }
 
     if (!data.test) {
-        await fetch(`/api/components/${componentName}/test/src`, {headers: authHeader})
-          .then(res => res.json())
-          .then(/** @param {SourceDTO} test */test => {
-              data.test = test;
-          });
+        await fetch(`/api/components/${componentName}/test/src`, {headers: authHeader}).then(res => {
+            if (!res.ok) {
+                onError(res);
+            } else {
+                return res.json().then(/** @param {SourceDTO} test */test => {
+                    data.test = test;
+                });
+            }
+        }).catch(onError);
     }
 
     if (!'state' in data) {
