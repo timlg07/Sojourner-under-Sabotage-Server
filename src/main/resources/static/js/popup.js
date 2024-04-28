@@ -114,7 +114,7 @@ class Popup {
             this.button.classList.add(text.btnClass);
             this.onTransitionEnd(() => this.button.classList.remove(text.btnClass));
         }
-        this.element.ariaHidden = 'false';
+        this.element.setAttribute('aria-hidden', 'false');
     }
 
     close() {
@@ -124,7 +124,7 @@ class Popup {
             const steps = Popup.#text.get(this.#multistep.key).length;
             this.#multistep.index++;
             if (this.#multistep.index < steps) {
-                this.element.ariaHidden = 'true'; // animate out
+                this.element.setAttribute('aria-hidden', 'true'); // animate out
                 this.element.addEventListener('transitionend', this.#renderMultiStep.bind(this), { once: true });
             } else {
                 this.#multistep = false;
@@ -139,7 +139,7 @@ class Popup {
             this.#onTransitionEnd = [];
         }, { once: true });
 
-        this.element.ariaHidden = 'true';
+        this.element.setAttribute('aria-hidden', 'true');
         this.#onClose.forEach(fn => fn());
         this.#onClose = [];
     }

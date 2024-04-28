@@ -321,7 +321,7 @@ function closeEditor() {
     if (currentComponent) save(currentComponent); // auto save on close
     currentComponent = false;
     autoSave.lastSave = null;
-    uiOverlay.ariaHidden = 'true';
+    uiOverlay.setAttribute('aria-hidden', 'true');
     document.getElementById('unity-canvas').focus();
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
 }
@@ -488,7 +488,7 @@ window.openEditor = async function (componentName) {
     window.editors.monaco.test.setValue(loadingText);
     window.editors.monaco.debug.layout();
     window.editors.monaco.test.layout();
-    uiOverlay.ariaHidden = 'false';
+    uiOverlay.setAttribute('aria-hidden', 'false');
 
     const currentComponentData = await getComponentData(componentName);
 
@@ -617,7 +617,7 @@ document.addEventListener('keydown', e => {
     const ctrlOrCmd = e.ctrlKey || e.metaKey;
     if (ctrlOrCmd && e.key === 's') {
         e.preventDefault();
-        if (uiOverlay.ariaHidden === 'false' && currentComponent) {
+        if (uiOverlay.getAttribute('aria-hidden') === 'false' && currentComponent) {
             save(currentComponent);
         } else {
             console.log('Editor closed, not saving.');
