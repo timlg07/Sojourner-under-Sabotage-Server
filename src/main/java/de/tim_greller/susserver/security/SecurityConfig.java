@@ -14,11 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -112,7 +112,7 @@ public class SecurityConfig {
         @Bean
         public SecurityFilterChain securityFilterChainWeb(HttpSecurity http) throws Exception {
             var patterns = Stream
-                    .of("/", "/home", "/register", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")
+                    .of("/", "/home", "/register", "/error", "/login", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")
                     .map(mvc::pattern)
                     .toList().toArray(new MvcRequestMatcher[0]);
 
@@ -123,9 +123,16 @@ public class SecurityConfig {
                     )
                     .formLogin((form) -> form
                             .loginPage("/login")
+                            .defaultSuccessUrl("/game")
                             .permitAll()
                     )
-                    .logout(LogoutConfigurer::permitAll)
+                    .logout(logoutConfig -> logoutConfig
+                            .logoutRequestMatcher(mvc.pattern(HttpMethod.GET, "/logout"))
+                            .logoutSuccessUrl("/?logout")
+                            .deleteCookies("JSESSIONID")
+                            .invalidateHttpSession(true)
+                            .permitAll()
+                    )
                     .build();
         }
     }
