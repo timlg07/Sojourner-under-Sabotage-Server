@@ -1,0 +1,38 @@
+@font-face {
+    font-family: 'easvhs';
+    font-style: normal;
+    font-weight: 400;
+    src: url("../fonts/easvhs.ttf");
+}
+
+* {
+    box-sizing: border-box;
+}
+html, body {
+    margin: 0;
+}
+
+a.button {
+    text-decoration: none;
+}
+.button-bar .button, a.button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    --clr-bg: #5865f2;
+    background: var(--clr-bg);
+    border: none;
+    color: #fff;
+    margin: 0;
+    cursor: pointer;
+}
+.button-bar .button:hover, .button-bar .button:focus, a.button:hover, a.button:focus {
+    --clr-bg: #4b5bd1;
+}
+.button-bar .button:disabled, a.button:disabled {
+    --clr-bg: #6a6b9f;
+    cursor: not-allowed;
+}
+
+span.orange {
+    color: #ff9c28;
+}
