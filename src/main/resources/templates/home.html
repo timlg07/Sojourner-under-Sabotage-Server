@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="en">
 <head>
-    <title>Spring Security Example</title>
+    <title>Sojourner under Sabotage ─ Landing page</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/base.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/landing.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/pages.css}" />
 
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
@@ -17,6 +17,9 @@
 </head>
 <body>
 <main class="teaser">
+    <div th:if="${param.logout}" class="logout">
+        You have been logged out.
+    </div>
     <h1>Sojourner under<br><span class="orange">Sabotage</span></h1>
     <img th:src="@{/images/sus-teaser.png}" alt="Sojourner under Sabotage" draggable="false" />
     <a th:href="@{/game}" class="button">Play now</a>

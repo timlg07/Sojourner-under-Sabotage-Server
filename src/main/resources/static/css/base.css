@@ -5,6 +5,9 @@
     src: url("../fonts/easvhs.ttf");
 }
 
+:root {
+    font-size: calc(15px + .24vw);
+}
 * {
     box-sizing: border-box;
 }
@@ -18,15 +21,17 @@ a.button {
 .button-bar .button, a.button {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
-    --clr-bg: #5865f2;
+    --clr-bg: #135275;
     background: var(--clr-bg);
     border: none;
     color: #fff;
     margin: 0;
+    font-size: 1rem;
     cursor: pointer;
+    transition: background .3s, color .3s;
 }
 .button-bar .button:hover, .button-bar .button:focus, a.button:hover, a.button:focus {
-    --clr-bg: #4b5bd1;
+    --clr-bg: #14a0cd;
 }
 .button-bar .button:disabled, a.button:disabled {
     --clr-bg: #6a6b9f;

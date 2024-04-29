@@ -2,6 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="en">
 <head>
     <title>Login ─ Sojourner under Sabotage</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/base.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/pages.css}"/>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
@@ -14,20 +16,30 @@
     <meta name="theme-color" content="#000000">
 </head>
 <body>
-<div th:if="${userRegistered}">
-    Hello <span th:text="${userRegistered.getFirstName()}">User</span>, your registration was successful!<br>
-    You can log in now to play the game.
-</div>
-<div th:if="${param.error}">
-    Invalid username and password.
-</div>
-<div th:if="${param.logout}">
-    You have been logged out.
-</div>
-<form th:action="@{/login}" method="post">
-    <div><label> User Name : <input type="text" name="username"/> </label></div>
-    <div><label> Password: <input type="password" name="password"/> </label></div>
-    <div><input type="submit" value="Sign In"/></div>
-</form>
+<main>
+    <h1>Login</h1>
+    <p th:if="${userRegistered}">
+        Hello <span th:text="${userRegistered.getFirstName()}">User</span>, your registration was successful!<br>
+        You can log in now to play the game.
+    </p>
+
+    <form th:action="@{/login}" method="post">
+        <div class="form-entry">
+            <label for="username"> User Name: </label>
+            <input type="text" name="username" id="username" />
+        </div>
+        <div class="form-entry">
+            <label for="password"> Password: </label>
+            <input type="password" name="password" id="password" />
+        </div>
+        <div th:if="${param.error}" class="error">
+            Invalid username and password.
+        </div>
+        <div class="button-bar">
+            <input type="submit" value="Sign In" class="button" />
+        </div>
+    </form>
+    <p class="cross-link">You don't have an account yet?<br><a th:href="@{/register}" title="Register ─ Create a new account">Register now</a>.</p>
+</main>
 </body>
 </html>

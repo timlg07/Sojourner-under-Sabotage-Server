@@ -1,0 +1,147 @@
+html, body {
+    font-family: 'easvhs', -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    background: black;
+    color: white;
+    height: 100%;
+}
+
+main {
+    max-width: 30rem;
+    margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-block: 4rem;
+}
+
+.teaser {
+    max-width: 50rem;
+}
+h1 {
+    margin: 0;
+}
+
+.logout {
+    display: grid;
+    place-items: center;
+    padding: 1rem 3rem;
+    border: 1px solid currentColor;
+    margin-block-end: 2rem;
+    margin-block-start: -1rem;
+    border-radius: .5rem;
+    color: #4d4dff;
+}
+
+.teaser h1 {
+    font-size: 2.5rem;
+    letter-spacing: .3rem;
+    text-align: center;
+    line-height: 1.25;
+    position: relative;
+    z-index: 1;
+}
+.teaser h1 .orange {
+    text-transform: uppercase;
+    letter-spacing: .5rem;
+    font-size: 3.25rem;
+}
+
+.teaser img {
+    transform: translateX(3%);
+    margin-top: -3rem;
+    pointer-events: none;
+    user-select: none;
+}
+
+.teaser .button {
+    margin-top: 2rem;
+    font-size: 1.75rem;
+    padding: .8rem 3rem;
+    letter-spacing: .15rem;
+}
+
+.box {
+    display: grid;
+    place-items: center;
+    padding: 3rem;
+    border: 1px solid currentColor;
+    margin: 1rem;
+}
+.box.error {
+    background-color: #ff4d4d;
+}
+.box.success {
+    background-color: #4dff4d;
+}
+.box.info {
+    background-color: #4d4dff;
+}
+
+
+form {
+    width: 100%;
+    margin-block-start: 2rem;
+    padding: 3rem;
+    /*border: .25rem solid #fff;*/
+    box-shadow: 0 0 300px 0 #fff5;
+
+    background: #135275;
+    border-radius: 1rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+form .form-entry {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    color: #fff;
+}
+
+form input {
+    font-family: 'easvhs', -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-size: 1rem;
+    border-radius: 0.5rem;
+}
+form .form-entry input,#password, #username {
+    font-size: 1rem;
+    padding: .5rem;
+    border: 2px solid transparent;
+    background-color: #1a648d;
+    color: #fff;
+    transition: border-color .3s;
+}
+form .form-entry input:is(:focus, :active) {
+    border-color: #82ffe1;
+    outline: none;
+}
+form input[type="submit"].button {
+    margin-block-start: 1rem;
+    background: #093152;
+    color: #fff;
+    cursor: pointer;
+    width: 100%;
+}
+form input[type="submit"].button:hover {
+    background: #031728;
+}
+form .error {
+    color: #ff4d4d;
+    margin-block-start: 1rem;
+}
+.cross-link {
+    text-align: center;
+    margin-block-start: 2rem;
+    line-height: 1.25;
+}
+.cross-link a {
+    color: #82ffe1;
+    text-decoration: none;
+}
+.cross-link a:hover {
+    text-decoration: underline;
+}
