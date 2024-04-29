@@ -1,5 +1,7 @@
 package de.tim_greller.susserver.security;
 
+import java.util.stream.Stream;
+
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import de.tim_greller.susserver.service.auth.SusUserDetailsService;
@@ -109,12 +111,14 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain securityFilterChainWeb(HttpSecurity http) throws Exception {
+            var patterns = Stream
+                    .of("/", "/home", "/register", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")
+                    .map(mvc::pattern)
+                    .toList().toArray(new MvcRequestMatcher[0]);
+
             return http
                     .authorizeHttpRequests((requests) -> requests
-                            .requestMatchers(
-                                    mvc.pattern("/"),
-                                    mvc.pattern("/home"),
-                                    mvc.pattern("/register")).permitAll()
+                            .requestMatchers(patterns).permitAll()
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form
