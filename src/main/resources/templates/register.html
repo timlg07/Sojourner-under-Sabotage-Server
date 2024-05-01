@@ -1,7 +1,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Register</title>
+    <title>Register ─ Sojourner under Sabotage</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/base.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/pages.css}"/>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
@@ -14,35 +16,38 @@
     <meta name="theme-color" content="#000000">
 </head>
 <body>
-<h1 th:text="#{label.form.register}">form</h1>
-<form th:action="@{/register}" th:object="${user}" method="POST" enctype="utf8">
-    <div>
-        <label th:text="#{label.user.firstName}" for="firstname">first</label>
-        <input th:field="*{firstName}" id="firstname"/>
-        <p th:each="error: ${#fields.errors('firstName')}"
-           th:text="${error}">Validation error</p>
-    </div>
-    <div>
-        <label th:text="#{label.user.lastName}" for="lastname">last</label>
-        <input th:field="*{lastName}" id="lastname"/>
-        <p th:each="error : ${#fields.errors('lastName')}"
-           th:text="${error}">Validation error</p>
-    </div>
-    <div>
-        <label th:text="#{label.user.email}" for="email">email</label>
-        <input type="email" th:field="*{email}" id="email"/>
-        <p th:each="error : ${#fields.errors('email')}"
-           th:text="${error}">Validation error</p>
-    </div>
-    <div>
-        <label th:text="#{label.user.password}" for="password">password</label>
-        <input type="password" th:field="*{password}" id="password"/>
-        <p th:each="error : ${#fields.errors('password')}"
-           th:text="${error}">Validation error</p>
-    </div>
-    <button type="submit" th:text="#{label.form.submit}">submit</button>
-</form>
-
-<a th:href="@{/login.html}" th:text="#{label.form.loginLink}">login</a>
+<main>
+    <h1 th:text="#{label.form.register}">form</h1>
+    <form th:action="@{/register}" th:object="${user}" method="POST">
+        <div class="form-entry">
+            <label th:text="#{label.user.firstName}" for="firstname">first</label>
+            <input th:field="*{firstName}" id="firstname"/>
+            <p th:each="error: ${#fields.errors('firstName')}"
+               th:text="${error}" class="error">Validation error</p>
+        </div>
+        <div class="form-entry">
+            <label th:text="#{label.user.lastName}" for="lastname">last</label>
+            <input th:field="*{lastName}" id="lastname"/>
+            <p th:each="error : ${#fields.errors('lastName')}"
+               th:text="${error}" class="error">Validation error</p>
+        </div>
+        <div class="form-entry">
+            <label th:text="#{label.user.email}" for="email">email</label>
+            <input type="email" th:field="*{email}" id="email"/>
+            <p th:each="error : ${#fields.errors('email')}"
+               th:text="${error}" class="error">Validation error</p>
+        </div>
+        <div class="form-entry">
+            <label th:text="#{label.user.password}" for="password">password</label>
+            <input type="password" th:field="*{password}" id="password"/>
+            <p th:each="error : ${#fields.errors('password')}"
+               th:text="${error}" class="error">Validation error</p>
+        </div>
+        <div class="button-bar">
+            <input type="submit" th:value="#{label.form.submit}" class="button">
+        </div>
+    </form>
+    <p class="cross-link">Already have an account?<br><a  th:href="@{/login}" th:text="#{label.form.loginLink}"></a>.</p>
+</main>
 </body>
 </html>
