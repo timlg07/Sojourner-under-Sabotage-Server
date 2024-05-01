@@ -6,7 +6,7 @@
 }
 
 :root {
-    font-size: calc(15px + .24vw);
+    font-size: calc(14px + .2vw);
 }
 * {
     box-sizing: border-box;

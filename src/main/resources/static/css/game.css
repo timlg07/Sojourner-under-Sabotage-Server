@@ -20,6 +20,9 @@
     display: flex;
     gap: 1rem;
 }
+#button-bar button {
+    font-size: 16px;
+}
 
 #button-bar #editor-close-btn {
     margin-left: auto;

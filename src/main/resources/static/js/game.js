@@ -14,6 +14,7 @@ window.editors.monaco.debug = monaco.editor.create(monacoContainerDebug, {
     language: 'java',
     theme: 'vs-dark',
     automaticLayout: true,
+    fontSize: 16,
 });
 
 const monacoContainerTest = document.getElementById('monaco-container-test');
@@ -22,6 +23,7 @@ window.editors.monaco.test = monaco.editor.create(monacoContainerTest, {
     language: 'java',
     theme: 'vs-dark',
     automaticLayout: true,
+    fontSize: 16,
 });
 
 const uiOverlay = document.getElementById('ui-overlay');
