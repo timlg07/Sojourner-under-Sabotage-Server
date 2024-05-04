@@ -644,9 +644,10 @@ es.registerHandler(
 
 document.addEventListener('keydown', e => {
     const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    const editorOpen = uiOverlay.getAttribute('aria-hidden') === 'false' && currentComponent;
     if (ctrlOrCmd && e.key === 's') {
         e.preventDefault();
-        if (uiOverlay.getAttribute('aria-hidden') === 'false' && currentComponent) {
+        if (editorOpen) {
             save(currentComponent);
         } else {
             console.log('Editor closed, not saving.');
@@ -656,6 +657,12 @@ document.addEventListener('keydown', e => {
         e.preventDefault();
         if (uiOverlay.getAttribute('aria-hidden') === 'false' && currentComponent) {
             execute();
+        }
+    }
+    if (e.key === 'Escape') {
+        if (editorOpen) {
+            e.preventDefault();
+            closeEditor();
         }
     }
 });
