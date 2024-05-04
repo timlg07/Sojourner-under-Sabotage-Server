@@ -59,6 +59,20 @@
     }
 }
 
+#monaco-container-debug,
+#monaco-container-test {
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+#monaco-container-debug.mutated {
+    border-color: #ff4d4d;
+}
+#monaco-container-test.highlight {
+    border-color: #5865f2;
+}
+
 #execution-result {
     border: 1px solid #5865f2;
     border-radius: 0.5rem;

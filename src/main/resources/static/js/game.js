@@ -519,11 +519,11 @@ window.openEditor = async function (componentName) {
     const currentComponentData = await getComponentData(componentName);
 
     window.editors.monaco.debug.setValue(currentComponentData.cut.sourceCode);
-    if (currentComponentData.state === 'MUTATED') {
-        constrain(currentComponentData.cut.editable, 'debug');
-    } else { // make it not editable if not attacked/mutated.
-        constrain([], 'debug');
-    }
+    const isMutated = currentComponentData.state === 'MUTATED';
+    // make it not editable if not attacked/mutated.
+    constrain(isMutated ? currentComponentData.cut.editable : [], 'debug');
+    monacoContainerDebug.classList.toggle('mutated', isMutated);
+    monacoContainerTest.classList.toggle('highlight', !isMutated);
     window.cutClassName = currentComponentData.cut.className;
 
     window.editors.monaco.test.setValue(currentComponentData.test.sourceCode);
