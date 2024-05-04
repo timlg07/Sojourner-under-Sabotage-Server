@@ -558,6 +558,8 @@ window.openEditor = async function (componentName) {
 
     window.editors.monaco.debug.layout();
     window.editors.monaco.test.layout();
+    window.editors.monaco.debug.setScrollPosition({scrollTop: 0});
+    window.editors.monaco.test.setScrollPosition({scrollTop: 0});
 };
 
 
