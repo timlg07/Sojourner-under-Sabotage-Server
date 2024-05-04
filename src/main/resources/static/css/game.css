@@ -1,3 +1,7 @@
+:root {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+}
+
 #ui-overlay {
     position: absolute;
     inset: 0;
@@ -18,6 +22,7 @@
 #button-bar {
     padding-block: 1.5rem;
     display: flex;
+    align-items: center;
     gap: 1rem;
 }
 #button-bar button {
@@ -30,6 +35,10 @@
 }
 #button-bar #editor-close-btn:hover, #button-bar #editor-close-btn:focus {
     --clr-bg: #ff3f3f;
+}
+#editor-status-text {
+    color: #fff;
+    font-size: 16px;
 }
 
 .ui-overlay-layout {

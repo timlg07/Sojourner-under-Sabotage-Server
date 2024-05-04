@@ -32,9 +32,7 @@ class Popup {
             {
                 title: 'Running your tests',
                 content: `<p>To try out your tests, hit the <strong>Run</strong>-button. <br>
-                          It will execute the tests and show you the results at the bottom of the window.</p>
-                          <p>You don't need to save manually as the editor has auto-save (and also always saves before 
-                          execution or closing)</p>`,
+                          It will execute the tests and show you the results at the bottom of the window.</p>`,
                 cta: `Let's start!`,
             },
         ]],

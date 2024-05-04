@@ -38,21 +38,16 @@ function renderResult(content) {
     editorContainers.forEach(el => el.style.height = 'initial');
 }
 
-function sessionExpired(saveButton) {
+function sessionExpired(statusInfo) {
     renderResult(`<p class="clr-error">Your session has expired.
                 <a href="/login" target="_blank" rel="noopener">Login again.</a></p>`);
-    saveButton.disabled = false;
-    saveButton.innerText = "Save Failed";
-    setTimeout(() => {
-        saveButton.innerText = "Save";
-    }, 3e3);
+    statusInfo.innerText = "Save Failed";
 }
 
 async function save(componentName = currentComponent) {
     let noSaveFailure = true;
-    const saveButton = document.getElementById('editor-save-btn');
-    saveButton.disabled = true;
-    saveButton.innerText = "Saving...";
+    const statusInfo = document.getElementById('editor-status-text');
+    statusInfo.innerText = "Saving...";
     const data = componentData.get(componentName);
 
     // 1 ─ Save test
@@ -64,7 +59,7 @@ async function save(componentName = currentComponent) {
             body: JSON.stringify({code: test}),
         }).then(res => {
             if (res.status === 401) {
-                sessionExpired(saveButton);
+                sessionExpired(statusInfo);
                 return;
             }
             noSaveFailure &= res.ok;
@@ -86,7 +81,7 @@ async function save(componentName = currentComponent) {
             body: JSON.stringify({code: cut}),
         }).then(res => {
             if (res.status === 401) {
-                sessionExpired(saveButton);
+                sessionExpired(statusInfo);
                 return;
             }
             noSaveFailure &= res.ok;
@@ -104,15 +99,13 @@ async function save(componentName = currentComponent) {
 
     // 4 ─ Update save button state
     if (noSaveFailure) {
-        saveButton.disabled = false;
-        saveButton.innerText = "Saved!";
+        statusInfo.innerText = "Saved!";
         autoSave.lastSave = Date.now();
     } else {
-        saveButton.disabled = false;
-        saveButton.innerText = "Save Failed";
+        statusInfo.innerText = "Save Failed";
     }
     setTimeout(() => {
-        saveButton.innerText = "Save";
+        statusInfo.innerText = "";
     }, 3e3);
 }
 
@@ -501,9 +494,7 @@ window.openEditor = async function (componentName) {
         }
     });
 
-    const saveButton = document.getElementById('editor-save-btn');
     const activateButton = document.getElementById('editor-activate-test-btn');
-    saveButton.disabled = true;
     execBtn.disabled = true;
     activateButton.disabled = true;
     constrain([], 'debug');
@@ -536,10 +527,6 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    saveButton.addEventListener('click', () => {
-        save(componentName);
-    });
-
     activateButton.addEventListener('click', () => {
         activateTests(componentName);
     });
@@ -548,7 +535,6 @@ window.openEditor = async function (componentName) {
 
     if (currentComponentData.state !== 'TESTS_ACTIVE') {
         execBtn.disabled = false;
-        saveButton.disabled = false;
     }
 
     if (gameProgress?.status === 'MUTATED' || gameProgress?.status === 'DESTROYED') {
