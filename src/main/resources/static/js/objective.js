@@ -50,8 +50,11 @@ class ObjectiveDisplay {
             case 'DOOR':
                 this.setObjective(
                     'Fix the door',
-                    'The door to the next room is broken. Find it and fix it by connecting the wires so that' +
-                    'current can flow through them from the energy source to the door opening mechanism.'
+                    '<p>The door to the next room is broken.<br> Find it and fix it by connecting the wires so that' +
+                    'current can flow through them from the energy source to the door opening mechanism.</p>' +
+                    '<p>Click on the wires to rotate them.</p>' +
+                    '<p>Once the circuit is complete, the current can flow through the wires from the top left to ' +
+                    'the bottom right and the door will open.</p>'
                 );
                 break;
             case 'TALK':
