@@ -1,6 +1,17 @@
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+/* For assertions you can use:
+ - assertTrue
+ - assertFalse
+ - assertEquals
+ - assertNotEquals
+ - assertArrayEquals
+ - assertThrows
+ - assertNull
+ - assertNotNull
+ */
+
 public class CryoSleepTest {
 
     @Test
