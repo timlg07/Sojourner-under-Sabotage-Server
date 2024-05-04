@@ -18,6 +18,7 @@ import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.FallbackTestRepository;
 import de.tim_greller.susserver.persistence.repository.TestRepository;
 import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.tracking.UserEventTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class TestService {
 
     private final TestRepository testRepository;
     private final UserService userService;
+    private final UserEventTrackingService trackingService;
     private final ComponentRepository componentRepository;
     private final CutRepository cutRepository;
     private final ComponentStatusRepository componentStatusRepository;
@@ -67,13 +69,18 @@ public class TestService {
         return TestSourceDTO.fromFallbackTestEntity(fallbackTest);
     }
 
-    public void updateTestForComponent(String componentName, String userId, String newSourceCode) {
+    public boolean updateTestForComponent(String componentName, String userId, String newSourceCode) {
         final TestEntity test = getOrCreateTestEntityForComponent(componentName, userId);
         if (!checkTestUsesTemplateParts(test.getClassName(), newSourceCode)) {
             throw new SecurityException("Test has modified template parts.");
         }
-        test.setSourceCode(newSourceCode);
-        testRepository.save(test);
+        final boolean testChanged = !test.getSourceCode().equals(newSourceCode);
+        if (testChanged) {
+            test.setSourceCode(newSourceCode);
+            testRepository.save(test);
+            trackingService.trackEvent("test-modified", test);
+        }
+        return testChanged;
     }
 
     private boolean checkTestUsesTemplateParts(String testName, String newSourceCode) {

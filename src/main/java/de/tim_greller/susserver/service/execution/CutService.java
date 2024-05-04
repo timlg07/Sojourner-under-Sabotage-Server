@@ -1,5 +1,6 @@
 package de.tim_greller.susserver.service.execution;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import de.tim_greller.susserver.dto.CutSourceDTO;
@@ -19,6 +20,7 @@ import de.tim_greller.susserver.persistence.repository.CutRepository;
 import de.tim_greller.susserver.persistence.repository.PatchRepository;
 import de.tim_greller.susserver.persistence.repository.UserModifiedCutRepository;
 import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.tracking.UserEventTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 public class CutService {
 
     private final PatchService patchService;
+    private final UserEventTrackingService trackingService;
     private final CutRepository cutRepository;
     private final ComponentRepository componentRepository;
     private final PatchRepository patchRepository;
@@ -115,11 +118,18 @@ public class CutService {
         CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
         UserEntity user = userService.requireCurrentUser();
         String patch = patchService.createPatch(cut.getSourceCode(), newSource);
-        userModifiedCutRepository.save(UserModifiedCutEntity.builder()
+        String oldPatch = userModifiedCutRepository.findByKey(componentName, user.getEmail())
+                .map(UserModifiedCutEntity::getPatch)
+                .orElse(null);
+        if (Objects.equals(oldPatch, patch)) return;
+
+        var entity = UserModifiedCutEntity.builder()
                 .patch(patch)
                 .userComponentKey(new UserComponentKey(component, user))
-                .build()
-        );
+                .build();
+
+        userModifiedCutRepository.save(entity);
+        trackingService.trackEvent("cut-modified", entity);
     }
 
     public void removeUserModification(String componentName) {

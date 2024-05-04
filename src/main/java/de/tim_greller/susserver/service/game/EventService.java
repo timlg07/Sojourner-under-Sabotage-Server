@@ -7,14 +7,19 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import de.tim_greller.susserver.events.Event;
+import de.tim_greller.susserver.service.tracking.UserEventTrackingService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EventService {
+
+    private final UserEventTrackingService trackingService;
 
     /**
      * Handlers that handle events coming from the client.
@@ -47,6 +52,8 @@ public class EventService {
      */
     @SuppressWarnings("unchecked")
     public <T extends Event> void handleEvent(@NonNull T event) {
+        trackingService.trackEvent(event.getClass().getSimpleName(), event);
+
         Class<T> eventType = (Class<T>) event.getClass();
         if (eventHandlers.containsKey(eventType)) {
             List<Consumer<? extends Event>> handler = eventHandlers.get(eventType);
@@ -62,6 +69,8 @@ public class EventService {
      * @param event The event to publish.
      */
     public void publishEvent(@NonNull Event event) {
+        trackingService.trackEvent(event.getClass().getSimpleName(), event);
+
         if (eventPublisher != null) {
             eventPublisher.accept(event);
         } else {
