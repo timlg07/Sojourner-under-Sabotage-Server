@@ -29,7 +29,6 @@ public class ClassLoadingFilter {
 
     private static final List<String> BLACKLISTED_PACKAGES = List.of(
             "java.lang.reflect.",
-            "java.lang.invoke.",
             "java.lang.instrument.",
             "java.lang.runtime.",
             "java.lang.management.",
