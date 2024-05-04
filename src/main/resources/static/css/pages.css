@@ -1,5 +1,5 @@
 html, body {
-    font-family: 'easvhs', -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-family: var(--pixel-font);
     background: black;
     color: white;
     height: 100%;
@@ -103,7 +103,7 @@ form .form-entry {
 }
 
 form input {
-    font-family: 'easvhs', -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-family: var(--pixel-font);
     font-size: 1rem;
     border-radius: 0.5rem;
 }
