@@ -650,3 +650,5 @@ document.addEventListener('keydown', e => {
         }
     }
 });
+
+window.objectiveDisplay = new ObjectiveDisplay();
