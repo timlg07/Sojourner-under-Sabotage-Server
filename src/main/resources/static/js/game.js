@@ -225,6 +225,18 @@ function renderLogs(logs) {
     );
 }
 
+const [encodeHtmlEntities, decodeHtmlEntities] = (() => {
+    const encoder = document.createElement('textarea');
+    return [(html) => {
+        encoder.innerText = html;
+        return encoder.innerHTML;
+    }, (text) => {
+        encoder.innerHTML = text;
+        return encoder.innerText;
+    }];
+})();
+const [_e, _d] = [encodeHtmlEntities, decodeHtmlEntities]; // shorthand
+
 /** @param {TestResult} obj */
 function renderTestResultObject(obj) {
     renderCoverage(obj.coverage);
@@ -247,11 +259,11 @@ function renderTestResultObject(obj) {
             r +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
         } else if (details.expectedTestResult != null || details.actualTestResult != null) {
             r += `
-                <div class="clr-success flex"><p>Expected value:</p> <pre>${details.expectedTestResult}</pre></div>
-                <div class="clr-error flex"><p>Actual value:</p> <pre>${details.actualTestResult}</pre></div>
+                <div class="clr-success flex"><p>Expected value:</p> <pre>${_e(details.expectedTestResult)}</pre></div>
+                <div class="clr-error flex"><p>Actual value:</p> <pre>${_e(details.actualTestResult)}</pre></div>
             `;
         } else if (details.trace != null) {
-            r += `<br><small>Trace: <pre>${details.trace}</pre></small>`;
+            r += `<br><small>Trace: <pre>${_e(details.trace)}</pre></small>`;
         } else {
             r += `<span class="clr-success">Passed!</span>`;
         }
@@ -262,7 +274,7 @@ function renderTestResultObject(obj) {
         logs.sort((a, b) => a.orderIndex - b.orderIndex);
         for (const log of logs) {
             if (log.testMethodName !== fn) continue;
-            r += `<li><!--${log.orderIndex}-->[${log.methodName}:${log.lineNumber}] <strong><code>${log.message}</code></strong></li>`;
+            r += `<li><!--${log.orderIndex}-->[${log.methodName}:${log.lineNumber}] <strong><code>${_e(log.message)}</code></strong></li>`;
         }
         r += `</ul></details>`;
 
