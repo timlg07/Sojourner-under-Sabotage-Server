@@ -342,7 +342,7 @@ function closeEditor() {
 document.getElementById('editor-close-btn').addEventListener('click', closeEditor);
 
 const execBtn = document.getElementById('editor-execute-btn');
-execBtn.addEventListener('click', async () => {
+const execute = async () => {
     const componentName = currentComponent;
     if (!componentName) {
         renderResult(`<p class="clr-error">There is no component loaded currently.</p>`);
@@ -402,7 +402,8 @@ execBtn.addEventListener('click', async () => {
         execBtn.disabled = false;
         renderResult(`<p class="clr-error"><strong>Failed to execute test due to network issues.</strong></p>`);
     });
-});
+}
+execBtn.addEventListener('click', execute);
 
 window.authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
 window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
@@ -649,6 +650,12 @@ document.addEventListener('keydown', e => {
             save(currentComponent);
         } else {
             console.log('Editor closed, not saving.');
+        }
+    }
+    if (e.key === 'F10') {
+        e.preventDefault();
+        if (uiOverlay.getAttribute('aria-hidden') === 'false' && currentComponent) {
+            execute();
         }
     }
 });
