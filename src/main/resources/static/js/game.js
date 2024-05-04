@@ -45,6 +45,11 @@ function sessionExpired(statusInfo) {
 }
 
 async function save(componentName = currentComponent) {
+    if (!currentComponent || window.editors.monaco.test.getValue() === loadingText) {
+        console.log('No component loaded, not saving')
+        return;
+    }
+
     let noSaveFailure = true;
     const statusInfo = document.getElementById('editor-status-text');
     statusInfo.innerText = "Saving...";
@@ -100,7 +105,6 @@ async function save(componentName = currentComponent) {
     // 4 ─ Update save button state
     if (noSaveFailure) {
         statusInfo.innerText = "Saved!";
-        autoSave.lastSave = Date.now();
     } else {
         statusInfo.innerText = "Save Failed";
     }
@@ -278,47 +282,11 @@ function renderTestResultObject(obj) {
 }
 
 
-const autoSave = {
-    inactivityTimeoutUntilSave: 3e3, // after 3 seconds of inactivity, auto save
-    maxAutosaveInterval: 2e4, // auto save at least 20 seconds after a change
-    timeout: null,
-    lastSave: null
-}
-function enqueueAutoSave (componentName) {
-    autoSave.timeout = setTimeout(() => {
-        autoSave.timeout = null;
-        save(componentName);
-    }, autoSave.inactivityTimeoutUntilSave);
-}
 window.editors.monaco.test.onDidChangeModelContent(onContentChanged);
 window.editors.monaco.debug.onDidChangeModelContent(onContentChanged);
 function onContentChanged() {
-    const componentName = currentComponent;
-    if (!componentName || window.editors.monaco.test.getValue() === loadingText) {
-        // reset
-        if (autoSave.timeout) clearTimeout(autoSave.timeout);
-        autoSave.timeout = null;
-        autoSave.lastSave = null;
-    } else if (!autoSave.lastSave) {
-        // start tracking
-        autoSave.lastSave = Date.now();
-    } else if (autoSave.timeout) {
-        clearTimeout(autoSave.timeout);
-        const notSavedForMs = Date.now() - autoSave.lastSave;
-        if (notSavedForMs > autoSave.maxAutosaveInterval) {
-            // still editing, but not saved for a longer time -> save now
-            autoSave.timeout = null;
-            save(componentName);
-        } else {
-            // push back auto-save longer, because the code is still being edited and was saved recently
-            enqueueAutoSave(componentName);
-        }
-    } else { // tracking changes, change happened, no save in queue
-        enqueueAutoSave(componentName);
-
-        // hide variable value hints, as they can get confusing while editing
-        if (window.disposeHints) window.disposeHints.dispose();
-    }
+    // hide variable value hints, as they can get confusing while editing
+    if (window.disposeHints) window.disposeHints.dispose();
 
     // disable activate button, because the tests need to be executed again
     disableActivateButton();
@@ -327,7 +295,6 @@ function onContentChanged() {
 function closeEditor() {
     if (currentComponent) save(currentComponent); // auto save on close
     currentComponent = false;
-    autoSave.lastSave = null;
     uiOverlay.setAttribute('aria-hidden', 'true');
     document.getElementById('unity-canvas').focus();
     window.unityInstance.SendMessage('BrowserInterface', 'OnEditorClose');
@@ -521,7 +488,6 @@ window.openEditor = async function (componentName) {
     window.editors.monaco.test.setValue(currentComponentData.test.sourceCode);
     constrain(currentComponentData.test.editable, 'test');
     window.testClassName = currentComponentData.test.className;
-    autoSave.lastSave = null;
 
     if (currentComponentData.testResult) {
         renderTestResultObject(currentComponentData.testResult);
