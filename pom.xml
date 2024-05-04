@@ -130,6 +130,13 @@
             <artifactId>google-diff-match-patch</artifactId>
             <version>0.1</version>
         </dependency>
+
+        <!-- monitor resources -->
+        <dependency>
+            <groupId>net.bull.javamelody</groupId>
+            <artifactId>javamelody-spring-boot-starter</artifactId>
+            <version>2.1.0</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
