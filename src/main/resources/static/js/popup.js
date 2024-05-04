@@ -50,7 +50,7 @@ class Popup {
         ['can activate tests', {
             title: 'The tests passed!',
             content: `<p>The tests for the component are passing. If you think they're finished, you can activate them now!</p>`,
-            cta: 'Close', btnClass: 'clr-error',
+            cta: 'Continue writing tests',
         }],
         ['error', {
             title: 'An Error occurred',

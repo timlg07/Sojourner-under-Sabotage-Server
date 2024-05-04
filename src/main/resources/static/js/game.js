@@ -351,7 +351,7 @@ const execute = async () => {
             if (isInTestState && data.testResult?.testStatus === 'PASSED' && !data.activationPopupShown) {
                 Popup.instance.open('can activate tests').addButton('Activate', () => {
                     activateTests(componentName);
-                });
+                }, ['clr-success']);
                 data.activationPopupShown = true;
                 componentData.set(componentName, data);
             }

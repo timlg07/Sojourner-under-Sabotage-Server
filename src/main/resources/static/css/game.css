@@ -161,6 +161,12 @@
 .button.clr-error:hover, .button.clr-error:focus {
     --clr-bg: #ff3f3f;
 }
+.button.clr-success {
+    --clr-bg: #00771d;
+}
+.button.clr-success:hover, .button.clr-success:focus {
+    --clr-bg: #24c745;
+}
 
 #objective {
     font-family: var(--pixel-font);
