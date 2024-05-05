@@ -83,11 +83,12 @@
 }
 
 #execution-result {
-    border: 1px solid #5865f2;
+    background: #1e1e1e; /* --vscode-editor-background */
+    border: 2px solid transparent;
     border-radius: 0.5rem;
     padding: 1.5rem;
     margin-block: 1.5rem;
-    color: #fff;
+    color: #d4d4d4;
 
     max-height: 30vh;
     overflow: auto;
