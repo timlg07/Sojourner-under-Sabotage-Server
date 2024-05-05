@@ -420,6 +420,8 @@ function updateActivateButtonState(componentName) {
     const btn = document.getElementById('editor-activate-test-btn');
     const data = componentData.get(componentName);
 
+    btn.style.display = gameProgress?.status === 'TEST' ? 'block' : 'none';
+
     // can be activated if not already active and tests passed under the original CUT
     const isActivated = data.state === 'TESTS_ACTIVE';
     const testsPassed = data.testResult?.testStatus === 'PASSED';
