@@ -2,12 +2,8 @@ package de.tim_greller.susserver.service.execution;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static de.tim_greller.susserver.util.Utils.mapMap;
 
@@ -35,12 +31,15 @@ import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository
 import de.tim_greller.susserver.persistence.repository.UserGameProgressionRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import de.tim_greller.susserver.service.game.EventService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExecutionService {
@@ -147,22 +146,54 @@ public class ExecutionService {
     }
 
     private Result run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
-        JUnitCore jUnitCore = new JUnitCore();
+        var jUnitCore = new JUnitCore();
         jUnitCore.addListener(listener);
-        final ExecutorService exService = Executors.newSingleThreadExecutor();
-        Future<Result> res = exService.submit(() -> jUnitCore.run(testClass));
+        var executionThread = new ExecutionThread(jUnitCore, testClass);
+        var timer = new Timer();
+        var timeOutTask = new TimeOutTask(executionThread, timer);
+        timer.schedule(timeOutTask, MAX_TEST_EXECUTION_TIME_SECONDS * 1000);
+        executionThread.start();
+
         try {
-            // This blocks the current request thread.
-            return res.get(MAX_TEST_EXECUTION_TIME_SECONDS, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            res.cancel(true);
-            throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
-        } catch (InterruptedException | ExecutionException e) {
+            // wait for the test execution to finish
+            executionThread.join();
+        } catch (InterruptedException e) {
             throw new TestExecutionException("Error while executing the test", e);
-        } finally {
-            List<Runnable> r = exService.shutdownNow();
-            System.out.println("executor service shutdown. Remaining tasks: " + r.size());
+        }
+
+        if (timeOutTask.isThreadTimedOut()) {
+            throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
+        }
+
+        return executionThread.getResult();
+    }
+
+    @RequiredArgsConstructor
+    private static class ExecutionThread extends Thread {
+        @Getter
+        private Result result;
+        private final JUnitCore jUnitCore;
+        private final Class<?> testClass;
+        @Override
+        public void run() {
+            result = jUnitCore.run(testClass);
         }
     }
 
+    @RequiredArgsConstructor
+    private static class TimeOutTask extends TimerTask {
+        private final Thread thread;
+        private final Timer timer;
+        @Getter private boolean threadTimedOut = false;
+
+        @Override
+        public void run() {
+            if (thread != null && thread.isAlive()) {
+                //noinspection deprecation
+                thread.stop();
+                timer.cancel();
+                threadTimedOut = true;
+            }
+        }
+    }
 }

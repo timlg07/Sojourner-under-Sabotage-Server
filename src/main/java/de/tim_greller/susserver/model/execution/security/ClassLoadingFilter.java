@@ -23,6 +23,7 @@ public class ClassLoadingFilter {
             java.lang.System.class.getName(),
             java.lang.Thread.class.getName(),
             java.lang.ThreadGroup.class.getName(),
+            java.util.TimerTask.class.getName(),
             java.lang.Runtime.class.getName(),
             java.lang.ClassLoader.class.getName()
     );
