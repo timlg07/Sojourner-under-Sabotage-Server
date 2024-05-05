@@ -48,8 +48,19 @@ class Popup {
             cta: 'Close component',
         }],
         ['can activate tests', {
+            title: 'Your reached the minimum of {minimum} % coverage!',
+            content: `<p>The tests for the component are passing and your coverage of <strong>{percentage} %</strong> 
+                        is high enough now.<br>
+                        If you think they're finished, you can activate the tests now!</p>
+                     <p>Once activated, they cannot be changed again.</p>`,
+            cta: 'Continue writing tests',
+        }],
+        ['can nearly activate tests', {
             title: 'The tests passed!',
-            content: `<p>The tests for the component are passing. If you think they're finished, you can activate them now!</p>`,
+            content: `<p>Awesome! The tests for the component are passing.</p>
+                      <p>So far you only covered {covered} of {total} lines though. (That's {percentage} %)<br>
+                        To ensure that your tests can catch as many potential bugs as possible, you should aim for a
+                        coverage of at least {minimum} %.</p>`,
             cta: 'Continue writing tests',
         }],
         ['error', {

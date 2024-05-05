@@ -27,10 +27,13 @@
  * @property {'PASSED' | 'FAILED' | 'IGNORED'} testStatus
  * @property {number} elapsedTime
  * @property {Object<string, TestDetails>} testDetails
+ * @property {Object<string, number>} coveredLines
+ * @property {Object<string, number>} totalLines
  * @property {Object<string, Object<string, number>>} coverage
  * @property {Object<string, Object<number, Object<string, string>>>} variables
  * @property {Object<string, Array<LogEntry>>} logs
  * @property {string} message
+ * @property {boolean} hiddenTestsPassed
  */
 
 /**
@@ -47,6 +50,7 @@
  * @property {SourceDTO} cut
  * @property {TestResult} testResult
  *
+ * @property {boolean} [nearlyActivatePopupShown]
  * @property {boolean} [activationPopupShown]
  *
  * @property {'INITIAL' | 'TESTS_ACTIVE' | 'MUTATED'} state

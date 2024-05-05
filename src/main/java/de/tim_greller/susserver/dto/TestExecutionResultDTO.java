@@ -18,6 +18,8 @@ public class TestExecutionResultDTO {
     private TestStatus testStatus;
     private long elapsedTime;
     private Map<String, TestDetailsDTO> testDetails;
+    private Map<String, Integer> coveredLines;
+    private Map<String, Integer> totalLines;
     private Map<String, Map<Integer, Integer>> coverage;
     private Map<String, Map<Integer, Map<String, String>>> variables;
     private Map<String, List<LogEntry>> logs;

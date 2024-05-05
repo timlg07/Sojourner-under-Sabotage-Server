@@ -31,7 +31,10 @@ class ObjectiveDisplay {
     setObjective(objective, details) {
         this.objective.innerHTML = objective;
         this.hoverText.innerHTML = details;
+        this.playUpdateAnimation();
+    }
 
+    playUpdateAnimation() {
         this.show();
         setTimeout(this.hide.bind(this), 1e3);
     }
@@ -69,7 +72,8 @@ class ObjectiveDisplay {
                     'Write tests for the component.',
                     '<p>Find the component and open the code editor.</p><p>' +
                     'Write tests for the component to make sure it works as expected. Using these tests, you\'ll be ' +
-                    'able to automatically detect if the component breaks in the future.</p>'
+                    'able to automatically detect if the component breaks in the future.</p>' +
+                    '<p>The lines highlighted in green are covered by your tests.<br><span id="coverage-info"></span></p>'
                 );
                 break;
             case 'TESTS_ACTIVE':

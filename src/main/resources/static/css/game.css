@@ -169,22 +169,20 @@
 }
 
 #objective {
-    font-family: var(--pixel-font);
-    letter-spacing: .05rem;
     position: fixed;
     top: -100%;
     transition: top 0.45s;
     left: 50%;
     transform: translateX(-50%);
     z-index: 110;
-    max-width: min(66%, 25rem);
+    max-width: min(66%, 32rem);
     width: max-content;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
     box-shadow: 0 0 1rem rgba(0, 0, 0, 0.25);
     color: #fff;
     text-align: center;
-    line-height: 1.35;
+    line-height: 1.45;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
 }
@@ -198,6 +196,10 @@
 }
 #objective p:last-child {
     margin-block-end: 0;
+}
+#objective .visible-content {
+    font-family: var(--pixel-font);
+    letter-spacing: .05rem;
 }
 #objective.is-expanded .visible-content {
     color: #888;

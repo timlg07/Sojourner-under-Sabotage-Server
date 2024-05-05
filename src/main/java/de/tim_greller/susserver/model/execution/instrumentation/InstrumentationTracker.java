@@ -126,6 +126,10 @@ public class InstrumentationTracker {
         return mapMap(classTrackers, (className, classTracker) -> classTracker.getLines());
     }
 
+    public Map<String, Set<Integer>> getCoveredLines() {
+        return mapMap(classTrackers, (className, classTracker) -> classTracker.getVisitedLines().keySet());
+    }
+
     public Map<String, Map<Integer, Map<String, String>>> getVars() {
         return mapMap(classTrackers,
                 (className, classTracker) -> mapMap(classTracker.getVars(),
@@ -146,12 +150,22 @@ public class InstrumentationTracker {
         return filterMap(getLines(), (className, lines) -> className.endsWith("#" + userId));
     }
 
+    public Map<String, Set<Integer>> getCoveredLinesForUser(String userId) {
+        return filterMap(getCoveredLines(), (className, lines) -> className.endsWith("#" + userId));
+    }
+
     public Map<String, Map<Integer, Map<String, String>>> getVarsForUser(String userId) {
         return filterMap(getVars(), (className, lines) -> className.endsWith("#" + userId));
     }
 
     public Map<String, List<LogEntry>> getLogsForUser(String userId) {
         return filterMap(getLogs(), (className, lines) -> className.endsWith("#" + userId));
+    }
+
+    public void clearForUser(String userId) {
+        classTrackers.entrySet().stream()
+                .filter(entry -> entry.getKey().endsWith("#" + userId))
+                .forEach(entry -> entry.getValue().clear());
     }
 
     @Getter
@@ -215,6 +229,8 @@ public class InstrumentationTracker {
             logs.clear();
 
             lastVisitedLine = 0;
+            logIndex = 0;
+            currentTestMethod = null;
         }
     }
 }

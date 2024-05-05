@@ -3,6 +3,7 @@ let currentComponent;
 /** @type {UserGameProgressionDTO | false} */
 let gameProgress = false;
 const loadingText = "loading...";
+const minLineCoverage = 50; // % of lines that need to be covered to activate tests
 /** @type {Map<string, ComponentData>} */
 const componentData = new Map();
 /** @type {{monaco:Record<string, ICodeEditor>, restricted:Record<string, constrainedEditor>}} */
@@ -156,6 +157,24 @@ function renderCoverage(coverage) {
       window.cutDecorations ?? [],
       decorations
     );
+}
+
+function renderCoveragePercentage(data) {
+    const coverageInfo = document.getElementById('coverage-info');
+    if (!coverageInfo) return;
+    if (!data) {
+        coverageInfo.innerHTML = `
+            To ensure that your tests can catch as many potential bugs as possible, 
+            you should aim for a coverage of at least ${minLineCoverage}%.`;
+    } else {
+        const {covered, total, percentage, minimum} = data;
+        coverageInfo.innerHTML = `<strong>Your current coverage: ${covered} of ${total} lines (${percentage}%)</strong><br>` + (
+            percentage >= minimum
+                ? `This exceeds the minimum coverage of ${minimum}%. You can activate your tests now.`
+                : `To ensure that your tests can catch as many potential bugs as possible, you should aim for a coverage of at least ${minimum}%.`
+        );
+    }
+    window.objectiveDisplay.hide();
 }
 
 /**
@@ -344,15 +363,33 @@ const execute = async () => {
                 componentData.set(componentName, data);
             }
 
+            const className = window.cutClassName + '#' + window.userId;
+            const lineCoverageNumbers = {
+                covered: obj.coveredLines[className] ?? 0,
+                total: obj.totalLines[className] ?? 0,
+                percentage: obj.totalLines[className] === 0 ? 0 : Math.round(obj.coveredLines[className] / obj.totalLines[className] * 100),
+                minimum: minLineCoverage,
+            }
+
             renderTestResultObject(obj);
+            renderCoveragePercentage(lineCoverageNumbers);
             updateActivateButtonState(componentName);
 
             const isInTestState = gameProgress.status === 'TEST' && gameProgress.componentName === componentName;
-            if (isInTestState && data.testResult?.testStatus === 'PASSED' && !data.activationPopupShown) {
-                Popup.instance.open('can activate tests').addButton('Activate', () => {
-                    activateTests(componentName);
-                }, ['clr-success']);
-                data.activationPopupShown = true;
+            const canNearlyActivate = isInTestState && data.testResult?.testStatus === 'PASSED';
+            if (canNearlyActivate) {
+                if (lineCoverageNumbers.percentage >= lineCoverageNumbers.minimum && !data.activationPopupShown) {
+                    Popup.instance.open('can activate tests', lineCoverageNumbers)
+                        .addButton('Activate', () => {
+                            activateTests(componentName);
+                        }, ['clr-success']);
+                    data.activationPopupShown = true;
+                } else {
+                    if (!data.nearlyActivatePopupShown) {
+                        Popup.instance.open('can nearly activate tests', lineCoverageNumbers);
+                    }
+                }
+                data.nearlyActivatePopupShown = true;
                 componentData.set(componentName, data);
             }
         })
@@ -419,17 +456,21 @@ async function getComponentData(componentName) {
 function updateActivateButtonState(componentName) {
     const btn = document.getElementById('editor-activate-test-btn');
     const data = componentData.get(componentName);
+    const className = window.cutClassName + '#' + window.userId;
 
     btn.style.display = gameProgress?.status === 'TEST' ? 'block' : 'none';
 
     // can be activated if not already active and tests passed under the original CUT
     const isActivated = data.state === 'TESTS_ACTIVE';
     const testsPassed = data.testResult?.testStatus === 'PASSED';
-    const canActivate = !isActivated && testsPassed;
+    const enoughCoverage = data.testResult && data.testResult.coveredLines[className] / data.testResult.totalLines[className] * 100 >= minLineCoverage;
+    const canActivate = !isActivated && testsPassed && enoughCoverage;
 
     btn.disabled = !canActivate;
     btn.innerText = canActivate ? "Activate Test" :
-                    isActivated ? "Test Activated" : "tests need to pass to activate";
+                    isActivated ? "Test Activated" :
+                    !enoughCoverage ? "get higher line coverage to activate" :
+                    !testsPassed ? "tests need to pass to activate" : "// unreachable";
 }
 
 function disableActivateButton() {
@@ -470,6 +511,7 @@ window.openEditor = async function (componentName) {
     constrain([], 'test');
 
     renderResult('');
+    renderCoveragePercentage(null);
     currentComponent = componentName;
     window.editors.monaco.debug.setValue(loadingText);
     window.editors.monaco.test.setValue(loadingText);

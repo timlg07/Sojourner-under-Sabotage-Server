@@ -9,6 +9,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static de.tim_greller.susserver.util.Utils.mapMap;
+
 import de.tim_greller.susserver.dto.GameProgressStatus;
 import de.tim_greller.susserver.dto.TestDetailsDTO;
 import de.tim_greller.susserver.dto.TestExecutionResultDTO;
@@ -56,10 +58,12 @@ public class ExecutionService {
 
     public TestExecutionResultDTO execute(String componentName, String userId)
             throws ClassLoadException, NotFoundException, TestExecutionException, CompilationException {
-        var clientResultDto = new TestExecutionResultDTO();
-        Class<?> testClass = compile(componentName, userId);
-        var listener = new TestRunListener();
-        Result r = run(testClass, listener);
+        final var iTracker = InstrumentationTracker.getInstance();
+        iTracker.clearForUser(userId);
+        final var clientResultDto = new TestExecutionResultDTO();
+        final Class<?> testClass = compile(componentName, userId);
+        final var listener = new TestRunListener();
+        final Result r = run(testClass, listener);
 
         boolean isDebugging = userGameProgressionRepository.findById(new UserKey(userService.requireCurrentUser())).orElseThrow().getStatus() == GameProgressStatus.DEBUGGING;
         if (r.wasSuccessful() && isDebugging) { // tests passed while in debug mode: check if really fixed
@@ -86,15 +90,17 @@ public class ExecutionService {
             }
         }
 
-        OutputWriter.writeShellOutput(InstrumentationTracker.getInstance().getClassTrackers());
+        OutputWriter.writeShellOutput(iTracker.getClassTrackers());
 
         clientResultDto.setTestClassName(testClass.getName());
         clientResultDto.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
         clientResultDto.setTestDetails(listener.getMap());
         clientResultDto.setElapsedTime(listener.getTestSuiteElapsedTime());
-        clientResultDto.setCoverage(InstrumentationTracker.getInstance().getCoverageForUser(userId));
-        clientResultDto.setVariables(InstrumentationTracker.getInstance().getVarsForUser(userId));
-        clientResultDto.setLogs(InstrumentationTracker.getInstance().getLogsForUser(userId));
+        clientResultDto.setCoverage(iTracker.getCoverageForUser(userId));
+        clientResultDto.setVariables(iTracker.getVarsForUser(userId));
+        clientResultDto.setLogs(iTracker.getLogsForUser(userId));
+        clientResultDto.setCoveredLines(mapMap(iTracker.getCoveredLinesForUser(userId), (k, v) -> v.size()));
+        clientResultDto.setTotalLines(mapMap(iTracker.getLinesForUser(userId), (k, v) -> v.size()));
         return clientResultDto;
     }
 
