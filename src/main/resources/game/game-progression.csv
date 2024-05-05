@@ -1,5 +1,6 @@
 orderIndex;roomId;componentName;stage;delaySeconds;
-1;1;Demo;1;10;
-2;2;Foo;1;10;
-3;3;Bar;1;10;
-4;1;Demo;2;60;
+1;1;CryoSleep;1;10;
+2;2;Engine;1;10;
+3;3;GreenHouse;1;10;
+4;4;RnaAnalyzer;1;10;
+5;1;CryoSleep;2;60;
