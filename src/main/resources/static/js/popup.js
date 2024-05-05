@@ -56,7 +56,14 @@ class Popup {
             title: 'An Error occurred',
             content: `<p>Something went wrong. Please try again.</p>`,
             cta: 'Close', btnClass: 'clr-error',
-        }]
+        }],
+        ['test extended', {
+            title: 'Something isn\'t quite right yet',
+            content: `<p>While all your tests pass, something still seems off.</p>
+                      <p>I wrote an additional test for you that may help you. You should be able to find it under the 
+                      name "{addedTestMethodName}" below your own tests.</p>`,
+            cta: 'Continue Debugging',
+        }],
     ]);
 
     /** @type {Popup} */
@@ -84,8 +91,11 @@ class Popup {
         this.button.addEventListener('click', this.close.bind(this));
     }
 
-    /** @param {string} contentKey */
-    open(contentKey) {
+    /**
+     * @param {string} contentKey The identifier for the content to display
+     * @param {Object} [params] Values for parameterized text messages (Not supported for multistep popups!)
+     */
+    open(contentKey, params = {}) {
         if (Popup.#text.has(contentKey) === false) {
             throw new Error(`No content found for key ${contentKey}`);
         }
@@ -95,7 +105,7 @@ class Popup {
             this.#renderMultiStep();
         } else {
             this.#multistep = false;
-            this.#render(text);
+            this.#render(this.#applyParams(text, params));
         }
         return this;
     }
@@ -177,5 +187,16 @@ class Popup {
             this.button.parentNode.appendChild(button);
         }
         this.onClose(button.remove.bind(button));
+    }
+
+    #applyParams(text, params) {
+        const keys = Object.keys(params);
+        if (keys.length > 0) {
+            const regex = new RegExp(`{(${keys.join('|')})}`, 'g');
+            text.title = text.title.replace(regex, (match, key) => params[key]);
+            text.content = text.content.replace(regex, (match, key) => params[key]);
+            text.cta = text.cta.replace(regex, (match, key) => params[key]);
+        }
+        return text;
     }
 }
