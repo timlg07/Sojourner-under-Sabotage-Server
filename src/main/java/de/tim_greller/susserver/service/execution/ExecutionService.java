@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ExecutionService {
 
-    private static final int MAX_TEST_EXECUTION_TIME_SECONDS = 3;
+    private static final int MAX_TEST_EXECUTION_TIME_SECONDS = 1;
     private final CutService cutService;
     private final TestService testService;
     private final UserService userService;
@@ -155,6 +155,7 @@ public class ExecutionService {
             // This blocks the current request thread.
             return res.get(MAX_TEST_EXECUTION_TIME_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
+            res.cancel(true);
             throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
         } catch (InterruptedException | ExecutionException e) {
             throw new TestExecutionException("Error while executing the test", e);
