@@ -16,8 +16,13 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login() {
-        if (userService.getCurrentUserId().isPresent()) {
-            return "redirect:/game";
+        var u = userService.getCurrentUserId();
+        if (u.isPresent()) {
+            if (u.get().equals("admin")) {
+                return "redirect:/admin";
+            } else {
+                return "redirect:/game";
+            }
         } else {
             return "login";
         }

@@ -1,6 +1,9 @@
 th {
     text-align: left;
-    margin-bottom: .5rem;
+    border-bottom: .5rem transparent solid;
+}
+th, td {
+    letter-spacing: .05rem;
 }
 
 @media print {
