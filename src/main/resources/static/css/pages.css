@@ -80,7 +80,7 @@ h1 {
 }
 
 
-form {
+form, .main-content-block {
     width: 100%;
     margin-block-start: 2rem;
     padding: 3rem;

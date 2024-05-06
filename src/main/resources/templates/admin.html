@@ -27,7 +27,7 @@
             <input type="submit" value="Create accounts" class="button">
         </div>
     </form>
-    <form th:if="${createdUsers}">
+    <div th:if="${createdUsers}" class="main-content-block">
         <table>
             <thead>
                 <tr>
@@ -44,7 +44,7 @@
                 </tr>
             </tbody>
         </table>
-    </form>
+    </div>
 </main>
 </body>
 </html>
