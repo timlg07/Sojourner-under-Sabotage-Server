@@ -1,0 +1,54 @@
+th {
+    text-align: left;
+    margin-bottom: .5rem;
+}
+
+@media print {
+    * {
+        font-family: Arial, sans-serif !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    h1, p, table thead {
+        display: none;
+    }
+
+    table tr {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #000;
+        margin-bottom: 1.5rem;
+    }
+
+    table tr:first-child {
+        border-top: 1px solid #000;
+        padding-top: 1.5rem;
+    }
+
+    table tr td {
+        margin-bottom: 0.5rem;
+    }
+
+    table tr td:first-child {
+        text-decoration: underline;
+        margin-bottom: 1.5rem;
+    }
+
+    table tr td:nth-child(2)::before {
+        content: "Username: ";
+        font-weight: lighter;
+    }
+
+    table tr td:nth-child(3)::before {
+        content: "Password:  ";
+        font-weight: lighter;
+    }
+
+    table tr td:nth-child(2), table tr td:nth-child(3) {
+        display: flex;
+        gap: .5rem;
+        font-weight: bold;
+    }
+}

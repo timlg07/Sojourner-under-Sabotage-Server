@@ -119,6 +119,7 @@ public class SecurityConfig {
             return http
                     .authorizeHttpRequests((requests) -> requests
                             .requestMatchers(patterns).permitAll()
+                            .requestMatchers(mvc.pattern("/monitoring/**"), mvc.pattern("/admin/**")).hasAuthority("ADMIN")
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form

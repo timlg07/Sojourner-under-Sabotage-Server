@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="en">
+<head>
+    <title>Admin Dashboard ─ Sojourner under Sabotage</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/base.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/pages.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin.css}" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/images/favicon/site.webmanifest">
+    <link rel="mask-icon" href="/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="/images/favicon/favicon.ico">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="/images/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#000000">
+</head>
+<body>
+<main>
+    <h1>Admin Dashboard</h1>
+    <p>Monitor resources using Java Melody: <a th:href="@{/monitoring}">/monitoring</a> </p>
+    <form th:action="@{/admin/create-accounts}" method="POST" th:unless="${createdUsers}">
+        <div class="form-entry">
+            <label for="amount">Create user accounts</label>
+            <input type="number" max="200" name="amount" placeholder="amount" id="amount">
+            <input type="submit" value="Create accounts" class="button">
+        </div>
+    </form>
+    <form th:if="${createdUsers}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--@thymesVar id="createdUsers" type="java.util.List"/-->
+                <!--@thymesVar id="user" type="java.util.List"/-->
+                <tr th:each="user : ${createdUsers}">
+                    <td th:each="entry : ${user}" th:text="${entry}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</main>
+</body>
+</html>
