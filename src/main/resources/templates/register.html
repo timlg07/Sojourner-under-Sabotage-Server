@@ -32,9 +32,9 @@
                th:text="${error}" class="error">Validation error</p>
         </div>
         <div class="form-entry">
-            <label th:text="#{label.user.email}" for="email">email</label>
-            <input type="email" th:field="*{email}" id="email"/>
-            <p th:each="error : ${#fields.errors('email')}"
+            <label th:text="#{label.user.username}" for="username">username</label>
+            <input type="text" th:field="*{username}" id="username"/>
+            <p th:each="error : ${#fields.errors('username')}"
                th:text="${error}" class="error">Validation error</p>
         </div>
         <div class="form-entry">

@@ -41,7 +41,7 @@ public class TestService {
     private TestEntity getOrCreateTestEntityForComponent(String componentName, String userId) {
         return getTestForComponent(componentName, userId).orElseGet(() -> {
             final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
-            final UserEntity user = userService.loadUserByEmail(userId).orElseThrow();
+            final UserEntity user = userService.loadUserByUsername(userId).orElseThrow();
             final UserComponentKey key = new UserComponentKey(component, user);
             return createEmptyTest(key);
         });
@@ -197,6 +197,6 @@ public class TestService {
     }
 
     public void resetTestsForUser(String userId) {
-        testRepository.deleteAllByUserComponentKeyUserEmail(userId);
+        testRepository.deleteAllByUserComponentKeyUserUsername(userId);
     }
 }

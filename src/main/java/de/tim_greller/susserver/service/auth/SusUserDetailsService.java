@@ -15,7 +15,7 @@ public class SusUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userService
-                .loadUserByEmail(username)
+                .loadUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

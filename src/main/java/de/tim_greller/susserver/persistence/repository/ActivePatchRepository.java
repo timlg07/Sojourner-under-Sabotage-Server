@@ -17,9 +17,9 @@ public interface ActivePatchRepository extends JpaRepository<ActivePatchEntity, 
             SELECT a
             FROM ActivePatchEntity a
             WHERE a.componentKey.component.name = ?1
-            AND a.componentKey.user.email = ?2
+            AND a.componentKey.user.username = ?2
             """)
     Optional<ActivePatchEntity> findByKey(String componentName, String userId);
 
-    void deleteAllByComponentKeyUserEmail(String userId);
+    void deleteAllByComponentKeyUserUsername(String userId);
 }

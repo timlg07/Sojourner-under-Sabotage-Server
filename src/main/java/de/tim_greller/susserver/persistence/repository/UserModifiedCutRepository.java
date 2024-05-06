@@ -18,7 +18,7 @@ public interface UserModifiedCutRepository extends
             SELECT u
             FROM UserModifiedCutEntity u
             WHERE u.userComponentKey.component.name = :componentName
-            AND u.userComponentKey.user.email = :userId
+            AND u.userComponentKey.user.username = :userId
             """)
     Optional<UserModifiedCutEntity> findByKey(String componentName, String userId);
 
@@ -27,12 +27,12 @@ public interface UserModifiedCutRepository extends
     @Query("""
             DELETE FROM UserModifiedCutEntity u
             WHERE u.userComponentKey.component.name = :componentName
-            AND u.userComponentKey.user.email = :userId
+            AND u.userComponentKey.user.username = :userId
             """)
     void deleteByKey(String componentName, String userId);
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM UserModifiedCutEntity u WHERE u.userComponentKey.user.email = :username")
+    @Query("DELETE FROM UserModifiedCutEntity u WHERE u.userComponentKey.user.username = :username")
     void deleteByUserId(String username);
 }

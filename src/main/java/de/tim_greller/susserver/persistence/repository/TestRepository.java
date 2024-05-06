@@ -17,9 +17,9 @@ public interface TestRepository
             SELECT t
             FROM TestEntity t
             WHERE t.userComponentKey.component.name = ?1
-            AND t.userComponentKey.user.email = ?2
+            AND t.userComponentKey.user.username = ?2
             """)
-    Optional<TestEntity> findByKey(String componentName, String userEmail);
+    Optional<TestEntity> findByKey(String componentName, String username);
 
-    void deleteAllByUserComponentKeyUserEmail(String userId);
+    void deleteAllByUserComponentKeyUserUsername(String userId);
 }

@@ -16,7 +16,7 @@ public interface RoomRepository
             SELECT r
             FROM RoomEntity r
             WHERE r.userRoomKey.roomId = ?1
-            AND r.userRoomKey.user.email = ?2
+            AND r.userRoomKey.user.username = ?2
             """)
-    Optional<RoomEntity> findByKey(int roomId, String userEmail);
+    Optional<RoomEntity> findByKey(int roomId, String userName);
 }

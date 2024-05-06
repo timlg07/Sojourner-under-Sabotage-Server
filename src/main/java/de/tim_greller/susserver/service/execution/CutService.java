@@ -118,7 +118,7 @@ public class CutService {
         CutSourceDTO cut = getOriginalCutForComponent(componentName).orElseThrow();
         UserEntity user = userService.requireCurrentUser();
         String patch = patchService.createPatch(cut.getSourceCode(), newSource);
-        String oldPatch = userModifiedCutRepository.findByKey(componentName, user.getEmail())
+        String oldPatch = userModifiedCutRepository.findByKey(componentName, user.getUsername())
                 .map(UserModifiedCutEntity::getPatch)
                 .orElse(null);
         if (Objects.equals(oldPatch, patch)) return;

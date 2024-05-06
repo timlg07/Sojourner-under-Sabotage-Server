@@ -41,8 +41,8 @@ public class RegistrationController {
             UserEntity registered = userService.registerNewUserAccount(userDto);
             return new ModelAndView("login", "userRegistered", registered);
         } catch (UserAlreadyExistException uaeEx) {
-            result.addError(new FieldError("user", "email",
-                    "An account with that email already exists."));
+            result.addError(new FieldError("user", "username",
+                    "The user " + userDto.getUsername() + " already exists."));
             return mav;
         }
     }

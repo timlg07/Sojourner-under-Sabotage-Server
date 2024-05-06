@@ -17,10 +17,10 @@ public interface ComponentStatusRepository extends
     @Query("""
             SELECT c
             FROM ComponentStatusEntity c
-            WHERE c.userComponentKey.user.email = :userId
+            WHERE c.userComponentKey.user.username = :userId
             AND c.userComponentKey.component.name = :componentName
             """)
     Optional<ComponentStatusEntity> findByKey(String componentName, String userId);
 
-    void deleteAllByUserComponentKeyUserEmail(String userId);
+    void deleteAllByUserComponentKeyUserUsername(String userId);
 }

@@ -99,7 +99,7 @@ public class GameProgressionService {
         changeGameProgression(userProgress);
 
         // Set the component stage
-        componentStatusService.getComponentStatus(newProgression.getComponent().getName(), currentUser().getUser().getEmail())
+        componentStatusService.getComponentStatus(newProgression.getComponent().getName(), currentUser().getUser().getUsername())
                 .setStage(newProgression.getStage());
     }
 
@@ -170,14 +170,14 @@ public class GameProgressionService {
     }
 
     private void resetGameProgression() {
-        componentStatusService.resetComponentStatus(currentUser().getUser().getEmail());
+        componentStatusService.resetComponentStatus(currentUser().getUser().getUsername());
         var gameProgression = UserGameProgressionEntity.builder()
                 .gameProgression(gameProgressionRepository.getReferenceById(1))
                 .status(TALK)
                 .user(currentUser())
                 .build();
         userGameProgressionRepository.save(gameProgression);
-        userModifiedCutRepository.deleteByUserId(currentUser().getUser().getEmail());
+        userModifiedCutRepository.deleteByUserId(currentUser().getUser().getUsername());
     }
 
     private UserKey currentUser() {

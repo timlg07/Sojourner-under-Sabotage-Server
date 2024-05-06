@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,13 +19,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Table
 @Setter
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity implements UserDetails {
 
     @Id
     @Column
-    private String email;
+    private String username;
 
     @Column
     private String firstName;
@@ -37,7 +39,11 @@ public class UserEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of((GrantedAuthority) () -> "USER");
+        if (username.equals("admin")) {
+            return List.of((GrantedAuthority) () -> "ADMIN", (GrantedAuthority) () -> "USER");
+        } else {
+            return List.of((GrantedAuthority) () -> "USER");
+        }
     }
 
     @Override
@@ -47,7 +53,7 @@ public class UserEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override

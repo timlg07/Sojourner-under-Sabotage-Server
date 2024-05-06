@@ -1,11 +1,9 @@
 package de.tim_greller.susserver.dto;
 
-import de.tim_greller.susserver.validation.annotation.ValidEmail;
 import de.tim_greller.susserver.validation.annotation.ValidPassword;
-import jakarta.validation.Valid;
+import de.tim_greller.susserver.validation.annotation.ValidUsername;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +22,7 @@ public class UserRegistrationDTO {
     @Setter(onParam = @__({@NotNull, @NotEmpty, @ValidPassword}))
     private String password;
 
-    @NotNull @NotEmpty @ValidEmail
-    @Setter(onParam = @__({@NotNull, @NotEmpty, @ValidEmail}))
-    private String email;
+    @NotNull @NotEmpty @ValidUsername
+    @Setter(onParam = @__({@NotNull, @NotEmpty, @ValidUsername}))
+    private String username;
 }

@@ -164,8 +164,8 @@ public class ComponentStatusService {
     // TODO: Long term this method should only be called on new game creation.
     @Transactional
     public void resetComponentStatus(String userId) {
-        componentStatusRepository.deleteAllByUserComponentKeyUserEmail(userId);
-        activePatchRepository.deleteAllByComponentKeyUserEmail(userId);
+        componentStatusRepository.deleteAllByUserComponentKeyUserUsername(userId);
+        activePatchRepository.deleteAllByComponentKeyUserUsername(userId);
         testService.resetTestsForUser(userId);
     }
 }

@@ -27,25 +27,24 @@ public class UserService {
     private final PasswordEncoder encoder;
 
     public UserEntity registerNewUserAccount(UserRegistrationDTO userDto) throws UserAlreadyExistException {
-        if (emailExists(userDto.getEmail())) {
-            throw new UserAlreadyExistException("There is an account with that email address: "
-                    + userDto.getEmail());
+        if (usernameExists(userDto.getUsername())) {
+            throw new UserAlreadyExistException("The user " + userDto.getUsername() + " already exists.");
         }
 
-        UserEntity user = new UserEntity();
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEncodedPassword(encoder.encode(userDto.getPassword()));
-        user.setEmail(userDto.getEmail());
-
+        var user = UserEntity.builder()
+                .firstName(userDto.getFirstName())
+                .lastName(userDto.getLastName())
+                .encodedPassword(encoder.encode(userDto.getPassword()))
+                .username(userDto.getUsername())
+                .build();
         return userRepository.save(user);
     }
 
-    private boolean emailExists(String email) {
-        return userRepository.existsById(email);
+    private boolean usernameExists(String username) {
+        return userRepository.existsById(username);
     }
 
-    public Optional<UserEntity> loadUserByEmail(String username) {
+    public Optional<UserEntity> loadUserByUsername(String username) {
         return userRepository.findById(username);
     }
 
@@ -80,7 +79,7 @@ public class UserService {
     }
 
     public UserEntity requireCurrentUser() {
-        return loadUserByEmail(requireCurrentUserId()).orElseThrow();
+        return loadUserByUsername(requireCurrentUserId()).orElseThrow();
     }
 
     /**
