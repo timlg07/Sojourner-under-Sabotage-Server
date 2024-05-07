@@ -37,6 +37,7 @@ public class GameProgressionService {
     private final ComponentStatusService componentStatusService;
     private final UserService userService;
     private final EventService eventService;
+    private final UserSettingsService userSettingsService;
     private final UserModifiedCutRepository userModifiedCutRepository;
 
 
@@ -45,12 +46,13 @@ public class GameProgressionService {
     GameProgressionService(EventService eventService, UserGameProgressionRepository userGameProgressionRepository,
                            GameProgressionRepository gameProgressionRepository,
                            ComponentStatusService componentStatusService, UserRepository userRepository,
-                           UserService userService, UserModifiedCutRepository userModifiedCutRepository) {
+                           UserService userService, UserSettingsService userSettingsService, UserModifiedCutRepository userModifiedCutRepository) {
         this.userGameProgressionRepository = userGameProgressionRepository;
         this.gameProgressionRepository = gameProgressionRepository;
         this.componentStatusService = componentStatusService;
         this.userService = userService;
         this.eventService = eventService;
+        this.userSettingsService = userSettingsService;
         this.userModifiedCutRepository = userModifiedCutRepository;
 
         eventService.registerHandler(GameStartedEvent.class, this::handleGameStarted);
@@ -78,7 +80,7 @@ public class GameProgressionService {
     }
 
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
-        resetGameProgression();
+        //resetGameProgression();
         gameLoop();
         // send initial game progression to the client
         changeGameProgression(userGameProgressionRepository.findById(currentUser()).orElseThrow());
@@ -91,10 +93,16 @@ public class GameProgressionService {
     private void handleComponentFixed(ComponentFixedEvent componentFixedEvent) {
         var userProgress = userGameProgressionRepository.findById(currentUser()).orElseThrow();
         var progression = userProgress.getGameProgression();
-        var newProgression = gameProgressionRepository.getReferenceById(progression.getOrderIndex() + 1);
+        var newProgressionOpt = gameProgressionRepository.findById(progression.getOrderIndex() + 1);
+
+        if (newProgressionOpt.isEmpty()) {
+            // TODO: handle game finished on max level reached
+            return;
+        }
+        var newProgression = newProgressionOpt.get();
+
         userProgress.setGameProgression(newProgression);
-        userProgress.setStatus(newProgression.getRoomId() > progression.getRoomId() ? DOOR : TEST);
-        // TODO: handle game finished on max level reached
+        userProgress.setStatus(newProgression.getStage() == 1 ? DOOR : TESTS_ACTIVE);
         userGameProgressionRepository.save(userProgress);
         changeGameProgression(userProgress);
 
