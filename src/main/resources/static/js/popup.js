@@ -75,6 +75,11 @@ class Popup {
                       name "{addedTestMethodName}" below your own tests.</p>`,
             cta: 'Continue Debugging',
         }],
+        ['logout', {
+            title: 'Confirm Logout',
+            content: `<p>Are you sure you want to close the game and log out? You'll lose your progress.</p>`,
+            cta: 'Continue Playing'
+        }],
     ]);
 
     /** @type {Popup} */
