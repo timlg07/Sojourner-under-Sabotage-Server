@@ -1,14 +1,12 @@
-class ObjectiveDisplay {
-    constructor() {
-        this.container = document.getElementById('objective');
+class OffViewportInfo {
+    constructor(selector) {
+        this.container = document.querySelector(selector);
         this.objective = this.container.querySelector('.visible-content');
         this.hoverText = this.container.querySelector('.hover-content');
 
         this.container.addEventListener('mouseenter', this.show.bind(this));
         this.container.addEventListener('mouseleave', this.hide.bind(this));
         this.hide();
-
-        es.registerHandler(GameProgressionChangedEvent.type, this.gameProgressionChanged.bind(this));
 
         const unity = document.getElementById('unity-canvas');
         this.container.addEventListener('click', () => unity.focus());
@@ -24,6 +22,19 @@ class ObjectiveDisplay {
         this.container.classList.add('is-expanded');
     }
 
+    playUpdateAnimation() {
+        this.show();
+        setTimeout(this.hide.bind(this), 1e3);
+    }
+}
+
+class ObjectiveDisplay extends OffViewportInfo {
+    constructor(selector) {
+        super(selector);
+
+        es.registerHandler(GameProgressionChangedEvent.type, this.gameProgressionChanged.bind(this));
+    }
+
     /**
      * @param {string} objective
      * @param {string} details
@@ -32,11 +43,6 @@ class ObjectiveDisplay {
         this.objective.innerHTML = objective;
         this.hoverText.innerHTML = details;
         this.playUpdateAnimation();
-    }
-
-    playUpdateAnimation() {
-        this.show();
-        setTimeout(this.hide.bind(this), 1e3);
     }
 
     getRoomName(roomId) {

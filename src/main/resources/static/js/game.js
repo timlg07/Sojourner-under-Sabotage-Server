@@ -664,4 +664,5 @@ document.addEventListener('keydown', e => {
     }
 });
 
-window.objectiveDisplay = new ObjectiveDisplay();
+window.objectiveDisplay = new ObjectiveDisplay('#objective');
+window.surveyDisplay = new OffViewportInfo('#survey');
