@@ -29,4 +29,9 @@ public class UserSettingsService {
         final UserEntity user = userService.requireCurrentUser();
         userSettingsRepository.save(userSettingsDTO.toEntity(user));
     }
+
+    public void resetUserSettings() {
+        final UserEntity user = userService.requireCurrentUser();
+        userSettingsRepository.deleteById(new UserKey(user));
+    }
 }

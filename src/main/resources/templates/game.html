@@ -26,6 +26,7 @@
     <div id="survey" class="off-viewport-info">
       <nav class="hover-content">
         <a th:href="@{/survey}" target="_blank" rel="noopener"><strong>Survey</strong></a>
+        <a href="javascript:Popup.instance.open('reset').addButton('Reset', () => window.location.replace('/reset'), ['clr-error'])">Reset</a>
         <a href="javascript:Popup.instance.open('logout').addButton('Logout', () => window.location.replace('/logout'), ['clr-error'])">Logout</a>
       </nav>
       <div class="visible-content"><span th:remove="tag" sec:authentication="name"></span></div>

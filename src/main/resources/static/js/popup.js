@@ -77,7 +77,13 @@ class Popup {
         }],
         ['logout', {
             title: 'Confirm Logout',
-            content: `<p>Are you sure you want to close the game and log out? You'll lose your progress.</p>`,
+            content: `<p>Are you sure you want to close the game and log out?</p>`,
+            cta: 'Continue Playing'
+        }],
+        ['reset', {
+            title: 'Confirm Reset',
+            content: `<p>Are you sure you want to reset your game?
+                      <br>You'll lose your progress and start new in the first room.</p>`,
             cta: 'Continue Playing'
         }],
     ]);

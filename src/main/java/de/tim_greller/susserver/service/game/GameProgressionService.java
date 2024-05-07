@@ -169,7 +169,7 @@ public class GameProgressionService {
         }
     }
 
-    private void resetGameProgression() {
+    public void resetGameProgression() {
         componentStatusService.resetComponentStatus(currentUser().getUser().getUsername());
         var gameProgression = UserGameProgressionEntity.builder()
                 .gameProgression(gameProgressionRepository.getReferenceById(1))
@@ -178,6 +178,7 @@ public class GameProgressionService {
                 .build();
         userGameProgressionRepository.save(gameProgression);
         userModifiedCutRepository.deleteByUserId(currentUser().getUser().getUsername());
+        userSettingsService.resetUserSettings();
     }
 
     private UserKey currentUser() {
