@@ -80,10 +80,20 @@ public class GameProgressionService {
     }
 
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
-        //resetGameProgression();
+        // not required anymore
+        // resetGameProgression();
+
+        // handle TESTS_ACTIVE state
         gameLoop();
-        // send initial game progression to the client
-        changeGameProgression(userGameProgressionRepository.findById(currentUser()).orElseThrow());
+
+        // handle DESTROYED and MUTATED states
+        var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
+        if (gameProgression.getStatus() == DESTROYED || gameProgression.getStatus() == MUTATED) {
+            componentStatusService.attackCut(gameProgression.getGameProgression().getComponent().getName());
+        } else {
+            // send initial game progression to the client
+            changeGameProgression(userGameProgressionRepository.findById(currentUser()).orElseThrow());
+        }
     }
 
     /**
@@ -162,9 +172,8 @@ public class GameProgressionService {
 
     private void gameLoop() {
         var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
-        String componentName = gameProgression.getGameProgression().getComponent().getName();
-
         if (gameProgression.getStatus() == TESTS_ACTIVE) {
+            String componentName = gameProgression.getGameProgression().getComponent().getName();
             int waitDurationSeconds = gameProgression.getGameProgression().getDelaySeconds();
             log.info("Waiting for {} seconds before attacking component {}", waitDurationSeconds, componentName);
             try {
