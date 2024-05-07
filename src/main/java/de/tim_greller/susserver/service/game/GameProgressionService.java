@@ -80,6 +80,12 @@ public class GameProgressionService {
     }
 
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
+        resetGameProgression();
+        gameLoop();
+        // send initial game progression to the client
+        changeGameProgression(userGameProgressionRepository.findById(currentUser()).orElseThrow());
+
+        /*
         // not required anymore
         // resetGameProgression();
 
@@ -94,6 +100,7 @@ public class GameProgressionService {
             // send initial game progression to the client
             changeGameProgression(userGameProgressionRepository.findById(currentUser()).orElseThrow());
         }
+        */
     }
 
     /**
