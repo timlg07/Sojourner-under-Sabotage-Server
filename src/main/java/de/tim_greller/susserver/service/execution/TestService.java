@@ -124,6 +124,7 @@ public class TestService {
     private String getTestTemplateStart(String testName) {
         return (
         """
+        import java.util.*;
         import org.junit.Test;
         import static org.junit.Assert.*;
 
