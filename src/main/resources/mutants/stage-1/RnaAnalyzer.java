@@ -19,9 +19,9 @@ public class RnaAnalyzer {
      *                It may contain non-RNA characters which will be ignored.
      * @return The longest common subsequence of the virus RNA sequence and the given RNA data.
      */
-    public int longestCommonRnaSubsequence(String rnaData) {
+    public String longestCommonRnaSubsequence(String rnaData) {
         String rnaDataCleaned = stripNonRnaChars(rnaData);
-        longestCommonRnaSubsequence(
+        return longestCommonRnaSubsequence(
                 virusRnaSequence, rnaDataCleaned,
                 virusRnaSequence.length(), rnaDataCleaned.length()
         );

@@ -1,3 +1,4 @@
+import java.util.*;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -23,7 +24,7 @@ public class RnaAnalyzerTest {
     @Test
     public void hiddenTest2() {
         RnaAnalyzer analyzer = new RnaAnalyzer("AAGAUGCCGU");
-        assertEquals("AUGCCGU", analyzer.longestCommonRnaSubsequence("AAGCCGAUGCCGUGCC"));
+        assertEquals("AAGAUGCCGU", analyzer.longestCommonRnaSubsequence("AAGCCGAUGCCGUGCC"));
     }
 
     @Test
@@ -51,9 +52,9 @@ public class RnaAnalyzerTest {
     }
 
     @Test
-    public void testMultipleLongCommonSubsequences() {
+    public void hiddenTest3() {
         RnaAnalyzer analyzer = new RnaAnalyzer("AAGAUGCCGU");
-        assertEquals("CGU", analyzer.longestCommonRnaSubsequence("CGAGAAACGUACC"));
+        assertEquals("GAGCGU", analyzer.longestCommonRnaSubsequence("CGAGAAACGUACC"));
     }
 
 }

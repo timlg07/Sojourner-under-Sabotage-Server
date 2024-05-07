@@ -1,3 +1,4 @@
+import java.util.*;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -14,44 +15,33 @@ import static org.junit.Assert.*;
 
 public class EngineTest {
 
-    private Engine engine;
-
-    @org.junit.Before
-    public void setUp() {
-        engine = new Engine();
-    }
-
     @Test
     public void hiddenTest1() {
+        Engine engine = new Engine();
         assertEquals(0, engine.getO2(0), 0.001);
     }
 
     @Test
     public void hiddenTest2() {
+        Engine engine = new Engine();
         assertEquals(3.5454545, engine.getO2(1), 0.001);
     }
 
     @Test
     public void hiddenTest3() {
+        Engine engine = new Engine();
         assertEquals(24.8181818, engine.getO2(7), 0.001);
     }
 
     @Test
     public void hiddenTest4() {
+        Engine engine = new Engine();
         assertEquals(1.77272727, engine.getO2(0.5), 0.001);
     }
 
-/*
-    @ParameterizedTest
-    @ValueSource(doubles = {0, 0.5, 1, 1.3333, 2, 3, 7.8999, 800, 1337})
-    public void testEngineShutdown(double ch4) {
-        engine.shutdown();
-        assertEquals(0, engine.getO2(ch4), 0.001);
-    }
-*/
-
     @Test
     public void testEngineShutdown() {
+        Engine engine = new Engine();
         engine.shutdown();
         assertEquals(0, engine.getO2(8), 0.001);
     }
