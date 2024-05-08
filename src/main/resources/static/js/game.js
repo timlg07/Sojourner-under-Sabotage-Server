@@ -602,7 +602,10 @@ es.registerHandler(
             data.test = test;
             componentData.set(evt.componentName, data);
             console.log('Test for ' + evt.componentName + ' extended with ' + evt.addedTestMethodName);
-            Popup.instance.open('test extended', evt);
+            // Is also fired when destroyed now, so only show the popup if it's happening during debugging
+            if (gameProgress.status === "DEBUGGING") {
+                Popup.instance.open('test extended', evt);
+            }
 
             if (currentComponent === evt.componentName) {
                 window.editors.monaco.test.setValue(test.sourceCode);
