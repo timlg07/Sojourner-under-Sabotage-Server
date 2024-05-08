@@ -267,7 +267,7 @@ function renderTestResultObject(obj) {
         r += `<div class="clr-error">There are test failures.</div>`;
     }
 
-    r += '<ul>';
+    r += '<ul class="info-list">';
     for (const [fn, details] of Object.entries(obj.testDetails)) {
         r += '<li>';
         r += `${details.className}::<strong>${fn} </strong>`;
@@ -279,20 +279,24 @@ function renderTestResultObject(obj) {
                 <div class="clr-error flex"><p>Actual value:</p> <pre>${_e(details.actualTestResult)}</pre></div>
             `;
         } else if (details.trace != null) {
-            r += `<br><small>Trace: <pre>${_e(details.trace)}</pre></small>`;
+            r += `<br><small class="clr-error">Trace: <pre>${_e(details.trace)}</pre></small>`;
         } else {
             r += `<span class="clr-success">Passed!</span>`;
         }
-        r += `<details><summary>Log messages</summary>`;
-        r += `<ul>`;
 
-        const logs = obj.logs[window.cutClassName + '#' + window.userId] ?? [];
-        logs.sort((a, b) => a.orderIndex - b.orderIndex);
-        for (const log of logs) {
-            if (log.testMethodName !== fn) continue;
-            r += `<li><!--${log.orderIndex}-->[${log.methodName}:${log.lineNumber}] <strong><code>${_e(log.message)}</code></strong></li>`;
+        let logs = obj.logs[window.cutClassName + '#' + window.userId] ?? [];
+        logs = logs.filter(log => log.testMethodName === fn);
+        if (logs.length < 1) {
+            r += `<br><small>(No log messages)</small>`;
+        } else {
+            r += `<details><summary>Log messages</summary>`;
+            r += `<ul>`;
+            logs.sort((a, b) => a.orderIndex - b.orderIndex);
+            for (const log of logs) {
+                r += `<li><!--${log.orderIndex}--><span class="method-and-line">[${_e(log.methodName)}:${log.lineNumber}]</span> <strong><code>${_e(log.message)}</code></strong></li>`;
+            }
+            r += `</ul></details>`;
         }
-        r += `</ul></details>`;
 
         r += '</li>';
     }
