@@ -14,6 +14,7 @@ import de.tim_greller.susserver.events.ComponentFixedEvent;
 import de.tim_greller.susserver.events.ComponentTestsActivatedEvent;
 import de.tim_greller.susserver.events.ConversationFinishedEvent;
 import de.tim_greller.susserver.events.DebugStartEvent;
+import de.tim_greller.susserver.events.GameFinishedEvent;
 import de.tim_greller.susserver.events.GameProgressionChangedEvent;
 import de.tim_greller.susserver.events.GameStartedEvent;
 import de.tim_greller.susserver.events.MutatedComponentTestsFailedEvent;
@@ -114,6 +115,7 @@ public class GameProgressionService {
 
         if (newProgressionOpt.isEmpty()) {
             // TODO: handle game finished on max level reached
+            eventService.publishEvent(new GameFinishedEvent());
             return;
         }
         var newProgression = newProgressionOpt.get();

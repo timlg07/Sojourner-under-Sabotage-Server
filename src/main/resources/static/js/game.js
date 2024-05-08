@@ -641,6 +641,10 @@ es.registerHandler(
         document.getElementById('unity-canvas').focus();
     })
 );
+es.registerHandler(
+    'GameFinishedEvent',
+    () => void Popup.instance.open('game finished')
+);
 
 document.addEventListener('keydown', e => {
     const ctrlOrCmd = e.ctrlKey || e.metaKey;

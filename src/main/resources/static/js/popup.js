@@ -86,6 +86,12 @@ class Popup {
                       <br>You'll lose your progress and start new in the first room.</p>`,
             cta: 'Continue Playing'
         }],
+        ['game finished', {
+            title: 'Congratulations!',
+            content: `<p>You've successfully completed the game!</p>
+                      <p>Thanks to you the spaceship Sojourner can continue its mission. </p>`,
+            cta: 'Close'
+        }]
     ]);
 
     /** @type {Popup} */
