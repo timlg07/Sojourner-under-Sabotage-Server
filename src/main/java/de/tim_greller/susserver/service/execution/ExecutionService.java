@@ -103,6 +103,30 @@ public class ExecutionService {
         return clientResultDto;
     }
 
+    public TestExecutionResultDTO addFailingHiddenTest(String componentName, String userId)
+            throws TestExecutionException, CompilationException, ClassLoadException, NotFoundException {
+        Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
+        var fallbackListener = new TestRunListener();
+        Result fallbackResult = run(fallbackTestClass, fallbackListener);
+        if (fallbackResult.wasSuccessful()) {
+            throw new IllegalStateException("Hidden tests passed, so no failing test can be added.");
+        } else {
+            for (Map.Entry<String, TestDetailsDTO> entry : fallbackListener.getMap().entrySet()) {
+                String methodName = entry.getKey();
+                TestDetailsDTO testDetails = entry.getValue();
+                if (testDetails.getTestStatus() == TestStatus.FAILED) {
+                    testService.addHiddenTestMethodToUserTest(methodName, componentName, userId);
+                    eventService.publishEvent(new ComponentTestsExtendedEvent(componentName, methodName));
+                    // execute tests again.
+                    // (the user tests will fail, so the hidden tests aren't executed again)
+                    return execute(componentName, userId);
+                }
+            }
+        }
+
+        throw new IllegalStateException("No failing test found in hidden tests.");
+    }
+
     /**
      * Fetches the CUT and the test class of a user for the specified component from the database and compiles them.
      *
