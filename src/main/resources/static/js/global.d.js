@@ -52,8 +52,6 @@
  *
  * @property {boolean} [nearlyActivatePopupShown]
  * @property {boolean} [activationPopupShown]
- *
- * @property {'INITIAL' | 'TESTS_ACTIVE' | 'MUTATED'} state
  */
 
 /**
