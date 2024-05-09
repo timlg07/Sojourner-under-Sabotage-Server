@@ -411,16 +411,17 @@ window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
 
 /**
  * @param {string} componentName
+ * @param {boolean} useCache
  * @return {Promise<ComponentData>}
  */
-async function getComponentData(componentName) {
+async function getComponentData(componentName, useCache = true) {
     let data = {};
     const onError = res => {
         Popup.instance.open('error').onClose(closeEditor);
         console.error(res);
     }
 
-    if (componentData.has(componentName)) {
+    if (componentData.has(componentName) && useCache) {
         data = componentData.get(componentName);
     }
 
@@ -523,7 +524,8 @@ window.openEditor = async function (componentName) {
     window.editors.monaco.test.layout();
     uiOverlay.setAttribute('aria-hidden', 'false');
 
-    const currentComponentData = await getComponentData(componentName);
+    // do not use cache here to get a fresh set of editableRanges
+    const currentComponentData = await getComponentData(componentName, false);
 
     window.editors.monaco.debug.setValue(currentComponentData.cut.sourceCode);
     const isMutated = currentComponentData.state === 'MUTATED';
