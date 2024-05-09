@@ -40,8 +40,7 @@ public class CutService {
     public Optional<CutSourceDTO> getOriginalCutForComponent(String componentName) {
         final ComponentEntity component = componentRepository.findById(componentName).orElseThrow();
         return cutRepository.findById(new ComponentKey(component))
-                .map(CutSourceDTO::fromCutEntity)
-                .map(CutService::restrictToMethodBody);
+                .map(CutSourceDTO::fromCutEntity);
     }
 
     static CutSourceDTO restrictToMethodBody(CutSourceDTO cut) {
@@ -84,13 +83,13 @@ public class CutService {
 
         final CutSourceDTO cut = originalCut.get();
         if (userMod.isPresent()) {
-            return userMod.map(patch -> applyPatch(cut, patch));
+            return userMod.map(patch -> applyPatch(cut, patch)).map(CutService::restrictToMethodBody);
         }
         final CutSourceDTO patchedCut = activePatch
                 .map(ActivePatchEntity::getPatch)
                 .map(patch -> applyPatch(cut, patch))
                 .orElse(cut);
-        return Optional.of(patchedCut);
+        return Optional.of(patchedCut).map(CutService::restrictToMethodBody);
     }
 
     public boolean isUserModified(String componentName) {
