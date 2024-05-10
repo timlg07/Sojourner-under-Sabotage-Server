@@ -1,5 +1,7 @@
 package de.tim_greller.susserver.service.game;
 
+import java.util.Objects;
+
 import static de.tim_greller.susserver.dto.GameProgressStatus.DEBUGGING;
 import static de.tim_greller.susserver.dto.GameProgressStatus.DESTROYED;
 import static de.tim_greller.susserver.dto.GameProgressStatus.DOOR;
@@ -111,8 +113,18 @@ public class GameProgressionService {
     private void handleComponentFixed(ComponentFixedEvent componentFixedEvent) {
         var userProgress = userGameProgressionRepository.findById(currentUser()).orElseThrow();
         var progression = userProgress.getGameProgression();
-        var newProgressionOpt = gameProgressionRepository.findById(progression.getOrderIndex() + 1);
 
+        if (userProgress.getStatus() != DEBUGGING) {
+            log.error("Received ComponentFixedEvent while not in DEBUGGING state.");
+            return;
+        }
+
+        if (!Objects.equals(progression.getComponent().getName(), componentFixedEvent.getComponentName())) {
+            log.error("Received ComponentFixedEvent for wrong component.");
+            return;
+        }
+
+        var newProgressionOpt = gameProgressionRepository.findById(progression.getOrderIndex() + 1);
         if (newProgressionOpt.isEmpty()) {
             // TODO: handle game finished on max level reached
             eventService.publishEvent(new GameFinishedEvent());

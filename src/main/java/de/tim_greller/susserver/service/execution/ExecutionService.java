@@ -21,12 +21,10 @@ import de.tim_greller.susserver.exception.TestExecutionException;
 import de.tim_greller.susserver.exception.TestExecutionTimedOut;
 import de.tim_greller.susserver.model.execution.compilation.InMemoryCompiler;
 import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
-import de.tim_greller.susserver.model.execution.instrumentation.OutputWriter;
 import de.tim_greller.susserver.model.execution.instrumentation.TestRunListener;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.CoverageClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.TestClassTransformer;
 import de.tim_greller.susserver.persistence.keys.UserKey;
-import de.tim_greller.susserver.persistence.repository.ActivePatchRepository;
 import de.tim_greller.susserver.persistence.repository.ComponentStatusRepository;
 import de.tim_greller.susserver.persistence.repository.UserGameProgressionRepository;
 import de.tim_greller.susserver.service.auth.UserService;
@@ -51,7 +49,6 @@ public class ExecutionService {
     private final ComponentStatusRepository componentStatusRepository;
     private final EventService eventService;
     private final UserGameProgressionRepository userGameProgressionRepository;
-    private final ActivePatchRepository activePatchRepository;
     @Value("${jarsToInclude}") private List<String> jarsToInclude;
 
 
@@ -89,7 +86,7 @@ public class ExecutionService {
             }
         }
 
-        OutputWriter.writeShellOutput(iTracker.getClassTrackers());
+        // OutputWriter.writeShellOutput(iTracker.getClassTrackers());
 
         clientResultDto.setTestClassName(testClass.getName());
         clientResultDto.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
