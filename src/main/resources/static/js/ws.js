@@ -1,3 +1,11 @@
+window.sockets = [];
+const nativeWebSocket = window.WebSocket;
+window.WebSocket = function(...args){
+  const socket = new nativeWebSocket(...args);
+  sockets.push(socket);
+  return socket;
+};
+
 class EventSystem {
 
   constructor() {
@@ -6,6 +14,8 @@ class EventSystem {
     this.stompClient = this.#initStompClient();
     this.stompClient.activate();
     this.queue = [];
+    /** @type {SusEvent} */
+    this.lastReceivedEvent = null;
   }
 
   #initStompClient() {
@@ -21,9 +31,9 @@ class EventSystem {
       debug: function (str) {
         console.log(str);
       },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      reconnectDelay: 5e3,
+      heartbeatIncoming: 4e3,
+      heartbeatOutgoing: 4e3,
     });
 
     client.onConnect = function (frame) {
@@ -35,10 +45,19 @@ class EventSystem {
         eventSystemInstance.#handleEvent(event);
       });
 
-      while (eventSystemInstance.queue.length > 0) {
-        const event = eventSystemInstance.queue.shift();
-        eventSystemInstance.sendEvent(event);
-      }
+      setTimeout(() => {
+        if (this.lastReceivedEvent !== null) {
+          const lastTimestamp = eventSystemInstance.lastReceivedEvent.timestamp;
+          fetch(`/api/resend-events/${lastTimestamp}`, {headers: authHeader})
+              .then(r => r.text().then(console.log)).catch(console.error);
+          console.log(`Requested resend of events since ${lastTimestamp}`);
+        }
+
+        while (eventSystemInstance.queue.length > 0) {
+          const event = eventSystemInstance.queue.shift();
+          eventSystemInstance.sendEvent(event);
+        }
+      }, 100);
     };
 
     client.onStompError = function (frame) {
@@ -55,6 +74,10 @@ class EventSystem {
   }
 
   #handleEvent(event) {
+    if (!event) {
+      console.error("Received empty event", event);
+      return;
+    }
     const eventType = event.type.replace(/^(\.)/, '');
     if (this.handlers.has(eventType)) {
       this.handlers.get(eventType).forEach((handler) => handler(event));
@@ -62,6 +85,7 @@ class EventSystem {
     if (this.handlers.has('*')) {
       this.handlers.get('*').forEach((handler) => handler(event));
     }
+    this.lastReceivedEvent = event;
   }
 
   /**
