@@ -1,11 +1,3 @@
-window.sockets = [];
-const nativeWebSocket = window.WebSocket;
-window.WebSocket = function(...args){
-  const socket = new nativeWebSocket(...args);
-  sockets.push(socket);
-  return socket;
-};
-
 class EventSystem {
 
   constructor() {
