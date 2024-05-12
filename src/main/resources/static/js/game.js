@@ -27,6 +27,24 @@ window.editors.monaco.test = monaco.editor.create(monacoContainerTest, {
     fontSize: 16,
 });
 
+// top right buttons: add confirm dialogue to anchors
+document.getElementById('reset-game-button').addEventListener('click', ev => {
+    ev.preventDefault();
+    Popup.instance.open('reset').addButton(
+            'Reset',
+        () => window.location.replace('/reset'),
+        ['clr-error']
+    );
+});
+document.getElementById('logout-button').addEventListener('click', ev => {
+    ev.preventDefault();
+    Popup.instance.open('logout').addButton(
+        'Logout',
+        () => window.location.replace('/logout'),
+        ['clr-error']
+    );
+});
+
 const uiOverlay = document.getElementById('ui-overlay');
 
 const result = document.getElementById('execution-result');
