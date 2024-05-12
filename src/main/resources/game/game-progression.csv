@@ -1,8 +1,8 @@
 orderIndex;roomId;componentName;stage;delaySeconds;
 1;1;CryoSleep;1;15;
-2;2;Engine;1;30;
-3;3;GreenHouse;1;10;
-4;4;Kitchen;1;10;
-5;5;ReactorLog;1;10;
-6;6;DefenseSystem;1;10;
-7;7;RnaAnalyzer;1;10;
+2;2;Engine;1;40;
+3;3;GreenHouse;1;20;
+4;4;Kitchen;1;30;
+5;5;ReactorLog;1;20;
+6;6;DefenseSystem;1;20;
+7;7;RnaAnalyzer;1;20;
