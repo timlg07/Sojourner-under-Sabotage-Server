@@ -141,4 +141,8 @@ public class CutService {
         return cut;
     }
 
+    public CutSourceDTO resetCut(String componentName) {
+        userModifiedCutRepository.deleteByKey(componentName, userService.requireCurrentUserId());
+        return getCurrentCutForComponent(componentName).orElseThrow();
+    }
 }

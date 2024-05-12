@@ -1,3 +1,6 @@
+window.authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
+window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
+
 /** @type {string|false} */
 let currentComponent;
 /** @type {UserGameProgressionDTO | false} */
@@ -8,7 +11,6 @@ const minLineCoverage = 50; // % of lines that need to be covered to activate te
 const componentData = new Map();
 /** @type {{monaco:Record<string, ICodeEditor>, restricted:Record<string, constrainedEditor>}} */
 window.editors = {monaco:{}, restricted:{}};
-
 const monacoContainerDebug = document.getElementById('monaco-container-debug');
 window.editors.monaco.debug = monaco.editor.create(monacoContainerDebug, {
     value: '',
@@ -323,14 +325,21 @@ function renderTestResultObject(obj) {
 }
 
 
-window.editors.monaco.test.onDidChangeModelContent(onContentChanged);
-window.editors.monaco.debug.onDidChangeModelContent(onContentChanged);
-function onContentChanged() {
+window.editors.monaco.test.onDidChangeModelContent(onContentChangedTests);
+window.editors.monaco.debug.onDidChangeModelContent(onContentChangedCut);
+function onContentChangedTests() {
     // hide variable value hints, as they can get confusing while editing
     if (window.disposeHints) window.disposeHints.dispose();
 
     // disable activate button, because the tests need to be executed again
     disableActivateButton();
+}
+function onContentChangedCut() {
+    // hide variable value hints, as they can get confusing while editing
+    if (window.disposeHints) window.disposeHints.dispose();
+
+    // reset button might be useful now
+    updateResetButtonState(currentComponent);
 }
 
 function closeEditor() {
@@ -424,8 +433,36 @@ const execute = async () => {
 }
 execBtn.addEventListener('click', execute);
 
-window.authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
-window.jsonHeader = {'Content-Type': 'application/json', ...authHeader};
+function updateResetButtonState(componentName) {
+    const resetCutButton = document.getElementById('editor-reset-cut-btn');
+    resetCutButton.style.display = gameProgress?.status === 'DEBUGGING' ? 'block' : 'none';
+    resetCutButton.disabled = gameProgress?.status !== 'DEBUGGING';
+}
+function resetCut() {
+    const componentName = currentComponent;
+    if (!componentName) return;
+    const currentComponentData = componentData.get(componentName);
+    const resetCutButton = document.getElementById('editor-reset-cut-btn');
+
+    Popup.instance.open('reset cut').addButton('Reset', () => {
+        Popup.instance.open('wait', {'for': 'Resetting the class under test'});
+        fetch(`/api/components/${componentName}/cut/reset`, {headers: jsonHeader, method: 'POST'})
+            .then(res => {
+                if (res.ok) {
+                    res.json().then(/** @param {SourceDTO} json */json => {
+                        currentComponentData.cut = json;
+                        componentData.set(componentName, currentComponentData);
+                        window.editors.monaco.debug.setValue(json.sourceCode);
+                        Popup.instance.close();
+                        resetCutButton.style.display = 'none';
+                    });
+                } else {
+                    Popup.instance.open('error');
+                }
+            });
+    }, ['clr-error']);
+}
+document.getElementById('editor-reset-cut-btn').addEventListener('click', resetCut);
 
 /**
  * @param {string} componentName
@@ -497,7 +534,10 @@ function disableActivateButton() {
     btn.innerText = "tests need to pass to activate";
 }
 
-function activateTests(componentName) {
+function activateTests() {
+    const componentName = currentComponent;
+    if (!componentName) return;
+
     const event = new ComponentTestsActivatedEvent(componentName);
     window.es.sendEvent(event);
     const data = componentData.get(componentName); // should always be present at this point
@@ -510,6 +550,8 @@ function activateTests(componentName) {
 
     Popup.instance.open('tests activated').onClose(closeEditor);
 }
+document.getElementById('editor-activate-test-btn').addEventListener('click', activateTests);
+
 
 window.openEditor = async function (componentName) {
     // Check if the introduction should be shown. Then show it immediately, so the user can read it while the editor is still loading.
@@ -522,8 +564,10 @@ window.openEditor = async function (componentName) {
     });
 
     const activateButton = document.getElementById('editor-activate-test-btn');
+    const resetCutButton = document.getElementById('editor-reset-cut-btn');
     execBtn.disabled = true;
     activateButton.disabled = true;
+    resetCutButton.disabled = true;
     constrain([], 'debug');
     constrain([], 'test');
 
@@ -555,12 +599,8 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    activateButton.addEventListener('click', () => {
-        activateTests(componentName);
-    });
-
     updateActivateButtonState(componentName);
-
+    updateResetButtonState(componentName);
     if (gameProgress?.status !== 'TESTS_ACTIVE') {
         execBtn.disabled = false;
     }

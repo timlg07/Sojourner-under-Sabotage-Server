@@ -91,7 +91,17 @@ class Popup {
             content: `<p>You've successfully completed the game!</p>
                       <p>Thanks to you the spaceship Sojourner can continue its mission. </p>`,
             cta: 'Close'
-        }]
+        }],
+        ['reset cut', {
+            title: 'Reset the class under test',
+            content: `<p>This will reset your edits to the class under test. Are you sure you want to continue?</p>`,
+            cta: 'Keep my changes'
+        }],
+        ['wait', {
+            title: 'Hold on',
+            content: `<p>{for}&hellip;</p><p>Please wait while the server is processing your request.</p>`,
+            cta: 'Close'
+        }],
     ]);
 
     /** @type {Popup} */

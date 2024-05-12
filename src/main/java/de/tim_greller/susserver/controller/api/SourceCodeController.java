@@ -66,4 +66,9 @@ public class SourceCodeController {
         cutService.storePatch(componentName, stage, newSource.getCode());
     }
 
+    @PostMapping("${paths.api}/components/{componentName}/cut/reset")
+    public CutSourceDTO resetCut(@PathVariable String componentName) {
+        return cutService.resetCut(componentName);
+    }
+
 }
