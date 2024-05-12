@@ -438,10 +438,10 @@ function updateResetButtonState(componentName) {
     resetCutButton.style.display = gameProgress?.status === 'DEBUGGING' ? 'block' : 'none';
     resetCutButton.disabled = gameProgress?.status !== 'DEBUGGING';
 }
-function resetCut() {
+async function resetCut() {
     const componentName = currentComponent;
     if (!componentName) return;
-    const currentComponentData = componentData.get(componentName);
+    const currentComponentData = await getComponentData(componentName);
     const resetCutButton = document.getElementById('editor-reset-cut-btn');
 
     Popup.instance.open('reset cut').addButton('Reset', () => {
@@ -508,9 +508,9 @@ async function getComponentData(componentName, useCache = true) {
     return data;
 }
 
-function updateActivateButtonState(componentName) {
+async function updateActivateButtonState(componentName) {
     const btn = document.getElementById('editor-activate-test-btn');
-    const data = componentData.get(componentName);
+    const data = await getComponentData(componentName);
     const className = window.cutClassName + '#' + window.userId;
 
     btn.style.display = gameProgress?.status === 'TEST' ? 'block' : 'none';
@@ -534,14 +534,13 @@ function disableActivateButton() {
     btn.innerText = "tests need to pass to activate";
 }
 
-function activateTests() {
+async function activateTests() {
     const componentName = currentComponent;
     if (!componentName) return;
 
     const event = new ComponentTestsActivatedEvent(componentName);
     window.es.sendEvent(event);
-    const data = componentData.get(componentName); // should always be present at this point
-    componentData.set(componentName, data);
+    const data = await getComponentData(componentName);
 
     constrain([], 'test');
     execBtn.disabled = true;
@@ -653,8 +652,8 @@ es.registerHandler(
   evt => {
       fetch(`/api/components/${evt.componentName}/test/src`, {headers: authHeader})
         .then(res => res.json())
-        .then(/** @param {SourceDTO} test */ test => {
-            const data = componentData.get(evt.componentName);
+        .then(/** @param {SourceDTO} test */ async test => {
+            const data = await getComponentData(evt.componentName);
             data.test = test;
             componentData.set(evt.componentName, data);
             console.log('Test for ' + evt.componentName + ' extended with ' + evt.addedTestMethodName);
@@ -683,8 +682,8 @@ es.registerHandler(
 es.registerHandler(
   'ComponentFixedEvent',
   /** @param {{componentName:string}} evt */
-  evt => {
-      const data = componentData.get(evt.componentName);
+  async evt => {
+      const data = await getComponentData(evt.componentName);
       componentData.set(evt.componentName, data);
       window.unityInstance.SendMessage('BrowserInterface', 'OnComponentFixed', evt.componentName);
       Popup.instance.open('component fixed').onTransitionEnd(closeEditor);
