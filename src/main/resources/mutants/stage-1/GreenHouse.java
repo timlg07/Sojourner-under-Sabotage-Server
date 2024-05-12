@@ -50,6 +50,7 @@ public class GreenHouse {
                 case READY:
                     harvest(i);
                     break;
+
                 case DEAD:
                     plants[i] = Plant.EMPTY;
                 case EMPTY:
