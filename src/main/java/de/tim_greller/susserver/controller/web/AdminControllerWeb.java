@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
-public class AdminController {
+public class AdminControllerWeb {
 
     private final UserGeneratorService userGeneratorService;
 

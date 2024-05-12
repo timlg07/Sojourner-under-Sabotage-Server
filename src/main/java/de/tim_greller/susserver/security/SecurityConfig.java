@@ -66,6 +66,7 @@ public class SecurityConfig {
                             .requestMatchers(
                                     mvc.pattern(apiUrl + "/hello"),
                                     mvc.pattern(apiUrl + "/auth")).permitAll()
+                            .requestMatchers(mvc.pattern(apiUrl + "/admin/**")).hasAuthority("ADMIN")
                             .requestMatchers(mvc.pattern(apiUrl + "/**")).authenticated()
                     )
                     // disable redirect to log in form and send 401 instead
@@ -109,17 +110,16 @@ public class SecurityConfig {
 
         private final MvcRequestMatcher.Builder mvc;
 
+        private MvcRequestMatcher[] mvcPattern(String... strings) {
+            return Stream.of(strings).map(mvc::pattern).toArray(MvcRequestMatcher[]::new);
+        }
+
         @Bean
         public SecurityFilterChain securityFilterChainWeb(HttpSecurity http) throws Exception {
-            var patterns = Stream
-                    .of("/", "/home", "/register", "/error", "/login", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")
-                    .map(mvc::pattern)
-                    .toList().toArray(new MvcRequestMatcher[0]);
-
             return http
                     .authorizeHttpRequests((requests) -> requests
-                            .requestMatchers(patterns).permitAll()
-                            .requestMatchers(mvc.pattern("/monitoring/**"), mvc.pattern("/admin/**")).hasAuthority("ADMIN")
+                            .requestMatchers(mvcPattern("/", "/home", "/register", "/error", "/login", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")).permitAll()
+                            .requestMatchers(mvcPattern("/monitoring", "/monitoring/**", "admin", "/admin/**")).hasAuthority("ADMIN")
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form

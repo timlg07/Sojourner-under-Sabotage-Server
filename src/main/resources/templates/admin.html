@@ -19,7 +19,8 @@
 <body>
 <main>
     <h1>Admin Dashboard</h1>
-    <p>Monitor resources using Java Melody: <a th:href="@{/monitoring}">/monitoring</a> </p>
+    <p>Monitor resources using Java Melody: <a th:href="@{/monitoring}">/monitoring</a>
+    <br>Download data: <a href="/api/admin/data" id="download">get JSON file</a></p>
     <form th:action="@{/admin/create-accounts}" method="POST" th:unless="${createdUsers}">
         <div class="form-entry">
             <label for="amount">Create user accounts</label>
@@ -46,5 +47,30 @@
         </table>
     </div>
 </main>
+<script th:inline="javascript">
+    window.token = /*[[${@jwtTokenSupplier.getJwtToken().orElse("")}]]*/ '';
+    window.csrfHeader = {
+        /*[[${_csrf.headerName}]]*/ ''
+            : /*[[${_csrf.token}]]*/ ''
+    };
+    window.authHeader = {'Authorization': `Bearer ${window.token}`, ...window.csrfHeader};
+</script>
+<script>
+    document.getElementById('download').addEventListener('click', async event => {
+        event.preventDefault();
+        const response = await fetch(event.target.href, {
+            method: 'GET',
+            headers: window.authHeader
+        });
+        const data = await response.json();
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+</script>
 </body>
 </html>

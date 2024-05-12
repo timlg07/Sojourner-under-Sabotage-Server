@@ -1,5 +1,7 @@
 package de.tim_greller.susserver.service.tracking;
 
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -34,4 +36,7 @@ public class UserEventTrackingService {
                 .build());
     }
 
+    public List<UserEventTrackingEntity> getAllEvents() {
+        return userEventTrackingRepository.findAll();
+    }
 }
