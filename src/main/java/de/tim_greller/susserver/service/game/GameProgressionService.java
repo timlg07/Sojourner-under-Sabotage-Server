@@ -11,6 +11,7 @@ import static de.tim_greller.susserver.dto.GameProgressStatus.TALK;
 import static de.tim_greller.susserver.dto.GameProgressStatus.TEST;
 import static de.tim_greller.susserver.dto.GameProgressStatus.TESTS_ACTIVE;
 
+import de.tim_greller.susserver.dto.GameProgressStatus;
 import de.tim_greller.susserver.dto.UserGameProgressionDTO;
 import de.tim_greller.susserver.events.ComponentDestroyedEvent;
 import de.tim_greller.susserver.events.ComponentFixedEvent;
@@ -155,28 +156,22 @@ public class GameProgressionService {
         }
     }
 
-    private void handleMutatedComponentTestsFailed(MutatedComponentTestsFailedEvent mutatedComponentTestsFailedEvent) {
+    private void handleComponentMutated(String componentName, GameProgressStatus targetStatus) {
         var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
-        var componentMatches = gameProgression.getGameProgression().getComponent().getName().equals(mutatedComponentTestsFailedEvent.getComponentName());
+        var componentMatches = gameProgression.getGameProgression().getComponent().getName().equals(componentName);
         if (gameProgression.getStatus() == TESTS_ACTIVE && componentMatches) {
-            gameProgression.setStatus(MUTATED);
+            gameProgression.setStatus(targetStatus);
             userGameProgressionRepository.save(gameProgression);
             changeGameProgression(gameProgression);
-            System.out.println("Component mutated: " + mutatedComponentTestsFailedEvent.getComponentName());
         }
-        System.out.println("// Component mutated: " + mutatedComponentTestsFailedEvent.getComponentName());
+    }
+
+    private void handleMutatedComponentTestsFailed(MutatedComponentTestsFailedEvent mutatedComponentTestsFailedEvent) {
+        handleComponentMutated(mutatedComponentTestsFailedEvent.getComponentName(), MUTATED);
     }
 
     private void handleComponentDestroyed(ComponentDestroyedEvent componentDestroyedEvent) {
-        var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
-        var componentMatches = gameProgression.getGameProgression().getComponent().getName().equals(componentDestroyedEvent.getComponentName());
-        if (gameProgression.getStatus() == TESTS_ACTIVE && componentMatches) {
-            gameProgression.setStatus(DESTROYED);
-            userGameProgressionRepository.save(gameProgression);
-            changeGameProgression(gameProgression);
-            System.out.println("Component destroyed: " + componentDestroyedEvent.getComponentName());
-        }
-        System.out.println("// Component destroyed: " + componentDestroyedEvent.getComponentName());
+        handleComponentMutated(componentDestroyedEvent.getComponentName(), DESTROYED);
     }
 
     private void handleDebugStart(DebugStartEvent debugStartEvent) {
