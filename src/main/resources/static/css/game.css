@@ -36,6 +36,12 @@
 #button-bar #editor-close-btn:hover, #button-bar #editor-close-btn:focus {
     --clr-bg: #ff3f3f;
 }
+#editor-reset-cut-btn {
+    --clr-bg: #66696f;
+}
+#editor-reset-cut-btn:hover, #editor-reset-cut-btn:focus {
+    --clr-bg: #8f96a3;
+}
 #editor-status-text {
     color: #fff;
     font-size: 16px;
