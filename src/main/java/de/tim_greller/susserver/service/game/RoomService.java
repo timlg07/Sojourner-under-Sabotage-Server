@@ -5,7 +5,6 @@ import de.tim_greller.susserver.persistence.entity.RoomEntity;
 import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.persistence.keys.UserRoomKey;
 import de.tim_greller.susserver.persistence.repository.RoomRepository;
-import de.tim_greller.susserver.persistence.repository.UserRepository;
 import de.tim_greller.susserver.service.auth.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,13 +14,10 @@ import org.springframework.stereotype.Service;
 public class RoomService {
 
     private final UserService userService;
-    private final UserRepository userRepository;
     private final RoomRepository roomRepository;
 
-    public RoomService(EventService eventService, UserService userService, UserRepository userRepository,
-                       RoomRepository roomRepository) {
+    public RoomService(EventService eventService, UserService userService, RoomRepository roomRepository) {
         this.userService = userService;
-        this.userRepository = userRepository;
         this.roomRepository = roomRepository;
 
         eventService.registerHandler(RoomUnlockedEvent.class, this::handleRoomUnlocked);
@@ -35,9 +31,12 @@ public class RoomService {
                 .orElseGet(() -> {
                     final UserEntity user = userService.requireCurrentUser();
                     final UserRoomKey key = new UserRoomKey(event.getRoomId(), user);
-                    return new RoomEntity(key, true);
+                    return new RoomEntity(key, false);
                 });
-        room.setUnlocked(true);
-        roomRepository.save(room);
+
+        if (!room.isUnlocked()) {
+            room.setUnlocked(true);
+            roomRepository.save(room);
+        }
     }
 }
