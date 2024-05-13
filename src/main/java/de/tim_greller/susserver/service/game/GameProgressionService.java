@@ -89,7 +89,7 @@ public class GameProgressionService {
 
         // handle DESTROYED and MUTATED states
         var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
-        if (List.of(DESTROYED, MUTATED).contains(gameProgression.getStatus())) {
+        if (List.of(DESTROYED, MUTATED, DEBUGGING).contains(gameProgression.getStatus())) {
             // RESET game progression to TEST_ACTIVE, so that test failures will trigger
             gameProgression.setStatus(TESTS_ACTIVE);
             userGameProgressionRepository.save(gameProgression);
