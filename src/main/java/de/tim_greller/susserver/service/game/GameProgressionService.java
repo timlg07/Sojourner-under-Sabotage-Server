@@ -2,6 +2,7 @@ package de.tim_greller.susserver.service.game;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static de.tim_greller.susserver.dto.GameProgressStatus.DEBUGGING;
 import static de.tim_greller.susserver.dto.GameProgressStatus.DESTROYED;
@@ -212,18 +213,25 @@ public class GameProgressionService {
         userSettingsService.resetUserSettings();
     }
 
+    public Optional<UserGameProgressionDTO> getCurrentGameProgression() {
+        return userGameProgressionRepository.findById(currentUser()).map(this::toDTO);
+    }
+
     private UserKey currentUser() {
         return new UserKey(userService.requireCurrentUser());
     }
 
-    private void changeGameProgression(UserGameProgressionEntity ugp) {
-        var ugpDto = UserGameProgressionDTO.builder()
+    private UserGameProgressionDTO toDTO(UserGameProgressionEntity ugp) {
+        return UserGameProgressionDTO.builder()
                 .id(ugp.getGameProgression().getOrderIndex())
                 .room(ugp.getGameProgression().getRoomId())
                 .componentName(ugp.getGameProgression().getComponent().getName())
                 .stage(ugp.getGameProgression().getStage())
                 .status(ugp.getStatus())
                 .build();
-        eventService.publishEvent(new GameProgressionChangedEvent(ugpDto));
+    }
+
+    private void changeGameProgression(UserGameProgressionEntity ugp) {
+        eventService.publishEvent(new GameProgressionChangedEvent(toDTO(ugp)));
     }
 }
