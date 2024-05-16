@@ -476,11 +476,11 @@ async function getComponentData(componentName, useCache = true) {
         console.error(res);
     }
 
-    if (componentData.has(componentName) && useCache) {
+    if (componentData.has(componentName)) {
         data = componentData.get(componentName);
     }
 
-    if (!data.cut) {
+    if (!data.cut || !useCache) {
         await fetch(`/api/components/${componentName}/cut/src`, {headers: authHeader}).then(res => {
             if (!res.ok) {
                 onError(res);
@@ -492,7 +492,7 @@ async function getComponentData(componentName, useCache = true) {
         }).catch(onError);
     }
 
-    if (!data.test) {
+    if (!data.test || !useCache) {
         await fetch(`/api/components/${componentName}/test/src`, {headers: authHeader}).then(res => {
             if (!res.ok) {
                 onError(res);
