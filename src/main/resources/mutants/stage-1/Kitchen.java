@@ -27,19 +27,22 @@ public class Kitchen {
     }
 
     public void cookRecipe(Map<String, Integer> recipe) {
+        boolean success = true;
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
             // first check if the ingredient is available
             String ingredient = entry.getKey();
             int requiredAmount = entry.getValue();
             int availableAmount = getIngredientAmount(ingredient);
             if (availableAmount < requiredAmount) {
-                throw new IllegalArgumentException("Not enough " + ingredient + " available.");
+                success = false;
+            } else {
+                // use the ingredient
+                removeIngredient(ingredient, requiredAmount);
             }
+        }
 
-            // use the ingredient
-            removeIngredient(
-                ingredient, requiredAmount
-            );
+        if (!success) {
+            throw new IllegalArgumentException("Some ingredients were missing.");
         }
     }
 }
