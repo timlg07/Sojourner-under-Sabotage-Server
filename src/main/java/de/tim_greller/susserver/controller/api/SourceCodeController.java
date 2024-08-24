@@ -59,12 +59,17 @@ public class SourceCodeController {
         );
     }
 
+    /*
+    // Deprecated in favor of InsertInitialData
+    // would only be useful if multiple mutants would be used per CUT anyway
+
     @PostMapping("${paths.api}/components/{componentName}/cut/patch/stage-{stage}")
     public void storePatch(@PathVariable String componentName,
                            @PathVariable int stage,
                            @RequestBody PlainSource newSource) {
         cutService.storePatch(componentName, stage, newSource.getCode());
     }
+    */
 
     @PostMapping("${paths.api}/components/{componentName}/cut/reset")
     public CutSourceDTO resetCut(@PathVariable String componentName) {
