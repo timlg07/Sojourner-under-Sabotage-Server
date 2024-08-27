@@ -28,10 +28,11 @@ class EventSystem {
       heartbeatOutgoing: 4e3,
     });
 
+    // this will be executed after a (re)connect
+    // all subscribes must be done in this callback
     client.onConnect = function (frame) {
-      // Do something, all subscribes must be done is this callback
-      // This is needed because this will be executed after a (re)connect
       console.log("StompJs connected to broker over ws");
+
       client.subscribe('/user/queue/events', (message) => {
         const event = JSON.parse(message.body);
         eventSystemInstance.#handleEvent(event);
