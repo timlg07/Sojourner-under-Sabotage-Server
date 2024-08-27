@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtTokenService {
 
-    private static final Duration JWT_TOKEN_VALIDITY = Duration.ofHours(1);
+    private static final Duration JWT_TOKEN_VALIDITY = Duration.ofHours(48);
 
     private final Algorithm hmac512;
     private final JWTVerifier verifier;
