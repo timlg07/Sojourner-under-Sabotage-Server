@@ -85,23 +85,9 @@ public class CutInstrumentationAdapter extends ClassVisitor {
                     visitLdcInsn(pMethodName);
                     String type = switch (descriptor) {
                         case "(Ljava/lang/String;)V" -> "Ljava/lang/String;";
-                        case "(I)V" -> "I";
-                        case "(F)V" -> "F";
-                        case "(D)V" -> "D";
-                        case "(J)V" -> "J";
-                        case "(C)V" -> "C";
-                        case "(Z)V" -> "Z";
-                        case "(B)V" -> "B";
-                        case "(S)V" -> "S";
-                        case "([I)V" -> "[I";
-                        case "([F)V" -> "[F";
-                        case "([D)V" -> "[D";
-                        case "([J)V" -> "[J";
-                        case "([C)V" -> "[C";
-                        case "([Z)V" -> "[Z";
-                        case "([B)V" -> "[B";
-                        case "([S)V" -> "[S";
-                        case "()V"  -> "";
+                        case "(I)V", "(F)V", "(D)V", "(J)V", "(C)V", "(Z)V", "(B)V", "(S)V" -> descriptor.substring(1, 2);
+                        case "([I)V", "([F)V", "([D)V", "([J)V", "([C)V", "([Z)V", "([B)V", "([S)V" -> descriptor.substring(1, 3);
+                        case "()V" -> "";
                         default -> "Ljava/lang/Object;";
                     };
                     super.visitMethodInsn(
