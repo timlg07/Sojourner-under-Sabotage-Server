@@ -20,12 +20,6 @@ public class LoginController {
     public String login() {
         var u = userService.getCurrentUserId();
         if (u.isPresent()) {
-            // initialize game state
-            if (gameProgressionService.getCurrentGameProgression().isEmpty()) {
-                gameProgressionService.resetGameProgression();
-            }
-
-            // redirect
             if (u.get().equals("admin")) {
                 return "redirect:/admin";
             } else {

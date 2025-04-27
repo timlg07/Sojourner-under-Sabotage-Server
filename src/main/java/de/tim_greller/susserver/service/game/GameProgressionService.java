@@ -24,6 +24,7 @@ import de.tim_greller.susserver.events.GameProgressionChangedEvent;
 import de.tim_greller.susserver.events.GameStartedEvent;
 import de.tim_greller.susserver.events.MutatedComponentTestsFailedEvent;
 import de.tim_greller.susserver.events.RoomUnlockedEvent;
+import de.tim_greller.susserver.persistence.entity.UserEntity;
 import de.tim_greller.susserver.persistence.entity.UserGameProgressionEntity;
 import de.tim_greller.susserver.persistence.keys.UserKey;
 import de.tim_greller.susserver.persistence.repository.GameProgressionRepository;
@@ -211,6 +212,15 @@ public class GameProgressionService {
         userGameProgressionRepository.save(gameProgression);
         userModifiedCutRepository.deleteByUserId(currentUser().getUser().getUsername());
         userSettingsService.resetUserSettings();
+    }
+
+    public void initGameProgression(UserEntity user) {
+        var gameProgression = UserGameProgressionEntity.builder()
+                .gameProgression(gameProgressionRepository.getReferenceById(1))
+                .status(TALK)
+                .user(new UserKey(user))
+                .build();
+        userGameProgressionRepository.save(gameProgression);
     }
 
     public Optional<UserGameProgressionDTO> getCurrentGameProgression() {
