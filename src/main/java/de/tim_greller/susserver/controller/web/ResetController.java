@@ -12,7 +12,7 @@ public class ResetController {
     private final GameProgressionService gameProgressionService;
 
     @GetMapping("/reset")
-    public String createAccounts() {
+    public String newGame() {
         gameProgressionService.resetGameProgression();
         return "redirect:/game";
     }

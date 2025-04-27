@@ -41,7 +41,6 @@ public class RegistrationController {
 
         try {
             UserEntity registered = userService.registerNewUserAccount(userDto);
-            gameProgressionService.resetGameProgression();
             return new ModelAndView("login", "userRegistered", registered);
         } catch (UserAlreadyExistException uaeEx) {
             result.addError(new FieldError("user", "username",
