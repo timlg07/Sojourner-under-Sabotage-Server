@@ -292,7 +292,7 @@ function renderTestResultObject(obj) {
         r += '<li>';
         r += `${details.className}::<strong>${fn} </strong>`;
         if (details.accessDenied != null) {
-            r +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span>`;
+            r +=`<span class="clr-error">Access Denied!<br>${details.accessDenied}</span><br>`;
         } else if (details.expectedTestResult != null || details.actualTestResult != null) {
             r += `
                 <div class="clr-success flex"><p>Expected value:</p> <pre>${_e(details.expectedTestResult)}</pre></div>
@@ -301,13 +301,13 @@ function renderTestResultObject(obj) {
         } else if (details.trace != null) {
             r += `<br><small class="clr-error">Trace: <pre>${_e(details.trace)}</pre></small>`;
         } else {
-            r += `<span class="clr-success">Passed!</span>`;
+            r += `<span class="clr-success">Passed!</span><br>`;
         }
 
         let logs = obj.logs[window.cutClassName + '#' + window.userId] ?? [];
         logs = logs.filter(log => log.testMethodName === fn);
         if (logs.length < 1) {
-            r += `<br><small>(No log messages)</small>`;
+            r += `<small>(No log messages)</small>`;
         } else {
             r += `<details><summary>Log messages</summary>`;
             r += `<ul>`;
