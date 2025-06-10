@@ -39,6 +39,16 @@ a.button {
     --clr-bg: #6a6b9f;
     cursor: not-allowed;
 }
+.button svg {
+    width: auto;
+    height: .9rem;
+    vertical-align: text-bottom;
+    margin-right: 0.2rem;
+    fill: currentColor;
+}
+.button svg.hidden {
+    display: none;
+}
 
 span.orange {
     color: #ff9c28;

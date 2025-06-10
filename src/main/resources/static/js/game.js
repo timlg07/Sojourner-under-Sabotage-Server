@@ -522,16 +522,23 @@ async function updateActivateButtonState(componentName) {
     const canActivate = !isActivated && testsPassed && enoughCoverage;
 
     btn.disabled = !canActivate;
-    btn.innerText = canActivate ? "Activate Test" :
+    btn.querySelector('.text').innerText =
+                    canActivate ? "Activate Test" :
                     isActivated ? "Test Activated" :
-                    !enoughCoverage ? "get higher line coverage to activate" :
-                    !testsPassed ? "tests need to pass to activate" : "// unreachable";
+                    !testsPassed ? "tests need to pass to activate" :
+                    !enoughCoverage ? "get higher line coverage to activate" : "// unreachable";
+    btn.querySelector('.activate-icon').classList.toggle('hidden', !canActivate && !isActivated);
+    btn.querySelector('.coverage-icon').classList.toggle('hidden', enoughCoverage || !testsPassed);
+    btn.querySelector('.error-icon').classList.toggle('hidden', testsPassed);
 }
 
 function disableActivateButton() {
     const btn = document.getElementById('editor-activate-test-btn');
     btn.disabled = true;
-    btn.innerText = "tests need to pass to activate";
+    btn.querySelector('.text').innerText = "tests need to pass to activate";
+    btn.querySelector('.activate-icon').classList.toggle('hidden', true);
+    btn.querySelector('.coverage-icon').classList.toggle('hidden', true);
+    btn.querySelector('.error-icon').classList.toggle('hidden', false);
 }
 
 async function activateTests() {
