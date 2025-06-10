@@ -36,7 +36,7 @@ a.button {
     --clr-bg: #14a0cd;
 }
 .button-bar .button:disabled, a.button:disabled {
-    --clr-bg: #6a6b9f;
+    --clr-bg: #66696f66;
     cursor: not-allowed;
 }
 .button svg {
