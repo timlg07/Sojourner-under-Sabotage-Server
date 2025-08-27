@@ -245,6 +245,10 @@ public class ExecutionService {
     @Getter
     private static class TestExecutionResult {
         private final boolean wasSuccessful;
+        
+        public boolean wasSuccessful() {
+            return wasSuccessful;
+        }
     }
 
     @RequiredArgsConstructor
