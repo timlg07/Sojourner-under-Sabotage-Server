@@ -32,8 +32,11 @@ import de.tim_greller.susserver.service.game.EventService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -59,13 +62,13 @@ public class ExecutionService {
         final var clientResultDto = new TestExecutionResultDTO();
         final Class<?> testClass = compile(componentName, userId);
         final var listener = new TestRunListener();
-        final Result r = run(testClass, listener);
+        final TestExecutionResult r = run(testClass, listener);
 
         boolean isDebugging = userGameProgressionRepository.findById(new UserKey(userService.requireCurrentUser())).orElseThrow().getStatus() == GameProgressStatus.DEBUGGING;
         if (r.wasSuccessful() && isDebugging) { // tests passed while in debug mode: check if really fixed
             Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
             var fallbackListener = new TestRunListener();
-            Result fallbackResult = run(fallbackTestClass, fallbackListener);
+            TestExecutionResult fallbackResult = run(fallbackTestClass, fallbackListener);
             if (fallbackResult.wasSuccessful()) {
                 clientResultDto.setHiddenTestsPassed(true);
                 eventService.publishAndHandleEvent(new ComponentFixedEvent(componentName));
@@ -104,7 +107,7 @@ public class ExecutionService {
             throws TestExecutionException, CompilationException, ClassLoadException, NotFoundException {
         Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
         var fallbackListener = new TestRunListener();
-        Result fallbackResult = run(fallbackTestClass, fallbackListener);
+        TestExecutionResult fallbackResult = run(fallbackTestClass, fallbackListener);
         if (fallbackResult.wasSuccessful()) {
             throw new IllegalStateException("Hidden tests passed, so no failing test can be added.");
         } else {
@@ -166,10 +169,15 @@ public class ExecutionService {
                 ));
     }
 
-    private Result run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
-        var jUnitCore = new JUnitCore();
-        jUnitCore.addListener(listener);
-        var executionThread = new ExecutionThread(jUnitCore, testClass);
+    private TestExecutionResult run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
+        var launcher = LauncherFactory.create();
+        
+        // Create discovery request with custom class loader support
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(DiscoverySelectors.selectClass(testClass))
+                .build();
+        
+        var executionThread = new ExecutionThread(launcher, request, listener);
         var timer = new Timer();
         var timeOutTask = new TimeOutTask(executionThread, timer);
         timer.schedule(timeOutTask, MAX_TEST_EXECUTION_TIME_SECONDS * 1000);
@@ -192,13 +200,26 @@ public class ExecutionService {
     @RequiredArgsConstructor
     private static class ExecutionThread extends Thread {
         @Getter
-        private Result result;
-        private final JUnitCore jUnitCore;
-        private final Class<?> testClass;
+        private TestExecutionResult result;
+        private final Launcher launcher;
+        private final LauncherDiscoveryRequest request;
+        private final TestRunListener listener;
+        
         @Override
         public void run() {
-            result = jUnitCore.run(testClass);
+            launcher.registerTestExecutionListeners(listener);
+            launcher.execute(request);
+            // Create a simple result indicating success based on whether any tests failed
+            result = new TestExecutionResult(listener.getMap().values().stream()
+                .noneMatch(test -> test.getTestStatus() == de.tim_greller.susserver.dto.TestStatus.FAILED));
         }
+    }
+
+    // Simple result class to replace JUnit 4's Result
+    @RequiredArgsConstructor
+    @Getter
+    private static class TestExecutionResult {
+        private final boolean wasSuccessful;
     }
 
     @RequiredArgsConstructor
