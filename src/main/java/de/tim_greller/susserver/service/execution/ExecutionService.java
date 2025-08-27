@@ -170,31 +170,45 @@ public class ExecutionService {
     }
 
     private TestExecutionResult run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
-        var launcher = LauncherFactory.create();
+        // Get the class loader used to load the test class (which should be our custom InMemoryCompiler class loader)
+        ClassLoader testClassLoader = testClass.getClassLoader();
         
-        // Create discovery request with custom class loader support
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(DiscoverySelectors.selectClass(testClass))
-                .build();
+        // Save the current thread's context class loader
+        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         
-        var executionThread = new ExecutionThread(launcher, request, listener);
-        var timer = new Timer();
-        var timeOutTask = new TimeOutTask(executionThread, timer);
-        timer.schedule(timeOutTask, MAX_TEST_EXECUTION_TIME_SECONDS * 1000);
-        executionThread.start();
-
         try {
-            // wait for the test execution to finish
-            executionThread.join();
-        } catch (InterruptedException e) {
-            throw new TestExecutionException("Error while executing the test", e);
-        }
+            // Set the custom class loader as the context class loader for JUnit 5
+            Thread.currentThread().setContextClassLoader(testClassLoader);
+            
+            var launcher = LauncherFactory.create();
+            
+            // Create discovery request with the test class
+            LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                    .selectors(DiscoverySelectors.selectClass(testClass))
+                    .build();
+            
+            var executionThread = new ExecutionThread(launcher, request, listener, testClassLoader);
+            var timer = new Timer();
+            var timeOutTask = new TimeOutTask(executionThread, timer);
+            timer.schedule(timeOutTask, MAX_TEST_EXECUTION_TIME_SECONDS * 1000);
+            executionThread.start();
 
-        if (timeOutTask.isThreadTimedOut()) {
-            throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
-        }
+            try {
+                // wait for the test execution to finish
+                executionThread.join();
+            } catch (InterruptedException e) {
+                throw new TestExecutionException("Error while executing the test", e);
+            }
 
-        return executionThread.getResult();
+            if (timeOutTask.isThreadTimedOut()) {
+                throw new TestExecutionTimedOut(MAX_TEST_EXECUTION_TIME_SECONDS);
+            }
+
+            return executionThread.getResult();
+        } finally {
+            // Restore the original context class loader
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
     }
 
     @RequiredArgsConstructor
@@ -204,14 +218,25 @@ public class ExecutionService {
         private final Launcher launcher;
         private final LauncherDiscoveryRequest request;
         private final TestRunListener listener;
+        private final ClassLoader testClassLoader;
         
         @Override
         public void run() {
-            launcher.registerTestExecutionListeners(listener);
-            launcher.execute(request);
-            // Create a simple result indicating success based on whether any tests failed
-            result = new TestExecutionResult(listener.getMap().values().stream()
-                .noneMatch(test -> test.getTestStatus() == de.tim_greller.susserver.dto.TestStatus.FAILED));
+            // Set the context class loader to the custom class loader for this thread
+            ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(testClassLoader);
+                
+                launcher.registerTestExecutionListeners(listener);
+                launcher.execute(request);
+                
+                // Create a simple result indicating success based on whether any tests failed
+                result = new TestExecutionResult(listener.getMap().values().stream()
+                    .noneMatch(test -> test.getTestStatus() == de.tim_greller.susserver.dto.TestStatus.FAILED));
+            } finally {
+                // Restore the original context class loader
+                Thread.currentThread().setContextClassLoader(originalClassLoader);
+            }
         }
     }
 
