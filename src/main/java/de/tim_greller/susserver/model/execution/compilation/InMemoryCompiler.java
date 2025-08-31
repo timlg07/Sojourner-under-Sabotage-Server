@@ -1,6 +1,8 @@
 package de.tim_greller.susserver.model.execution.compilation;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -161,10 +163,10 @@ public class InMemoryCompiler {
                     var classLoader = InMemoryCompiler.class.getClassLoader();
 
                     if (filter.allowDelegateLoadingOf(name)) {
-                        System.out.println("Delegate loading of " + name + " to parent class loader.");
+                        log.debug("Delegate loading of {} to parent class loader.", name);
                         return classLoader.loadClass(name);
                     }
-                    System.out.println("Prohibit class from delegating: " + name);
+                    log.debug("Prohibit class from delegating: {}", name);
 
                     try {
                         return findClass(name);
@@ -177,13 +179,14 @@ public class InMemoryCompiler {
         };
     }
 
+    // Only used for debugging
     private void writeToFile(byte[] bytes, String classId) {
         try {
             String path = "target/classes/" + classId + ".class";
-            System.out.println("Writing transformed class to " + path);
-            java.nio.file.Files.write(java.nio.file.Paths.get(path), bytes);
+            log.debug("Writing transformed class to {}", path);
+            Files.write(Paths.get(path), bytes);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error while writing transformed class to {}", classId, e);
         }
     }
 }

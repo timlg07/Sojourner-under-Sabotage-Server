@@ -6,10 +6,12 @@ import java.util.Objects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Debug {
     public static void log(String message, String classId, String methodName) {
-        System.out.println(" --- received message: "+message);
+        log.info(" --- received message: {}", message);
 
         InstrumentationTracker.trackLog(message, classId, methodName);
     }
@@ -51,7 +53,7 @@ public class Debug {
         try {
             message = ow.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             message = Objects.toString(object, "null");
         }
         log(message, classId, methodName);
