@@ -13,11 +13,13 @@ import static de.tim_greller.susserver.util.Utils.mapMap;
 
 import de.tim_greller.susserver.dto.LogEntry;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Tracks coverage information, i.e., which line was visited how many times.
  */
 // Needs to be public to be callable during test execution.
+@Slf4j
 public class InstrumentationTracker {
 
     private static final InstrumentationTracker INSTANCE = new InstrumentationTracker();
@@ -76,7 +78,7 @@ public class InstrumentationTracker {
             classTracker.trackVariableValueChanged(value, pVarIndex, methodName);
             classTrackers.put(pClassName, classTracker);
         }
-        System.out.println(pVarIndex + " " + pClassName);
+        log.debug("{} {}", pVarIndex, pClassName);
     }
     @SuppressWarnings("unused")
     public static void trackVar(final int value, final int pVarIndex, final String pClassName, final String methodName) {
@@ -104,7 +106,7 @@ public class InstrumentationTracker {
             classTracker.trackVariableDefinition(pVarIndex, methodName + "/" + pVarName, pVarDesc, methodName);
             classTrackers.put(pClassName, classTracker);
         }
-        System.out.println(pVarIndex + " " + pVarName + " " + pVarDesc + " " + pClassName+"::"+methodName);
+        log.debug("{} {} {} {}::{}", pVarIndex, pVarName, pVarDesc, pClassName, methodName);
     }
 
     public static void trackLog(String message, String pClassName, String methodName) {
@@ -195,7 +197,7 @@ public class InstrumentationTracker {
         void trackVariableValueChanged(final Object value, final int pVarIndex, final String methodName) {
             String varId = methodName + "/" + pVarIndex;
             if (!currentIndexToVarNameAndDescriptor.containsKey(varId)) {
-                System.out.println("No var def found for " + varId);
+                log.debug("No var def found for {}", varId);
                 return;
             }
             String varName = currentIndexToVarNameAndDescriptor.get(varId)[0];

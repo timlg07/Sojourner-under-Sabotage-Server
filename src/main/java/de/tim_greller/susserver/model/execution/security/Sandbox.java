@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * This class is derived from <a href="https://stackoverflow.com/a/24225075/6336728">this SO answer</a> which uses the
  * code of an old version of this file:
@@ -24,6 +26,7 @@ import java.util.WeakHashMap;
  * attempts (e.g. of the confined class itself) to release the confinement.
  */
 @SuppressWarnings("removal")
+@Slf4j
 public final class Sandbox {
 
     private Sandbox() {}
@@ -56,7 +59,7 @@ public final class Sandbox {
                         java.security.AccessControlContext acc =
                                 Sandbox.CHECKED_CLASS_LOADERS.get(class_.getClassLoader());
                         if (acc != null) {
-                            System.out.println("Checking permission for classloader " + class_.getClassLoader());
+                            log.debug("Checking permission for classloader {}", class_.getClassLoader());
                             acc.checkPermission(perm);
                         }
                     }
@@ -65,7 +68,7 @@ public final class Sandbox {
                     {
                         java.security.AccessControlContext acc = Sandbox.CHECKED_CLASSES.get(class_);
                         if (acc != null) {
-                            System.out.println("Checking permission for class " + class_);
+                            log.debug("Checking permission for class {}", class_);
                             acc.checkPermission(perm);
                         }
                     }
