@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.tim_greller.susserver.dto.TestStatus.IGNORED;
+
 import de.tim_greller.susserver.dto.TestDetailsDTO;
 import de.tim_greller.susserver.dto.TestStatus;
 import lombok.Getter;
@@ -53,8 +55,7 @@ public class TestRunListener implements TestExecutionListener {
             var status = testExecutionResult.getStatus();
 
             switch (status) {
-                case FAILED -> handleTestFailure(testIdentifier, testExecutionResult);
-                case ABORTED -> handleTestIgnored(testIdentifier);
+                case FAILED, ABORTED -> handleTestFailure(testIdentifier, testExecutionResult);
             }
         }
     }
@@ -94,10 +95,16 @@ public class TestRunListener implements TestExecutionListener {
         }
     }
 
+    @Override
+    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
+        handleTestIgnored(testIdentifier);
+    }
+
     private void handleTestIgnored(TestIdentifier testIdentifier) {
+        log.info("Ignored test ({})", testIdentifier);
         TestDetailsDTO testSuiteDetails = createTestSuiteDetails(testIdentifier);
         ignoredCount++;
-        testSuiteDetails.setTestStatus(TestStatus.IGNORED);
+        testSuiteDetails.setTestStatus(IGNORED);
     }
     
     private String getStackTrace(Throwable throwable) {
