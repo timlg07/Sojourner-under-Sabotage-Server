@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
-import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
-
 import de.tim_greller.susserver.dto.TestDetailsDTO;
 import de.tim_greller.susserver.dto.TestStatus;
 import lombok.Getter;
@@ -48,41 +45,6 @@ public class TestRunListener implements TestExecutionListener {
         }
     }
 
-    private TestDetailsDTO createTestSuiteDetails(TestIdentifier testIdentifier) {
-        var methodName = methodName(testIdentifier);
-        var testDetailsDTO = map.computeIfAbsent(methodName, k -> new TestDetailsDTO());
-        testDetailsDTO.setMethodName(methodName);
-
-        // Extract class name from the test identifier's unique ID or parent
-        var uniqueId = testIdentifier.getUniqueId();
-        var className = extractClassNameFromId(uniqueId);
-        
-        if (className != null) {
-            var allTokens = className.split("\\.");
-            var name = allTokens[allTokens.length - 1];
-            testDetailsDTO.setClassName(name);
-
-            var testSuite = name.split("_")[0];
-            testDetailsDTO.setTestSuiteName(testSuite);
-        }
-
-        return testDetailsDTO;
-    }
-    
-    private String extractClassNameFromId(String uniqueId) {
-        // JUnit 5 unique IDs typically look like:
-        // [engine:junit-jupiter]/[class:com.example.TestClass]/[method:testMethod()]
-        var classMarker = "[class:";
-        if (uniqueId.contains(classMarker)) {
-            int start = uniqueId.indexOf(classMarker) + classMarker.length();
-            int end = uniqueId.indexOf("]", start);
-            if (end > start) { // checks for end == -1 as well
-                return uniqueId.substring(start, end);
-            }
-        }
-        return null;
-    }
-
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testIdentifier.isTest()) {
@@ -90,11 +52,9 @@ public class TestRunListener implements TestExecutionListener {
             Optional.ofNullable(map.get(methodName)).ifPresent(TestDetailsDTO::setElapsedTime);
             var status = testExecutionResult.getStatus();
 
-            if (status == FAILED) {
-                handleTestFailure(testIdentifier, testExecutionResult);
-            }
-            if (status == ABORTED) {
-                handleTestIgnored(testIdentifier);
+            switch (status) {
+                case FAILED -> handleTestFailure(testIdentifier, testExecutionResult);
+                case ABORTED -> handleTestIgnored(testIdentifier);
             }
         }
     }
@@ -149,5 +109,37 @@ public class TestRunListener implements TestExecutionListener {
 
     private String methodName(TestIdentifier testIdentifier) {
         return testIdentifier.getDisplayName().replaceFirst("\\(.*$", "");
+    }
+
+    private TestDetailsDTO createTestSuiteDetails(TestIdentifier testIdentifier) {
+        var methodName = methodName(testIdentifier);
+        var testDetailsDTO = map.computeIfAbsent(methodName, k -> new TestDetailsDTO());
+        testDetailsDTO.setMethodName(methodName);
+
+        var className = extractClassNameFromId(testIdentifier.getUniqueId());
+        if (className != null) {
+            var allTokens = className.split("\\.");
+            var name = allTokens[allTokens.length - 1];
+            testDetailsDTO.setClassName(name);
+
+            var testSuite = name.split("_")[0];
+            testDetailsDTO.setTestSuiteName(testSuite);
+        }
+
+        return testDetailsDTO;
+    }
+
+    private String extractClassNameFromId(String uniqueId) {
+        // JUnit 5 unique IDs typically look like:
+        // [engine:junit-jupiter]/[class:com.example.TestClass]/[method:testMethod()]
+        var classMarker = "[class:";
+        if (uniqueId.contains(classMarker)) {
+            int start = uniqueId.indexOf(classMarker) + classMarker.length();
+            int end = uniqueId.indexOf("]", start);
+            if (end > start) { // checks for end == -1 as well
+                return uniqueId.substring(start, end);
+            }
+        }
+        return null;
     }
 }
