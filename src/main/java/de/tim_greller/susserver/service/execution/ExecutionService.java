@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static de.tim_greller.susserver.dto.TestStatus.FAILED;
+import static de.tim_greller.susserver.dto.TestStatus.PASSED;
 import static de.tim_greller.susserver.util.Utils.mapMap;
 
 import de.tim_greller.susserver.dto.GameProgressStatus;
@@ -32,8 +34,10 @@ import de.tim_greller.susserver.service.game.EventService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -59,13 +63,13 @@ public class ExecutionService {
         final var clientResultDto = new TestExecutionResultDTO();
         final Class<?> testClass = compile(componentName, userId);
         final var listener = new TestRunListener();
-        final Result r = run(testClass, listener);
+        final TestExecutionResult r = run(testClass, listener);
 
         boolean isDebugging = userGameProgressionRepository.findById(new UserKey(userService.requireCurrentUser())).orElseThrow().getStatus() == GameProgressStatus.DEBUGGING;
         if (r.wasSuccessful() && isDebugging) { // tests passed while in debug mode: check if really fixed
             Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
             var fallbackListener = new TestRunListener();
-            Result fallbackResult = run(fallbackTestClass, fallbackListener);
+            TestExecutionResult fallbackResult = run(fallbackTestClass, fallbackListener);
             if (fallbackResult.wasSuccessful()) {
                 clientResultDto.setHiddenTestsPassed(true);
                 eventService.publishAndHandleEvent(new ComponentFixedEvent(componentName));
@@ -75,7 +79,7 @@ public class ExecutionService {
                 for (Map.Entry<String, TestDetailsDTO> entry : fallbackListener.getMap().entrySet()) {
                     String methodName = entry.getKey();
                     TestDetailsDTO testDetails = entry.getValue();
-                    if (testDetails.getTestStatus() == TestStatus.FAILED) {
+                    if (testDetails.getTestStatus() == FAILED) {
                         testService.addHiddenTestMethodToUserTest(methodName, componentName, userId);
                         eventService.publishEvent(new ComponentTestsExtendedEvent(componentName, methodName));
                         // execute tests again.
@@ -89,7 +93,7 @@ public class ExecutionService {
         // OutputWriter.writeShellOutput(iTracker.getClassTrackers());
 
         clientResultDto.setTestClassName(testClass.getName());
-        clientResultDto.setTestStatus(r.wasSuccessful() ? TestStatus.PASSED : TestStatus.FAILED);
+        clientResultDto.setTestStatus(r.getStatus());
         clientResultDto.setTestDetails(listener.getMap());
         clientResultDto.setElapsedTime(listener.getTestSuiteElapsedTime());
         clientResultDto.setCoverage(iTracker.getCoverageForUser(userId));
@@ -104,14 +108,14 @@ public class ExecutionService {
             throws TestExecutionException, CompilationException, ClassLoadException, NotFoundException {
         Class<?> fallbackTestClass = compileFallbackTests(componentName, userId);
         var fallbackListener = new TestRunListener();
-        Result fallbackResult = run(fallbackTestClass, fallbackListener);
+        TestExecutionResult fallbackResult = run(fallbackTestClass, fallbackListener);
         if (fallbackResult.wasSuccessful()) {
             throw new IllegalStateException("Hidden tests passed, so no failing test can be added.");
         } else {
             for (Map.Entry<String, TestDetailsDTO> entry : fallbackListener.getMap().entrySet()) {
                 String methodName = entry.getKey();
                 TestDetailsDTO testDetails = entry.getValue();
-                if (testDetails.getTestStatus() == TestStatus.FAILED) {
+                if (testDetails.getTestStatus() == FAILED) {
                     testService.addHiddenTestMethodToUserTest(methodName, componentName, userId);
                     eventService.publishEvent(new ComponentTestsExtendedEvent(componentName, methodName));
                     // execute tests again.
@@ -166,10 +170,9 @@ public class ExecutionService {
                 ));
     }
 
-    private Result run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
-        var jUnitCore = new JUnitCore();
-        jUnitCore.addListener(listener);
-        var executionThread = new ExecutionThread(jUnitCore, testClass);
+    private TestExecutionResult run(Class<?> testClass, TestRunListener listener) throws TestExecutionException {
+        var launcher = LauncherFactory.create();
+        var executionThread = new ExecutionThread(launcher, testClass, listener);
         var timer = new Timer();
         var timeOutTask = new TimeOutTask(executionThread, timer);
         timer.schedule(timeOutTask, MAX_TEST_EXECUTION_TIME_SECONDS * 1000);
@@ -192,12 +195,52 @@ public class ExecutionService {
     @RequiredArgsConstructor
     private static class ExecutionThread extends Thread {
         @Getter
-        private Result result;
-        private final JUnitCore jUnitCore;
+        private TestExecutionResult result;
+        private final Launcher launcher;
         private final Class<?> testClass;
+        private final TestRunListener listener;
+        
         @Override
         public void run() {
-            result = jUnitCore.run(testClass);
+            // The custom class loader provided by the InMemoryCompiler
+            var testClassLoader = testClass.getClassLoader();
+            // Save the current thread's context class loader
+            var originalClassLoader = Thread.currentThread().getContextClassLoader();
+            try {
+                // Set the custom class loader as the context class loader for JUnit 5
+                Thread.currentThread().setContextClassLoader(testClassLoader);
+
+                // Create discovery request with the test class
+                var request = LauncherDiscoveryRequestBuilder.request()
+                    .selectors(DiscoverySelectors.selectClass(testClass))
+                    .build();
+                
+                launcher.registerTestExecutionListeners(listener);
+                launcher.execute(request);
+                
+                // Create a simple result indicating success
+                var allPass = listener.getMap().values().stream()
+                    .noneMatch(test -> test.getTestStatus() == FAILED);
+                result = new TestExecutionResult(allPass);
+            } finally {
+                // Restore original class loader
+                Thread.currentThread().setContextClassLoader(originalClassLoader);
+            }
+        }
+    }
+
+    // Simple result class to replace JUnit 4's Result
+    @RequiredArgsConstructor
+    @Getter
+    private static class TestExecutionResult {
+        private final boolean wasSuccessful;
+        
+        public boolean wasSuccessful() {
+            return wasSuccessful;
+        }
+
+        public TestStatus getStatus() {
+            return wasSuccessful ? PASSED : FAILED;
         }
     }
 
