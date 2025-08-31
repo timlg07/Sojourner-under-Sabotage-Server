@@ -14,7 +14,8 @@ public class ClassLoadingFilter {
             "java.math.",
             "java.text.",
             "java.time.",
-            "org.junit.",
+            "org.junit.jupiter.",
+            "org.junit.platform.",
 
             "de.tim_greller.susserver.model.execution.instrumentation."
     );
@@ -40,8 +41,7 @@ public class ClassLoadingFilter {
             "org.junit.internal.",
             "org.junit.runner.",
             "org.junit.runners.",
-            "org.junit.experimental.",
-            "org.junit.platform."
+            "org.junit.experimental."
     );
 
     private boolean isIn(String className, List<String> list) {
