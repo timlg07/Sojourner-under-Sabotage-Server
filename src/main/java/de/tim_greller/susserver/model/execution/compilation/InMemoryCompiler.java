@@ -25,7 +25,6 @@ import de.tim_greller.susserver.dto.SourceDTO;
 import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
-import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.IClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.IdentityClassTransformer;
 import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
@@ -139,8 +138,10 @@ public class InMemoryCompiler {
                 String classId = name + '#' + identifier;
 
                 // clear previous coverage information for this class
-                Optional.ofNullable(InstrumentationTracker.getInstance().getClassTrackers().get(classId))
-                        .ifPresent(InstrumentationTracker.ClassTracker::clear);
+                //Optional.ofNullable(InstrumentationTracker.getInstance().getClassTrackers().get(classId))
+                //        .ifPresent(InstrumentationTracker.ClassTracker::clear);
+                // do not clear here - already done when starting to execute.
+                // doing it here as well will clear the tracker once the class is defined, which happens on the first use, causing the info about the current test method being lost.
 
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
