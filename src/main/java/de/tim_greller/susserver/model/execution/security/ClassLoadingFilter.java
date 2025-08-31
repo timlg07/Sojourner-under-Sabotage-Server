@@ -38,7 +38,6 @@ public class ClassLoadingFilter {
             "java.lang.module.",
             "java.lang.ref.",
 
-            "org.junit.internal.",
             "org.junit.runner.",
             "org.junit.runners.",
             "org.junit.experimental."
