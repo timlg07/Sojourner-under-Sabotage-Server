@@ -300,8 +300,12 @@ function renderTestResultObject(obj) {
             `;
         } else if (details.trace != null) {
             r += `<br><small class="clr-error">Trace: <pre>${_e(details.trace)}</pre></small>`;
-        } else {
+        } else if (details.testStatus === "PASSED") {
             r += `<span class="clr-success">Passed!</span><br>`;
+        } else if (details.testStatus === "IGNORED") {
+            r += `<span class="clr-warning">Ignored</span><br>`;
+        } else {
+            r += `<span class="clr-error">Error</span><br>`;
         }
 
         let logs = obj.logs[window.cutClassName + '#' + window.userId] ?? [];

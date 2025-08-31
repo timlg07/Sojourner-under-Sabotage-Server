@@ -109,6 +109,9 @@
 #execution-result .clr-success {
     color: #30ef5f;
 }
+#execution-result .clr-warning {
+    color: #f3b41c;
+}
 #execution-result .flex {
     display: flex;
     gap: .5rem;
