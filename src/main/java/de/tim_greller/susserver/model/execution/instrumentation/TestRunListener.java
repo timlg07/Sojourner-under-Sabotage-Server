@@ -49,7 +49,7 @@ public class TestRunListener implements TestExecutionListener {
     }
 
     private TestDetailsDTO createTestSuiteDetails(TestIdentifier testIdentifier) {
-        var methodName = testIdentifier.getDisplayName();
+        var methodName = methodName(testIdentifier);
         var testDetailsDTO = map.computeIfAbsent(methodName, k -> new TestDetailsDTO());
         testDetailsDTO.setMethodName(methodName);
 
@@ -86,7 +86,7 @@ public class TestRunListener implements TestExecutionListener {
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testIdentifier.isTest()) {
-            var methodName = testIdentifier.getDisplayName();
+            var methodName = methodName(testIdentifier);
             Optional.ofNullable(map.get(methodName)).ifPresent(TestDetailsDTO::setElapsedTime);
             var status = testExecutionResult.getStatus();
 
@@ -106,7 +106,7 @@ public class TestRunListener implements TestExecutionListener {
 
     @SuppressWarnings("removal")
     private void handleTestFailure(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        var methodName = testIdentifier.getDisplayName();
+        var methodName = methodName(testIdentifier);
         TestDetailsDTO testSuiteDetails = map.computeIfAbsent(methodName, k -> new TestDetailsDTO());
         testSuiteDetails.setMethodName(methodName);
         
@@ -145,5 +145,9 @@ public class TestRunListener implements TestExecutionListener {
         var pw = new PrintWriter(sw);
         throwable.printStackTrace(pw);
         return sw.toString();
+    }
+
+    private String methodName(TestIdentifier testIdentifier) {
+        return testIdentifier.getDisplayName().replaceFirst("\\(.*$", "");
     }
 }
