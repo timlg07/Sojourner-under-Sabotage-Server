@@ -137,12 +137,6 @@ public class InMemoryCompiler {
 
                 String classId = name + '#' + identifier;
 
-                // clear previous coverage information for this class
-                //Optional.ofNullable(InstrumentationTracker.getInstance().getClassTrackers().get(classId))
-                //        .ifPresent(InstrumentationTracker.ClassTracker::clear);
-                // do not clear here - already done when starting to execute.
-                // doing it here as well will clear the tracker once the class is defined, which happens on the first use, causing the info about the current test method being lost.
-
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
                 bytes = transformer.transform(bytes, classId);

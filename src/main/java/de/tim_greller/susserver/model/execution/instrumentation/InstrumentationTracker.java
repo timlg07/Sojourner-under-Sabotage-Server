@@ -110,14 +110,14 @@ public class InstrumentationTracker {
     }
 
     public static void trackLog(String message, String pClassName, String methodName) {
-        classTrackers.computeIfAbsent(pClassName, k -> new ClassTracker());
-        classTrackers.get(pClassName).trackLog(message, methodName);
+        classTrackers.computeIfAbsent(pClassName, k -> new ClassTracker())
+            .trackLog(message, methodName);
     }
 
     @SuppressWarnings("unused")
     public static void trackEnterTestMethod(String pTestClassName, String pTestMethodName, String pCutClassId) {
-        classTrackers.computeIfAbsent(pCutClassId, k -> new ClassTracker());
-        classTrackers.get(pCutClassId).trackEnterTestMethod(pTestMethodName);
+        classTrackers.computeIfAbsent(pCutClassId, k -> new ClassTracker())
+            .trackEnterTestMethod(pTestMethodName);
     }
 
     public Map<String, Map<Integer, Integer>> getCoverage() {
