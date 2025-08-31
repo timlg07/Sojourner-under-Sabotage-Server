@@ -36,15 +36,7 @@ public class ClassLoadingFilter {
             "java.lang.management.",
             "java.lang.constant.",
             "java.lang.module.",
-            "java.lang.ref.",
-
-            "org.junit.internal.",
-            "org.junit.runner.",
-            "org.junit.runners.",
-            "org.junit.experimental.",
-            "org.junit.platform.commons.util.",
-            "org.junit.platform.commons.function.",
-            "org.junit.platform.engine.support."
+            "java.lang.ref."
     );
 
     private boolean isIn(String className, List<String> list) {
