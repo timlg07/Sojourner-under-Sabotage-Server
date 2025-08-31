@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Debug {
     public static void log(String message, String classId, String methodName) {
-        log.info(" --- received message: {}", message);
+        log.info(" --- received message in [{}::{}]: {}", classId, methodName, message);
 
         InstrumentationTracker.trackLog(message, classId, methodName);
     }

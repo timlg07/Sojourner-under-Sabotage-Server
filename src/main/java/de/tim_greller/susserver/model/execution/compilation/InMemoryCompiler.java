@@ -25,7 +25,6 @@ import de.tim_greller.susserver.dto.SourceDTO;
 import de.tim_greller.susserver.exception.CompilationException;
 import de.tim_greller.susserver.model.execution.JavaByteObject;
 import de.tim_greller.susserver.model.execution.JavaStringObject;
-import de.tim_greller.susserver.model.execution.instrumentation.InstrumentationTracker;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.IClassTransformer;
 import de.tim_greller.susserver.model.execution.instrumentation.transformer.IdentityClassTransformer;
 import de.tim_greller.susserver.model.execution.security.ClassLoadingFilter;
@@ -137,10 +136,6 @@ public class InMemoryCompiler {
                 byte[] bytes = compiledClasses.get(name).getBytes();
 
                 String classId = name + '#' + identifier;
-
-                // clear previous coverage information for this class
-                Optional.ofNullable(InstrumentationTracker.getInstance().getClassTrackers().get(classId))
-                        .ifPresent(InstrumentationTracker.ClassTracker::clear);
 
                 // transform class to add instrumentation
                 IClassTransformer transformer = transformers.getOrDefault(name, defaultTransformer);
