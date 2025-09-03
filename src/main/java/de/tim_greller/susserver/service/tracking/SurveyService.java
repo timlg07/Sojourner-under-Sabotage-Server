@@ -33,8 +33,7 @@ public class SurveyService {
         var active = settingsRepository.findById(SURVEY_ACTIVE_KEY)
                 .map(GlobalSettingsEntity::getSettingsValue)
                 .orElse(null);
-        return Boolean.parseBoolean(active) &&
-                settingsRepository.findById(SURVEY_URL_KEY).isPresent();
+        return Boolean.parseBoolean(active);
     }
 
     public void setSurveyActive(boolean active) {
