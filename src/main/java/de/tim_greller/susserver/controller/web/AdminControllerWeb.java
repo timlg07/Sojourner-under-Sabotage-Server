@@ -27,12 +27,15 @@ public class AdminControllerWeb {
     @GetMapping("/admin")
     public String admin(Model model) {
         model.addAttribute("surveyUrl", surveyService.getSurveyUrl());
+        model.addAttribute("showSurvey", surveyService.isSurveyActive());
         return "admin";
     }
 
-    @PostMapping("/admin/survey-url")
-    public String surveyUrl(@Param("surveyUrl") String surveyUrl, RedirectAttributes redirectAttributes) {
+    @PostMapping("/admin/survey")
+    public String surveyUrl(@Param("surveyUrl") String surveyUrl,
+                            @Param("showSurvey") boolean showSurvey) {
         surveyService.setSurveyUrl(surveyUrl);
+        surveyService.setSurveyActive(showSurvey);
         return "redirect:/admin";
     }
 }
