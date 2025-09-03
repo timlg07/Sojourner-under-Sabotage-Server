@@ -19,8 +19,24 @@
 <body>
 <main>
     <h1>Admin Dashboard</h1>
-    <p>Monitor resources using Java Melody: <a th:href="@{/monitoring}">/monitoring</a>
-    <br>Download data: <a href="/api/admin/data" id="download">get JSON file</a></p>
+    <p>Monitor resources using Java Melody:<br><a th:href="@{/monitoring}">/monitoring</a></p>
+    <p>Download data:<br><a href="/api/admin/data" id="download">get JSON file</a></p>
+    <form th:action="@{/admin/survey}" method="POST">
+        <div class="form-entry">
+            <label for="surveyUrl">Survey URL</label>
+            <input type="text" id="surveyUrl" th:name="surveyUrl" th:value="${surveyUrl}">
+            <small>
+                The username of the submitting user is appended to the URL.
+                Using a query parameter like <code>&entry.1234=</code> at the end of the URL,
+                it can be automatically inserted in a field.
+            </small>
+            <div class="checkbox-field">
+                <input type="checkbox" id="showSurvey" name="showSurvey" th:checked="${showSurvey}">
+                <label for="showSurvey">Survey link active</label>
+            </div>
+            <input type="submit" class="button" value="Change">
+        </div>
+    </form>
     <form th:action="@{/admin/create-accounts}" method="POST" th:unless="${createdUsers}">
         <div class="form-entry">
             <label for="amount">Create user accounts</label>

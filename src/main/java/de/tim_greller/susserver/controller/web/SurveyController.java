@@ -1,6 +1,7 @@
 package de.tim_greller.susserver.controller.web;
 
 import de.tim_greller.susserver.service.auth.UserService;
+import de.tim_greller.susserver.service.tracking.SurveyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,13 +10,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class SurveyController {
 
-    private static final String SURVEY_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe7ZGVMqGEVhLv-3b7WaindB0g71J-rfisdq8WIEQkpIw1MvQ/viewform?usp=pp_url&entry.784200635=";
     private final UserService userService;
+    private final SurveyService surveyService;
 
     @GetMapping("/survey")
     public String showSurvey() {
         String userName = userService.requireCurrentUserId();
-        return "redirect:" + SURVEY_URL + userName;
+        String surveyUrl = surveyService.getSurveyUrl();
+
+        if (surveyUrl == null) {
+            return "/error";
+        } else {
+            return "redirect:" + surveyUrl + userName;
+        }
     }
 
 }

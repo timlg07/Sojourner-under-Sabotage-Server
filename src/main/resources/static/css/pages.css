@@ -121,6 +121,16 @@ form .form-entry {
     color: #fff;
 }
 
+.checkbox-field {
+    display: flex;
+    gap: .5rem;
+    margin-block-start: 1rem;
+}
+input[type="checkbox"] {
+    margin: 0;
+    width: fit-content;
+}
+
 form input {
     font-family: var(--pixel-font);
     font-size: 1rem;
