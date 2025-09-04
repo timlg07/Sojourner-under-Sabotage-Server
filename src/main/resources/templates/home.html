@@ -16,14 +16,54 @@
     <meta name="theme-color" content="#000000">
 </head>
 <body>
-<main class="teaser">
-    <div th:if="${param.logout}" class="logout">
-        You have been logged out.
+<main>
+    <div class="teaser">
+        <div th:if="${param.logout}" class="logout">
+            You have been logged out.
+        </div>
+        <h1>Sojourner under<br><span class="orange">Sabotage</span></h1>
+        <img th:src="@{/images/sus-teaser.png}" alt="Sojourner under Sabotage" draggable="false" />
+        <a th:href="@{/reset}" class="button">New game</a>
+        <a th:href="@{/game}" class="btn-small">Continue</a>
     </div>
-    <h1>Sojourner under<br><span class="orange">Sabotage</span></h1>
-    <img th:src="@{/images/sus-teaser.png}" alt="Sojourner under Sabotage" draggable="false" />
-    <a th:href="@{/reset}" class="button">New game</a>
-    <a th:href="@{/game}" class="btn-small">Continue</a>
+    <div class="intro">
+        <h2><span class="orange">You were never meant to be awake.</span></h2>
+        <p>
+            Aboard the Sojourner, humanity’s last hope drifts silently between the stars,
+            bound for a distant solar system where salvation waits:
+            A material powerful enough to bind greenhouse gases and heal Earth’s poisoned skies.
+            The journey should have lasted decades, your body preserved in cryogenic sleep until arrival.
+        </p><p>
+            <strong>But something went wrong.</strong><br>
+            Your pod cracked open many years too early, due to a software error in the capsules code.
+            Someone — or something — has been tampering with the ship.
+            More and more subtle faults appear in critical components, threatening the mission’s survival.
+            Are these random malfunctions&hellip; or deliberate sabotage?
+        </p><p>
+            Gladly, you are not entirely alone.<br>
+            A service robot accompanies you, guiding and assisting as you secure each system.
+            With the power of automated tests, you can detect bugs and repair sabotaged components before they cause any further harm.
+            <!--Yet the questions remains: who is behind these attacks, and how do they breach the very heart of the Sojourner?-->
+        </p><!--p>
+            Every test you write, every failure you catch, brings you closer to the truth.
+            And to the realization that not all allies can be trusted.
+        </p-->
+    </div>
+    <div class="research">
+        <h2>Research</h2>
+        <article>
+            <h3>Sojourner under Sabotage: A Serious Testing and Debugging Game</h3>
+            <p class="citation">Philipp Straubinger, Tim Greller, and Gordon Fraser. 2025. Sojourner under Sabotage: A Serious Testing and Debugging Game. In Proceedings of the 33rd ACM International Conference on the Foundations of Software Engineering (FSE Companion '25). Association for Computing Machinery, New York, NY, USA, 738–748.</p>
+            <p class="abstract">Teaching software testing and debugging is a critical yet challenging task in computer science education, often hindered by low student engagement and the perceived monotony of these activities. Sojourner under Sabotage, a browser-based serious game, reimagines this learning experience by blending education with an immersive and interactive storyline. Players take on the role of a spaceship crew member, using unit testing and debugging techniques to identify and repair sabotaged components across seven progressively challenging levels. A study with 79 students demonstrates that the game is a powerful tool for enhancing motivation, engagement, and skill development. These findings underscore the transformative potential of serious games in making essential software engineering practices accessible and enjoyable.</p>
+            <p><strong>Read more: <a href="https://doi.org/10.1145/3696630.3727231" target="_blank" rel="noopener" title="Sojourner under Sabotage: A Serious Testing and Debugging Game">https://doi.org/10.1145/3696630.3727231</a></strong></p>
+        </article>
+        <article>
+            <h3>Teaching Software Testing and Debugging with the Serious Game Sojourner under Sabotage</h3>
+            <p class="citation">Philipp Straubinger, Tim Greller, and Gordon Fraser. 2025. Teaching Software Testing and Debugging with the Serious Game Sojourner under Sabotage. In Proceedings of the 34th ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA Companion '25). Association for Computing Machinery, New York, NY, USA, 16–20.</p>
+            <p class="abstract">Software testing and debugging are often seen as tedious, making them challenging to teach effectively. We present Sojourner under Sabotage, a browser-based serious game that enhances learning through interactive, narrative-driven challenges. Players act as spaceship crew members, using unit tests and debugging techniques to fix sabotaged components. Sojourner under Sabotage provides hands-on experience with the real-world testing framework JUnit, improving student engagement, test coverage, and debugging skills.</p>
+            <p><strong>Read more: <a href="https://doi.org/10.1145/3713081.3731730" target="_blank" rel="noopener" title="Sojourner under Sabotage: A Serious Testing and Debugging Game">https://doi.org/10.1145/3713081.3731730</a></strong></p>
+        </article>
+    </div>
 </main>
 <footer id="legal-and-credits">
     <h2 id="legal">Legal</h2>
