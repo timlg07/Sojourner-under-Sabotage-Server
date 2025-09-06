@@ -14,8 +14,9 @@ public class ClassLoadingFilter {
             "java.math.",
             "java.text.",
             "java.time.",
-            "org.junit.jupiter.",
-            "org.junit.platform.",
+
+            "org.junit.",
+            "org.hamcrest.",
 
             "de.tim_greller.susserver.model.execution.instrumentation."
     );

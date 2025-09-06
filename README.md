@@ -1,6 +1,7 @@
 # Sojourner under Sabotage - Server
 ## Create the Unity build
-Build the Unity project with WebGL as target platform. Use `/src/main/resources/static/unity/` as build output directory.  
+Build the Unity project with WebGL as the target platform. 
+Use `/src/main/resources/static/unity/` as build output directory.  
 The source code or a prebuilt export can be found in the Sojourner-under-Sabotage-Game repository.
 
 ## Webpack Install and Build
@@ -15,6 +16,11 @@ The source code or a prebuilt export can be found in the Sojourner-under-Sabotag
 
 Now the server runs and the frontend can be accessed at the port configured in the `application.properties`.
 
+
+## Common Deployment Errors and Solutions
+- Duplicate mapping after renaming/moving a controller ➡ `mvn clean`
+- Package org.junit.jupiter.api does not exist ➡ update the `jarsToInclude` setting in the application.properties
+- The `localhost.date.log` file is nearly empty ➡ look into `catalina.out`
 
 ## Test the API
 ```shell

@@ -153,13 +153,20 @@ public class InMemoryCompiler {
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {
                 synchronized (getClassLoadingLock(name)) {
-                    // using the parent class loader ({@code super}) does only work locally, not for the deployed WAR.
+                    // using the parent class loader ({@code super}) does only work locally, not when deployed on Tomcat.
                     // So use the web applications class loader instead:
                     var classLoader = InMemoryCompiler.class.getClassLoader();
 
                     if (filter.allowDelegateLoadingOf(name)) {
-                        log.debug("Delegate loading of {} to parent class loader.", name);
-                        return classLoader.loadClass(name);
+                        try {
+                            log.debug("Delegate loading of {} to the web application's class loader.", name);
+                            return classLoader.loadClass(name);
+                        } catch (NoClassDefFoundError e) {
+                            log.debug("NoClassDefFoundError // Delegate loading of {} to parent class loader.", name);
+                            // For some reason the `org.junit.internal.AssumptionViolatedException` can only be
+                            // loaded with the {@code super} class loader, when the app is deployed on Tomcat.
+                            return super.loadClass(name);
+                        }
                     }
                     log.debug("Prohibit class from delegating: {}", name);
 
