@@ -22,7 +22,7 @@ p {
         color: #000 !important;
     }
 
-    h1, p, table thead {
+    h1, p, table thead, form {
         display: none;
     }
 
