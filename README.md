@@ -2,7 +2,7 @@
 ## Create the Unity build
 Build the Unity project with WebGL as the target platform. 
 Use `/src/main/resources/static/unity/` as build output directory.  
-The source code or a prebuilt export can be found in the Sojourner-under-Sabotage-Game repository.
+The source code or a prebuilt export can be found in the [Sojourner-under-Sabotage-Game](../../../Sojourner-under-Sabotage-Game) repository.
 
 ## Webpack Install and Build
 - switch to `/src/main/js/`
