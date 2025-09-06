@@ -118,8 +118,14 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChainWeb(HttpSecurity http) throws Exception {
             return http
                     .authorizeHttpRequests((requests) -> requests
-                            .requestMatchers(mvcPattern("/", "/home", "/register", "/error", "/login", "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico")).permitAll()
-                            .requestMatchers(mvcPattern("/monitoring", "/monitoring/**", "admin", "/admin/**")).hasAuthority("ADMIN")
+                            .requestMatchers(mvcPattern(
+                                    "/", "/home", "/register", "/error", "/login",
+                                    "/css/**", "/js/**", "/images/**", "/fonts/**",
+                                    "/favicon.ico", "/robots.txt"
+                            )).permitAll()
+                            .requestMatchers(mvcPattern(
+                                    "/monitoring", "/monitoring/**", "admin", "/admin/**"
+                            )).hasAuthority("ADMIN")
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form
