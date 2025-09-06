@@ -209,6 +209,7 @@ small,
     margin: 0;
     color: #ff9c28;
     letter-spacing: 1px;
+    line-height: 1.25;
 }
 .research article {
     padding: 1rem;
