@@ -5,7 +5,6 @@ import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static de.tim_greller.susserver.dto.TestStatus.IGNORED;
@@ -81,12 +80,39 @@ public class TestRunListener implements TestExecutionListener {
         testSuiteDetails.setTestStatus(TestStatus.FAILED);
 
         if (exc instanceof AssertionError assertionError) {
-            Matcher matcher = Pattern
-                  .compile("^expected:\\s?<(?<expected>.*)> but was:\\s?<(?<actual>.*)>$")
-                  .matcher(assertionError.getMessage());
+            // Handle assertEquals / assertTrue / assertFalse / assertNull violation
+            var matcher = Pattern
+                    .compile("^expected:\\s?<(?<expected>.*)> but was:\\s?<(?<actual>.*)>$")
+                    .matcher(assertionError.getMessage());
             if (matcher.find()) {
                 testSuiteDetails.setExpectedTestResult(matcher.group("expected"));
                 testSuiteDetails.setActualTestResult(matcher.group("actual"));
+                return;
+            }
+            // Handle assertNotEquals violation
+            matcher = Pattern.compile("^expected:\\s?not equal but was:\\s?<(?<actual>.*)>$")
+                    .matcher(assertionError.getMessage());
+            if (matcher.find()) {
+                var actual = matcher.group("actual");
+                testSuiteDetails.setExpectedTestResult("anything else, but not " + actual);
+                testSuiteDetails.setActualTestResult(actual);
+                return;
+            }
+            // Handle assertNotNull violation
+            matcher = Pattern.compile("^expected: not <null>$").matcher(assertionError.getMessage());
+            if (matcher.find()) {
+                testSuiteDetails.setExpectedTestResult("not null");
+                testSuiteDetails.setActualTestResult("null");
+                return;
+            }
+            // Handle assertArrayEquals violation
+            matcher = Pattern.compile("^array contents differ at index \\[(?<index>.*)], expected: <(?<expected>.*)> but was: <(?<actual>.*)>$")
+                    .matcher(assertionError.getMessage());
+            if (matcher.find()) {
+                testSuiteDetails.setExpectedTestResult(
+                        matcher.group("expected") + " at index [" + matcher.group("index") + "]");
+                testSuiteDetails.setActualTestResult(matcher.group("actual"));
+                return;
             }
         } else if (exc instanceof java.security.AccessControlException ace) {
             testSuiteDetails.setAccessDenied(ace.getPermission().getName());
