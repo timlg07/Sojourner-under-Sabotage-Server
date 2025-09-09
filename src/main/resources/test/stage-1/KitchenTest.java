@@ -35,11 +35,11 @@ public class KitchenTest {
         Kitchen kitchen = new Kitchen();
         kitchen.addIngredient("flour", 100);
         assertThrows(
-                "Not enough flour available.",
                 IllegalArgumentException.class,
                 () -> {
                     kitchen.removeIngredient("flour", 101);
-                }
+                },
+                "Not enough flour available."
         );
     }
 
@@ -86,11 +86,11 @@ public class KitchenTest {
         // Be sure to get enough rice tho
 
         assertThrows(
-                "Not enough rice available.",
                 IllegalArgumentException.class,
                 () -> {
                     kitchen.cookRecipe(recipe);
-                }
+                },
+                "Not enough rice available."
         );
     }
 
