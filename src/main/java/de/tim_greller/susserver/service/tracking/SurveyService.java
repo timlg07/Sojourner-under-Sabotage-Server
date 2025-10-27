@@ -65,6 +65,19 @@ public class SurveyService {
         return getFinalSurveyUrl();
     }
 
+    public String getSurveyName() {
+        var userSettings = userSettingsService.getUserSettings();
+        if (userSettings.getLastSurvey() == null) {
+            return "Pre-Questionnaire";
+        }  else {
+            if (!userSettings.getLastSurvey().equals("f")) {
+                return "Post-Questionnaire";
+            } else {
+                return "Feedback-Survey";
+            }
+        }
+    }
+
     public void setSurveyUrl(String surveyUrl) {
         var entity = GlobalSettingsEntity.builder()
                 .settingsKey(SURVEY_URL_KEY)
