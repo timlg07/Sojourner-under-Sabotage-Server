@@ -29,6 +29,7 @@ import de.tim_greller.susserver.service.execution.ExecutionService;
 import de.tim_greller.susserver.service.execution.TestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,7 @@ public class ComponentStatusService {
     private final CutService cutService;
 
 
+    @Transactional
     public ComponentStatusEntity getComponentStatus(String componentName, String userId) {
         return componentStatusRepository.findByKey(componentName, userId)
                 .orElseGet(() -> {
@@ -59,7 +61,13 @@ public class ComponentStatusService {
                                     .stage(1)
                                     .testsActivated(false)
                                     .build();
-                            return componentStatusRepository.save(e);
+                            try {
+                                return componentStatusRepository.save(e);
+                            } catch (DataIntegrityViolationException ignored) {
+                                // catch race condition causing 2 objects in detached state to be saved at the same time,
+                                // leading to a duplicate key constraint violation.
+                                return componentStatusRepository.findByKey(componentName, userId).orElseThrow();
+                            }
                         }
                 );
     }
@@ -70,11 +78,11 @@ public class ComponentStatusService {
      * @param event The event to handle.
      * @return true if the testsActivated flag was changed, false if it was already active before.
      */
+    @Transactional
     boolean handleComponentTestsActivated(ComponentTestsActivatedEvent event) {
-        final String componentName = event.getComponentName();
+        final var componentName = event.getComponentName();
         log.info("Component tests activated for component {}", componentName);
-        final ComponentStatusEntity componentStatus =
-                getComponentStatus(componentName, userService.requireCurrentUserId());
+        final var componentStatus = getComponentStatus(componentName, userService.requireCurrentUserId());
         if (componentStatus.isTestsActivated()) {
             log.info("Component tests already activated for component {}", componentName);
             return false;
