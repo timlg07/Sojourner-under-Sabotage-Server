@@ -408,7 +408,7 @@ const execute = async () => {
 
             renderTestResultObject(obj);
             renderCoveragePercentage(lineCoverageNumbers);
-            updateActivateButtonState(componentName);
+            updateActivateButtonState(data);
 
             const isInTestState = gameProgress.status === 'TEST' && gameProgress.componentName === componentName;
             const canNearlyActivate = isInTestState && data.testResult?.testStatus === 'PASSED';
@@ -512,9 +512,8 @@ async function getComponentData(componentName, useCache = true) {
     return data;
 }
 
-async function updateActivateButtonState(componentName) {
+function updateActivateButtonState(data) {
     const btn = document.getElementById('editor-activate-test-btn');
-    const data = await getComponentData(componentName);
     const className = window.cutClassName + '#' + window.userId;
 
     btn.style.display = gameProgress?.status === 'TEST' ? 'block' : 'none';
@@ -553,10 +552,10 @@ async function activateTests() {
     window.es.sendEvent(event);
     const data = await getComponentData(componentName);
 
-    constrain([], 'test');
     execBtn.disabled = true;
-    updateActivateButtonState(componentName);
+    updateActivateButtonState(data);
     renderResult(`<p>Test activated for ${componentName}.</p>`);
+    constrain([], 'test');
 
     Popup.instance.open('tests activated').onClose(closeEditor);
 }
@@ -609,7 +608,7 @@ window.openEditor = async function (componentName) {
         renderTestResultObject(currentComponentData.testResult);
     }
 
-    updateActivateButtonState(componentName);
+    updateActivateButtonState(currentComponentData);
     updateResetButtonState(componentName);
     if (gameProgress?.status !== 'TESTS_ACTIVE') {
         execBtn.disabled = false;
