@@ -87,11 +87,19 @@ public class GameProgressionService {
     }
 
     private void handleGameStarted(GameStartedEvent gameStartedEvent) {
+        var gameProgression = userGameProgressionRepository
+                .findById(currentUser())
+                .orElseGet(() -> {
+                    var user = currentUser().getUser();
+                    System.out.println("handleGameStarted called for user without game progression. User=" + user.getUsername());
+                    initGameProgression(user);
+                    return userGameProgressionRepository.findById(currentUser()).orElseThrow();
+                });
+
         // handle TESTS_ACTIVE state
         gameLoop();
 
         // handle DESTROYED and MUTATED states
-        var gameProgression = userGameProgressionRepository.findById(currentUser()).orElseThrow();
         if (List.of(DESTROYED, MUTATED, DEBUGGING).contains(gameProgression.getStatus())) {
             // RESET game progression to TEST_ACTIVE, so that test failures will trigger
             gameProgression.setStatus(TESTS_ACTIVE);
@@ -125,6 +133,7 @@ public class GameProgressionService {
         if (newProgressionOpt.isEmpty()) {
             // TODO: handle game finished on max level reached
             eventService.publishEvent(new GameFinishedEvent());
+            System.out.println("Last progression reached - Game finished");
             return;
         }
         var newProgression = newProgressionOpt.get();
